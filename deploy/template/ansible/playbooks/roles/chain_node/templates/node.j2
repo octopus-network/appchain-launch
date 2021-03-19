@@ -1,0 +1,19 @@
+[Unit]
+Description=Validator Node
+
+[Service]
+User={{ user }}
+Group={{ group }}
+WorkingDirectory={{ user_home }}
+ExecStart={{ user_bin }} \
+  --base-path {{ chain_data_dir }} \
+  --chain "{{ user_home }}/chainSpec.json" \
+  --port 30333 \
+  --ws-port 9944 \
+  --ws-external \
+  --rpc-port 9933 \
+  --rpc-methods Unsafe \
+  --rpc-external \
+  --node-key-file {{ node_key_priv_file }} \
+  --validator \
+  --rpc-cors all

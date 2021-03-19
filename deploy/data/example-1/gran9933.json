@@ -1,0 +1,10 @@
+{
+  "jsonrpc":"2.0",
+  "id":1,
+  "method":"author_insertKey",
+  "params": [
+    "gran",
+    "promote powder shrimp doctor spatial poet popular cliff dumb adult simple sustain",
+    "0x82c2c3e118e13928696cf1d3485faa00f37a6099b9e21bd744d19dd7b440d4e7"
+  ]
+}

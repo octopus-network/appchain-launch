@@ -1,0 +1,15 @@
+
+- name: add group
+  group:
+    name: '{{ group }}'
+  become: true
+  tags:
+    system-accounts
+
+- name: add user
+  user:
+    name: '{{ user }}'
+    group: '{{ group }}'
+  become: true
+  tags:
+    system-accounts

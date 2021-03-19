@@ -1,0 +1,22 @@
+{
+  "git": {
+    "repo": "https://github.com/substrate-developer-hub/substrate-node-template.git",
+    "version": "master",
+    "bin": "node-template",
+    "chain": "chainSpecRaw.json",
+    "bootnodes": []
+  },
+  "cloud": {
+    "type": "alicloud",
+    "access_key": "",
+    "secret_key": "",
+    "region": "ap-northeast-1",
+    "instance_type": "ecs.g6.xlarge",
+    "vm": {
+      "bandwidth": { "out": 10 },
+      "disk": { "category": "essd" },
+      "cpu": 4,
+      "memory": 8
+    }
+  }
+}

@@ -1,0 +1,13 @@
+
+git_repo: "{{ git.repo }}"
+git_version: "{{ git.version }}"
+
+user: "{{ user.user }}"
+group: "{{ user.group }}"
+user_home: "/home/{{ user.user }}"
+
+# node_home: "{{ '{{' }} user_home {{ '}}' }}/{{ git.bin }}"
+# node_bin: "{{ '{{' }} user_home {{ '}}' }}/{{ git.bin }}/target/release/{{ git.bin }}"
+node_home: "{{ '{{' }} ansible_env.HOME {{ '}}' }}/{{ user.user }}"
+node_bin: "{{ '{{' }} ansible_env.HOME {{ '}}' }}/{{ user.user }}/target/release/{{ git.bin }}"
+user_bin: "{{ '{{' }} user_home {{ '}}' }}/{{ git.bin }}"
