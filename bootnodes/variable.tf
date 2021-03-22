@@ -21,6 +21,18 @@ variable "region" {
 }
 
 
+variable "chain_spec" {
+  description = "Specifies which chain specification to use"
+  type        = string
+  default     = ""
+}
+
+variable "p2p_peer_ids" {
+  description = "Subtrate node identity file (node libp2p key)"
+  type        = list(string)
+  default     = []
+}
+
 variable "p2p_port" {
   description = "Specifies the port that your node will listen for p2p traffic on"
   type        = string
@@ -39,19 +51,16 @@ variable "ws_port" {
   default     = 9944
 }
 
+variable "base_image" {
+  description = "Pull base image from  Docker Hub or a different registry"
+  type        = string
+}
 
-variable "chain_spec" {
-  description = "Specifies which chain specification to use"
+variable "start_cmd" {
+  description = "No need to set if ENTRYPOINT is used, otherwise fill in the start command"
   type        = string
   default     = ""
 }
-
-variable "p2p_peer_ids" {
-  description = "Subtrate node identity file (node libp2p key)"
-  type        = list(string)
-  default     = []
-}
-
 
 variable "inventory_template" {
   description = "Ansible inventory template file"

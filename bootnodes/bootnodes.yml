@@ -60,18 +60,10 @@
         mode: '0755'
       become: yes
 
-    - name: Download docker image with check (sha256)
-      get_url:
-        url: https://transfer-001.oss-cn-beijing.aliyuncs.com/substrate/octopus-seashell.3.0.0.tar
-        dest: '{{ ansible_env.HOME }}/seashell/octopus-seashell.3.0.0.tar'
-        checksum: sha256:12870695422e1d22c4f789b38e5680bfaa489a0fbbdf9ee4188269393e8ccf44
-      become: yes
-
-    - name: Load image from archive
+    - name: Pull docker image
       community.docker.docker_image:
-        name: octopus/seashell:3.0.0
-        load_path: '{{ ansible_env.HOME }}/seashell/octopus-seashell.3.0.0.tar'
-        source: load
+        name: '{{ base_image }}'
+        source: pull
       become: yes
 
     - name: Download wasm runtime with check (sha256)

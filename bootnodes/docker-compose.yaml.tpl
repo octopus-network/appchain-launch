@@ -1,9 +1,12 @@
 version: "3.8"
 services:
   seashell:
-    image: octopus/seashell:3.0.0
+    image: {{ base_image }}
     container_name: seashell
     command: >
+{% if start_cmd is defined and start_cmd|length %}
+      {{ start_cmd }}
+{% endif %}
       --base-path /home/seashell/chain_data
       --chain /home/seashell/chainSpec.json
       --node-key-file /home/seashell/.node_key
