@@ -1,0 +1,110 @@
+
+- hosts: all
+  tasks:
+    - name: Install basic list of packages
+      apt:
+        name: "{{ packages }}"
+        state: present
+        update_cache: yes
+      vars:
+        packages:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gnupg
+          - lsb-release
+      become: yes
+
+    - name: Update pip3
+      command: pip3 install --upgrade pip
+
+    - name: Install docker docker-compoe python package
+      pip:
+        name: docker-compose
+        executable: pip3
+      become: yes
+
+    - name: Add docker GPG key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+      become: yes
+
+    - name: Add apt repository
+      apt_repository:
+        repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+      become: yes
+
+    - name: Install Docker packages
+      apt:
+        name: "{{ packages }}"
+        state: present
+      vars:
+        packages:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+      become: yes
+
+    - name: Ensure docker service is enabled
+      systemd:
+        name: docker
+        state: started
+        enabled: yes
+      become: yes
+
+
+    - name: Create seashell directory
+      ansible.builtin.file:
+        path: "{{ ansible_env.HOME }}/seashell"
+        state: directory
+        mode: '0755'
+      become: yes
+
+    - name: Download docker image with check (sha256)
+      get_url:
+        url: https://transfer-001.oss-cn-beijing.aliyuncs.com/substrate/octopus-seashell.3.0.0.tar
+        dest: '{{ ansible_env.HOME }}/seashell/octopus-seashell.3.0.0.tar'
+        checksum: sha256:12870695422e1d22c4f789b38e5680bfaa489a0fbbdf9ee4188269393e8ccf44
+      become: yes
+
+    - name: Load image from archive
+      community.docker.docker_image:
+        name: octopus/seashell:3.0.0
+        load_path: '{{ ansible_env.HOME }}/seashell/octopus-seashell.3.0.0.tar'
+        source: load
+      become: yes
+
+    - name: Download wasm runtime with check (sha256)
+      get_url:
+        url: https://transfer-001.oss-cn-beijing.aliyuncs.com/substrate/node_runtime.wasm
+        dest: '{{ ansible_env.HOME }}/seashell/node_runtime.wasm'
+        checksum: sha256:4e8b99f4084cea0f974868fbb5af53b4a15cd01c8096d5e3712386cdf7fca349
+      become: yes
+
+
+    - name: Copy chain spec
+      ansible.builtin.copy:
+        src: 'nodes/chainSpec.json'
+        dest: '{{ ansible_env.HOME }}/seashell/chainSpec.json'
+        mode: '0744'
+      become: yes
+
+    - name: Copy node key file
+      ansible.builtin.copy:
+        src: 'nodes/{{ hostvars[inventory_hostname].p2p_peer_id }}'
+        dest: '{{ ansible_env.HOME }}/seashell/.node_key'
+        mode: '0744'
+      become: yes
+
+    - name: Generate docker-compose.yaml
+      template: src=docker-compose.yaml.tpl dest={{ ansible_env.HOME }}/seashell/docker-compose.yaml
+      become: yes
+
+    - name: Run `docker-compose up`
+      community.docker.docker_compose:
+        project_src: '{{ ansible_env.HOME }}/seashell'
+        build: no
+      register: output
+
+    - ansible.builtin.debug:
+        var: output
