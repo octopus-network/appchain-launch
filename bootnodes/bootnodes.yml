@@ -68,9 +68,9 @@
 
     - name: Download wasm runtime with check (sha256)
       get_url:
-        url: https://transfer-001.oss-cn-beijing.aliyuncs.com/substrate/node_runtime.wasm
+        url: '{{ wasm_url }}'
         dest: '{{ ansible_env.HOME }}/seashell/node_runtime.wasm'
-        checksum: sha256:4e8b99f4084cea0f974868fbb5af53b4a15cd01c8096d5e3712386cdf7fca349
+        checksum: '{{ wasm_checksum }}'
       become: yes
 
 

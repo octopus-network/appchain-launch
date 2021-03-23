@@ -60,12 +60,14 @@ module "ansible" {
   private_key_path   = "${random_id.this.id}"
   inventory_file     = "ansible_inventory"
   playbook_vars      = {
-    chain_spec   = var.chain_spec
-    rpc_port     = var.rpc_port 
-    ws_port      = var.ws_port
-    p2p_port     = var.p2p_port
-    base_image   = var.base_image
-    start_cmd    = var.start_cmd
+    chain_spec    = var.chain_spec
+    rpc_port      = var.rpc_port 
+    ws_port       = var.ws_port
+    p2p_port      = var.p2p_port
+    base_image    = var.base_image
+    start_cmd     = var.start_cmd
+    wasm_url      = var.wasm_url
+    wasm_checksum = var.wasm_checksum
   }
 
   module_depends_on  = [

@@ -7,19 +7,25 @@ variable "cloud_vendor" {
 
 variable "access_key" {
   description = "Access key"
-  type = string
+  type        = string
 }
 
 variable "secret_key" {
   description = "Secret key"
-  type = string
+  type        = string
 }
 
 variable "region" {
   description = "Region"
-  type    = string
+  type        = string
 }
 
+
+variable "bootnodes" {
+  description = "The number of bootnodes"
+  type        = number
+  default     = 1
+}
 
 variable "chain_spec" {
   description = "Specifies which chain specification to use"
@@ -60,6 +66,16 @@ variable "start_cmd" {
   description = "No need to set if ENTRYPOINT is used, otherwise fill in the start command"
   type        = string
   default     = ""
+}
+
+variable "wasm_url" {
+  description = ""
+  type        = string
+}
+
+variable "wasm_checksum" {
+  description = ""
+  type        = string
 }
 
 variable "inventory_template" {
