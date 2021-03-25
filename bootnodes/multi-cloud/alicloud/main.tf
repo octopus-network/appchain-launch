@@ -12,25 +12,21 @@ data "alicloud_zones" "default" {
 }
 
 resource "alicloud_vpc" "vpc" {
-  count      = var.cloud_vendor == "alicloud" ? 1 : 0
   cidr_block = "172.16.0.0/12"
 }
 
 resource "alicloud_vswitch" "vswitch" {
-  count             = var.cloud_vendor == "alicloud" ? 1 : 0
-  vpc_id            = alicloud_vpc.vpc[count.index].id
+  vpc_id            = alicloud_vpc.vpc.id
   cidr_block        = "172.16.0.0/24"
   availability_zone = data.alicloud_zones.default.zones[0].id
 }
 
 resource "alicloud_security_group" "default" {
-  count  = var.cloud_vendor == "alicloud" ? 1 : 0
-  vpc_id = alicloud_vpc.vpc[count.index].id
+  vpc_id = alicloud_vpc.vpc.id
 }
 
 resource "alicloud_security_group_rule" "allow_ssh" {
-  count             = var.cloud_vendor == "alicloud" ? 1 : 0
-  security_group_id = alicloud_security_group.default[count.index].id
+  security_group_id = alicloud_security_group.default.id
   type              = "ingress"
   ip_protocol       = "tcp"
   nic_type          = "intranet"
@@ -41,8 +37,7 @@ resource "alicloud_security_group_rule" "allow_ssh" {
 }
 
 resource "alicloud_security_group_rule" "allow_9933" {
-  count             = var.cloud_vendor == "alicloud" ? 1 : 0
-  security_group_id = alicloud_security_group.default[count.index].id
+  security_group_id = alicloud_security_group.default.id
   type              = "ingress"
   ip_protocol       = "tcp"
   nic_type          = "intranet"
@@ -53,8 +48,7 @@ resource "alicloud_security_group_rule" "allow_9933" {
 }
 
 resource "alicloud_security_group_rule" "allow_9944" {
-  count             = var.cloud_vendor == "alicloud" ? 1 : 0
-  security_group_id = alicloud_security_group.default[count.index].id
+  security_group_id = alicloud_security_group.default.id
   type              = "ingress"
   ip_protocol       = "tcp"
   nic_type          = "intranet"
@@ -65,8 +59,7 @@ resource "alicloud_security_group_rule" "allow_9944" {
 }
 
 resource "alicloud_security_group_rule" "allow_30333" {
-  count             = var.cloud_vendor == "alicloud" ? 1 : 0
-  security_group_id = alicloud_security_group.default[count.index].id
+  security_group_id = alicloud_security_group.default.id
   type              = "ingress"
   ip_protocol       = "tcp"
   nic_type          = "intranet"
@@ -79,27 +72,26 @@ resource "alicloud_security_group_rule" "allow_30333" {
 # ECS
 data "alicloud_images" "ubuntu" {
   most_recent = true
-  name_regex  = "^ubuntu_18.*64"
+  name_regex  = "^ubuntu_20.*64"
 }
 
 resource "alicloud_key_pair" "key_pair" {
-  count      = var.cloud_vendor == "alicloud" ? 1 : 0
-  key_name   = "kp-${random_id.this.id}"
-  public_key = file("${random_id.this.id}.pub")
-  depends_on = [null_resource.ssh-keygen]
+  key_name   = "kp-12345678"
+  public_key = file(var.public_key_file)
+  depends_on = [var.module_depends_on]
 }
 
 resource "alicloud_instance" "instance" {
-  count                      = var.cloud_vendor == "alicloud" ? length(var.p2p_peer_ids) : 0
+  count                      = var.instance_count
   instance_name              = format("alicloud_instance-%03d", count.index + 1)
   security_groups            = alicloud_security_group.default.*.id
-  vswitch_id                 = alicloud_vswitch.vswitch[0].id
+  vswitch_id                 = alicloud_vswitch.vswitch.id
   image_id                   = data.alicloud_images.ubuntu.ids.0
   # https://help.aliyun.com/document_detail/25378.html
-  instance_type              = "ecs.g6.large"
+  instance_type              = var.instance_type
   system_disk_category       = "cloud_efficiency"
   system_disk_size           = 40
   internet_max_bandwidth_out = 10
   internet_charge_type       = "PayByTraffic"
-  key_name                   = alicloud_key_pair.key_pair[0].key_name
+  key_name                   = alicloud_key_pair.key_pair.key_name
 }

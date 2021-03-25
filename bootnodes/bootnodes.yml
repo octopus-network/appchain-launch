@@ -13,12 +13,11 @@
           - curl
           - gnupg
           - lsb-release
+          - python3-pip
       become: yes
+      become_method: sudo
 
-    - name: Update pip3
-      command: pip3 install --upgrade pip
-
-    - name: Install docker docker-compoe python package
+    - name: Install docker docker-compose python package
       pip:
         name: docker-compose
         executable: pip3
@@ -34,7 +33,7 @@
         repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
       become: yes
 
-    - name: Install Docker packages
+    - name: Install docker packages
       apt:
         name: "{{ packages }}"
         state: present
@@ -45,19 +44,18 @@
           - containerd.io
       become: yes
 
+    - name: Add user to docker group
+      user:
+        name: "{{ ansible_env.USER }}"
+        groups: docker
+        append: yes
+      become: yes
+
     - name: Ensure docker service is enabled
       systemd:
         name: docker
         state: started
         enabled: yes
-      become: yes
-
-
-    - name: Create seashell directory
-      ansible.builtin.file:
-        path: "{{ ansible_env.HOME }}/seashell"
-        state: directory
-        mode: '0755'
       become: yes
 
     - name: Pull docker image
@@ -66,37 +64,40 @@
         source: pull
       become: yes
 
+
+    - name: Create seashell directory
+      ansible.builtin.file:
+        path: "{{ ansible_env.HOME }}/seashell"
+        state: directory
+        mode: '0755'
+
     - name: Download wasm runtime with check (sha256)
       get_url:
         url: '{{ wasm_url }}'
         dest: '{{ ansible_env.HOME }}/seashell/node_runtime.wasm'
         checksum: '{{ wasm_checksum }}'
-      become: yes
-
 
     - name: Copy chain spec
       ansible.builtin.copy:
         src: 'nodes/chainSpec.json'
         dest: '{{ ansible_env.HOME }}/seashell/chainSpec.json'
         mode: '0744'
-      become: yes
 
     - name: Copy node key file
       ansible.builtin.copy:
         src: 'nodes/{{ hostvars[inventory_hostname].p2p_peer_id }}'
         dest: '{{ ansible_env.HOME }}/seashell/.node_key'
         mode: '0744'
-      become: yes
 
     - name: Generate docker-compose.yaml
       template: src=docker-compose.yaml.tpl dest={{ ansible_env.HOME }}/seashell/docker-compose.yaml
-      become: yes
 
     - name: Run `docker-compose up`
       community.docker.docker_compose:
         project_src: '{{ ansible_env.HOME }}/seashell'
         build: no
       register: output
+      become: yes
 
     - ansible.builtin.debug:
         var: output

@@ -4,7 +4,6 @@ resource "random_id" "this" {
 
 resource "null_resource" "ssh-keygen" {
   triggers = {
-    # apply_time = timestamp()
     ssh_key = "${random_id.this.id}"
   }
 
@@ -21,12 +20,34 @@ EOT
   }
 }
 
+# resource "null_resource" "generate-node-key" {
+#   triggers = {
+#     ssh_key = "${random_id.this.id}"
+#   }
+
+#   provisioner "local-exec" {
+#     command = <<-EOT
+# docker run --rm -v $(pwd)/keys:/tmp/keys octopus/subkey-tool:1.0.0 generate-node-key ${var.bootnodes}
+# EOT
+#   }
+# }
+
+
+module "cloud" {
+  source            = "./multi-cloud/aws"
+
+  access_key        = var.access_key
+  secret_key        = var.secret_key
+  instance_count    = length(var.p2p_peer_ids)
+  public_key_file   = abspath("${random_id.this.id}.pub")
+  module_depends_on = [null_resource.ssh-keygen]
+}
+
+
 locals {
   inventory_template_vars = {
-    public_ips=alicloud_instance.instance.*.public_ip,
-    private_ips=alicloud_instance.instance.*.private_ip,
-    hostnames=alicloud_instance.instance.*.host_name,
-    peer_ids=var.p2p_peer_ids
+    public_ips = module.cloud.public_ip_address,
+    peer_ids   = var.p2p_peer_ids
   }
 }
 
@@ -54,9 +75,9 @@ EOT
 module "ansible" {
   source = "github.com/insight-infrastructure/terraform-ansible-playbook.git"
 
-  ips                = alicloud_instance.instance.*.public_ip
+  ips                = module.cloud.public_ip_address
   playbook_file_path = "bootnodes.yml"
-  user               = "root"
+  user               = var.user
   private_key_path   = "${random_id.this.id}"
   inventory_file     = "ansible_inventory"
   playbook_vars      = {
@@ -70,8 +91,8 @@ module "ansible" {
     wasm_checksum = var.wasm_checksum
   }
 
-  module_depends_on  = [
-    var.cloud_vendor == "alicoud" ? alicloud_instance.instance : var.cloud_vendor == "aws" ? null : null,
+  module_depends_on = [
+    #var.cloud_vendor == "alicoud" ? alicloud_instance.instance : var.cloud_vendor == "aws" ? null : null,
     null_resource.inventory_template
   ]
 }

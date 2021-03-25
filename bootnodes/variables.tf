@@ -18,6 +18,7 @@ variable "secret_key" {
 variable "region" {
   description = "Region"
   type        = string
+  default     = "ap-northeast-1"
 }
 
 
@@ -82,4 +83,10 @@ variable "inventory_template" {
   description = "Ansible inventory template file"
   type        = string
   default     = ""
+}
+
+variable "user" {
+  description = ""
+  type        = string
+  default     = "root"
 }
