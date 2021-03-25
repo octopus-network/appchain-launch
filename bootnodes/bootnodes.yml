@@ -85,7 +85,7 @@
 
     - name: Copy node key file
       ansible.builtin.copy:
-        src: 'nodes/{{ hostvars[inventory_hostname].p2p_peer_id }}'
+        src: '{{ workspace }}/p2p/{{ hostvars[inventory_hostname].p2p_peer_id }}'
         dest: '{{ ansible_env.HOME }}/seashell/.node_key'
         mode: '0744'
 
