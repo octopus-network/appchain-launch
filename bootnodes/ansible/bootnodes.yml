@@ -79,15 +79,13 @@
 
     - name: Copy chain spec
       ansible.builtin.copy:
-        src: 'nodes/chainSpec.json'
+        src: '../nodes/chainSpec.json'
         dest: '{{ ansible_env.HOME }}/seashell/chainSpec.json'
-        mode: '0744'
 
     - name: Copy node key file
       ansible.builtin.copy:
         src: '{{ workspace }}/p2p/{{ hostvars[inventory_hostname].p2p_peer_id }}'
         dest: '{{ ansible_env.HOME }}/seashell/.node_key'
-        mode: '0744'
 
     - name: Generate docker-compose.yaml
       template: src=docker-compose.yaml.tpl dest={{ ansible_env.HOME }}/seashell/docker-compose.yaml
