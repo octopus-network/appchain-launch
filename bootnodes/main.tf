@@ -37,7 +37,7 @@ resource "null_resource" "p2p-key" {
   }
 
   provisioner "local-exec" {
-    command = "/bin/bash generate-node-key.sh ${var.bootnodes} ${random_id.this.hex}/p2p"
+    command = "/bin/bash generate-node-key.sh ${var.instance_count} ${random_id.this.hex}/p2p"
   }
   depends_on = [null_resource.workspace]
 }
@@ -46,11 +46,19 @@ resource "null_resource" "p2p-key" {
 module "cloud" {
   source            = "./multi-cloud/aws"
 
-  access_key        = var.access_key
-  secret_key        = var.secret_key
-  instance_count    = var.bootnodes
-  public_key_file   = abspath("${random_id.this.hex}/ssh/${random_id.this.hex}.pub")
-  module_depends_on = [null_resource.ssh-key]
+  access_key         = var.access_key
+  secret_key         = var.secret_key
+  region             = var.region
+  availability_zones = var.availability_zones
+  instance_count     = var.instance_count
+  instance_type      = var.instance_type
+  volume_type        = var.volume_type
+  volume_size        = var.volume_size
+  kms_key_spec       = var.kms_key_spec
+  kms_key_alias      = var.kms_key_alias
+  public_key_file    = abspath("${random_id.this.hex}/ssh/${random_id.this.hex}.pub")
+  id                 = random_id.this.hex
+  module_depends_on  = [null_resource.ssh-key]
 }
 
 resource "local_file" "ansible-inventory" {
@@ -65,9 +73,9 @@ resource "local_file" "ansible-inventory" {
 module "ansible" {
   source = "github.com/insight-infrastructure/terraform-ansible-playbook.git"
 
+  user               = var.user
   ips                = module.cloud.public_ip_address
   playbook_file_path = "${path.module}/ansible/bootnodes.yml"
-  user               = var.user
   private_key_path   = "${random_id.this.hex}/ssh/${random_id.this.hex}"
   inventory_file     = local_file.ansible-inventory.filename
   playbook_vars      = {

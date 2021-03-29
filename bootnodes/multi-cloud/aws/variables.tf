@@ -1,4 +1,10 @@
 
+variable "create" {
+  description = "Whether to create AWS"
+  type        = bool
+  default     = true
+}
+
 variable "access_key" {
   description = "Access key"
   type        = string
@@ -15,30 +21,35 @@ variable "region" {
   default     = "ap-northeast-1"
 }
 
-variable "az" {
-  description = "AWS availability zone"
-  type        = string
-  default     = "ap-northeast-1a"
+variable "availability_zones" {
+  description = "Availability zones"
+  type        = list(string)
+  default     = ["ap-northeast-1a"]
 }
 
-variable "public_subnet_cidr" {
-  description = "AWS availability zone"
+variable "vpc_cidr" {
+  description = "The cidr block used to launch a new vpc"
   type        = string
-  default     = "10.0.2.0/24"
+  default     = "172.16.0.0/16"
 }
 
-# From https://cloud-images.ubuntu.com/locator/ec2/
-variable "instance_ami" {
-  description = "AWS ami image to use for core instances"
-  type        = string
-  default     = "ami-059b6d3840b03d6dd"
+variable "public_cidrs" {
+  description = "List of cidr blocks used to launch several new vswitches"
+  type        = list(string)
+  default     = ["172.16.1.0/24"]
+}
+
+variable "private_cidrs" {
+  description = "List of cidr blocks used to launch several new vswitches"
+  type        = list(string)
+  default     = []
 }
 
 # https://aws.amazon.com/cn/ec2/instance-types/
 variable "instance_type" {
   description = "Instance type"
   type        = string
-  default     = "t3.micro" # "m6g.large"
+  default     = "t3.micro"
 }
 
 variable "instance_count" {
@@ -47,7 +58,36 @@ variable "instance_count" {
   default     = 1
 }
 
+variable "volume_type" {
+  description = ""
+  type        = string
+  default     = "gp2"
+}
+
+variable "volume_size" {
+  description = ""
+  type        = number
+  default     = 80
+}
+
+variable "kms_key_spec" {
+  description = ""
+  type        = string
+  default     = "ECC_SECG_P256K1"
+}
+
+variable "kms_key_alias" {
+  description = ""
+  type        = string
+  default     = "alias/octopus-key-alias"
+}
+
 variable "public_key_file" {
+  description = "SSH public key file path"
+  type        = string
+}
+
+variable "id" {
   description = ""
   type        = string
 }
