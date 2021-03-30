@@ -1,5 +1,11 @@
 
-variable "chain_spec" {
+variable "chainspec_url" {
+  description = "Specifies which chain specification to use"
+  type        = string
+  default     = ""
+}
+
+variable "chainspec_checksum" {
   description = "Specifies which chain specification to use"
   type        = string
   default     = ""
@@ -38,16 +44,6 @@ variable "start_cmd" {
   description = "No need to set if ENTRYPOINT is used, otherwise fill in the start command"
   type        = string
   default     = ""
-}
-
-variable "wasm_url" {
-  description = ""
-  type        = string
-}
-
-variable "wasm_checksum" {
-  description = ""
-  type        = string
 }
 
 # 

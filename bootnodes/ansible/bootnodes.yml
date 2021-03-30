@@ -71,16 +71,11 @@
         state: directory
         mode: '0755'
 
-    - name: Download wasm runtime with check (sha256)
+    - name: Download raw chainspec with check (sha256)
       get_url:
-        url: '{{ wasm_url }}'
-        dest: '{{ ansible_env.HOME }}/seashell/node_runtime.wasm'
-        checksum: '{{ wasm_checksum }}'
-
-    - name: Copy chain spec
-      ansible.builtin.copy:
-        src: '../nodes/chainSpec.json'
+        url: '{{ chainspec_url }}'
         dest: '{{ ansible_env.HOME }}/seashell/chainSpec.json'
+        checksum: '{{ chainspec_checksum }}'
 
     - name: Copy node key file
       ansible.builtin.copy:
