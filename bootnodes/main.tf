@@ -75,7 +75,7 @@ module "ansible" {
 
   user               = var.user
   ips                = module.cloud.public_ip_address
-  playbook_file_path = "${path.module}/ansible/bootnodes.yml"
+  playbook_file_path = "${path.module}/ansible/playbook.yml"
   private_key_path   = "${random_id.this.hex}/ssh/${random_id.this.hex}"
   inventory_file     = local_file.ansible-inventory.filename
   playbook_vars      = {
@@ -87,6 +87,13 @@ module "ansible" {
     p2p_port           = var.p2p_port
     base_image         = var.base_image
     start_cmd          = var.start_cmd
+
+    node_exporter_enabled         = var.node_exporter_enabled
+    node_exporter_binary_url      = var.node_exporter_binary_url
+    node_exporter_binary_checksum = var.node_exporter_binary_checksum
+    node_exporter_port            = var.node_exporter_port
+    node_exporter_user            = var.node_exporter_user
+    node_exporter_password        = var.node_exporter_password
   }
   # module_depends_on = [local_file.ansible-inventory]
 }

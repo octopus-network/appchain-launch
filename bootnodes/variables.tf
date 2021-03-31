@@ -130,6 +130,43 @@ variable "kms_key_alias" {
   default     = "alias/octopus-key-alias"
 }
 
+variable "node_exporter_enabled" {
+  description = "Enable node exporter"
+  type        = bool
+  default     = true
+}
+
+variable "node_exporter_binary_url" {
+  description = "Node exporter url"
+  type        = string
+  default     = "https://github.com/prometheus/node_exporter/releases/download/v1.1.2/node_exporter-1.1.2.linux-amd64.tar.gz"
+}
+
+variable "node_exporter_binary_checksum" {
+  description = "SHA256 hash of node exporter binary"
+  type        = string
+  default     = "sha256:8c1f6a317457a658e0ae68ad710f6b4098db2cad10204649b51e3c043aa3e70d"
+}
+
+variable "node_exporter_port" {
+  description = ""
+  type        = string
+  default     = 9100
+}
+
+variable "node_exporter_user" {
+  description = "User for node exporter"
+  type        = string
+  default     = "prometheus"
+}
+
+variable "node_exporter_password" {
+  description = "Password for node exporter"
+  type        = string
+  default     = "node_exporter"
+}
+
+
 variable "user" {
   description = ""
   type        = string
