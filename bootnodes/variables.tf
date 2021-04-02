@@ -46,6 +46,12 @@ variable "start_cmd" {
   default     = ""
 }
 
+variable "key_pairs" {
+  description = ""
+  type        = list(map(string))
+  default     = []
+}
+
 # 
 variable "cloud_vendor" {
   description = "Cloud Vendor (Alicoud, AWS, Azure, Google Cloud)"

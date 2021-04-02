@@ -1,0 +1,91 @@
+---
+- name: save key pairs as a Fact
+  set_fact:
+    keys_fact: "{{ key_pairs | from_json }}"
+
+
+- name: add aura author key to keystore
+  uri:
+    url: http://localhost:9933
+    method: "POST"
+    body_format: json
+    body: |
+        {
+            "jsonrpc":"2.0",
+            "id":1,
+            "method":"author_insertKey",
+            "params": [
+                "aura",
+                "{{ keys_fact[index]['mnemonic'] }}",
+                "{{ keys_fact[index]['aura'] }}"
+            ]
+        }
+  register: aura_insertion
+  until: aura_insertion.status == 200
+  retries: 3
+  delay: 5
+  when: inventory_hostname == item
+  loop: "{{ groups['validator'] }}"
+  loop_control: { index_var: index }
+
+- name: show aura response
+  debug:
+    var: aura_insertion
+
+
+- name: add grandpa author key to keystore
+  uri:
+    url: http://localhost:9933
+    method: "POST"
+    body_format: json
+    body: |
+        {
+            "jsonrpc":"2.0",
+            "id":1,
+            "method":"author_insertKey",
+            "params": [
+                "gran",
+                "{{ keys_fact[index]['mnemonic'] }}",
+                "{{ keys_fact[index]['gran'] }}"
+            ]
+        }
+  register: gran_insertion
+  until: gran_insertion.status == 200
+  retries: 3
+  delay: 5
+  when: inventory_hostname == item
+  loop: "{{ groups['validator'] }}"
+  loop_control: { index_var: index }
+
+- name: show gran response
+  debug:
+    var: gran_insertion
+
+
+# - name: add octo author key to keystore
+#   uri:
+#     url: http://localhost:9933
+#     method: "POST"
+#     body_format: json
+#     body: |
+#         {
+#             "jsonrpc":"2.0",
+#             "id":1,
+#             "method":"author_insertKey",
+#             "params": [
+#                 "octo",
+#                 "{{ keys_fact[index]['mnemonic'] }}",
+#                 "{{ keys_fact[index]['octo'] }}"
+#             ]
+#         }
+#   register: octo_insertion
+#   until: aura_insertion.status == 200
+#   retries: 10
+#   delay: 5
+#   when: inventory_hostname == item
+#   loop: "{{ groups['validator'] }}"
+#   loop_control: { index_var: index }
+
+# - name: show octo response
+#   debug:
+#     var: octo_insertion

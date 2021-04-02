@@ -87,6 +87,7 @@ module "ansible" {
     p2p_port           = var.p2p_port
     base_image         = var.base_image
     start_cmd          = var.start_cmd
+    key_pairs          = jsonencode(var.key_pairs)
 
     node_exporter_enabled         = var.node_exporter_enabled
     node_exporter_binary_url      = var.node_exporter_binary_url
