@@ -62,33 +62,33 @@
     var: gran_insertion
 
 
-# - name: add octo author key to keystore
-#   uri:
-#     url: http://localhost:9933
-#     method: "POST"
-#     body_format: json
-#     body: |
-#         {
-#             "jsonrpc":"2.0",
-#             "id":1,
-#             "method":"author_insertKey",
-#             "params": [
-#                 "octo",
-#                 "{{ keys_fact[index]['mnemonic'] }}",
-#                 "{{ keys_fact[index]['octo'] }}"
-#             ]
-#         }
-#   register: octo_insertion
-#   until: aura_insertion.status == 200
-#   retries: 10
-#   delay: 5
-#   when: inventory_hostname == item
-#   loop: "{{ groups['validator'] }}"
-#   loop_control: { index_var: index }
+- name: add octo author key to keystore
+  uri:
+    url: http://localhost:9933
+    method: "POST"
+    body_format: json
+    body: |
+        {
+            "jsonrpc":"2.0",
+            "id":1,
+            "method":"author_insertKey",
+            "params": [
+                "octo",
+                "{{ keys_fact[index]['mnemonic'] }}",
+                "{{ keys_fact[index]['octo'] }}"
+            ]
+        }
+  register: octo_insertion
+  until: octo_insertion.status == 200
+  retries: 10
+  delay: 5
+  when: inventory_hostname == item
+  loop: "{{ groups['validator'] }}"
+  loop_control: { index_var: index }
 
-# - name: show octo response
-#   debug:
-#     var: octo_insertion
+- name: show octo response
+  debug:
+    var: octo_insertion
 
 
 - name: Restart services
