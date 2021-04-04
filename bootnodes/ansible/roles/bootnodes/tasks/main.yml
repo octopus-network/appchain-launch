@@ -56,12 +56,14 @@
     enabled: yes
   become: yes
 
+
+- name: Reset ssh connection to added 'docker' group into account
+  meta: reset_connection
+
 - name: Pull docker image
   community.docker.docker_image:
     name: '{{ base_image }}'
     source: pull
-  become: yes
-
 
 - name: Create seashell directory
   ansible.builtin.file:
@@ -90,7 +92,6 @@
     project_src: '{{ ansible_env.HOME }}/seashell'
     build: no
   register: output
-  become: yes
 
 - ansible.builtin.debug:
     var: output

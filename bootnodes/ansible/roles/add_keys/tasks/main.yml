@@ -89,3 +89,14 @@
 # - name: show octo response
 #   debug:
 #     var: octo_insertion
+
+
+- name: Restart services
+  community.docker.docker_compose:
+    project_src: '{{ ansible_env.HOME }}/seashell'
+    build: no
+    restarted: yes
+  register: output
+
+- ansible.builtin.debug:
+    var: output

@@ -82,6 +82,7 @@ module "ansible" {
     workspace          = abspath(random_id.this.hex)
     chainspec_url      = var.chainspec_url
     chainspec_checksum = var.chainspec_checksum
+    bootnodes          = jsonencode(var.bootnodes)
     rpc_port           = var.rpc_port 
     ws_port            = var.ws_port
     p2p_port           = var.p2p_port
