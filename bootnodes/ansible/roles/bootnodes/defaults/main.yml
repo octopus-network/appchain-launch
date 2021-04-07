@@ -1,0 +1,7 @@
+
+---
+# octoup keys default filename
+node_key: "node-key"
+aura_json: "aura.json"
+gran_json: "gran.json"
+octo_json: "octo.json"

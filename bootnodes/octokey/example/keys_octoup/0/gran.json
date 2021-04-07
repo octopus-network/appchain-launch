@@ -1,0 +1,10 @@
+{
+  "jsonrpc":"2.0",
+  "id":1,
+  "method":"author_insertKey",
+  "params": [
+    "gran",
+    "0x995c662edb1c0523d0831ffc588896eae879baa6352c9d3a4229cf12913dc9f4",
+    "0x6ac296d6959eae61ae1932d003eb99a6a0829115829d243473583eb6198e3729"
+  ]
+}

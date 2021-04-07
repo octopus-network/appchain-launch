@@ -8,10 +8,7 @@ resource "null_resource" "workspace" {
   }
 
   provisioner "local-exec" {
-    command = <<-EOT
-mkdir -p ${random_id.this.hex}/ssh
-mkdir -p ${random_id.this.hex}/p2p
-EOT
+    command = "mkdir -p ${random_id.this.hex}/ssh"
   }
 
   provisioner "local-exec" {
@@ -31,18 +28,6 @@ resource "null_resource" "ssh-key" {
   depends_on = [null_resource.workspace]
 }
 
-resource "null_resource" "p2p-key" {
-  triggers = {
-    ssh_key = random_id.this.hex
-  }
-
-  provisioner "local-exec" {
-    command = "/bin/bash generate-node-key.sh ${var.instance_count} ${random_id.this.hex}/p2p"
-  }
-  depends_on = [null_resource.workspace]
-}
-
-
 module "cloud" {
   source            = "./multi-cloud/aws"
 
@@ -61,13 +46,21 @@ module "cloud" {
   module_depends_on  = [null_resource.ssh-key]
 }
 
+locals {
+  keys_octoup = [
+    for i in fileset(path.module, "${var.keys_octoup}/*/peer-id"): {
+      peer_id = chomp(file(i))
+      key_dir = dirname(abspath(i))
+    }
+  ]
+}
+
 resource "local_file" "ansible-inventory" {
-  content    = templatefile("${path.module}/ansible/ansible_inventory.tpl", {
-    public_ips = module.cloud.public_ip_address,
-    peer_ids   = tolist(fileset("${random_id.this.hex}/p2p", "12D3*"))
+  filename = "${random_id.this.hex}/ansible_inventory"
+  content  = templatefile("${path.module}/ansible/ansible_inventory.tpl", {
+    public_ips  = module.cloud.public_ip_address,
+    keys_octoup = local.keys_octoup
   })
-  filename   = "${random_id.this.hex}/ansible_inventory"
-  depends_on = [null_resource.p2p-key]
 }
 
 module "ansible" {
@@ -79,7 +72,6 @@ module "ansible" {
   private_key_path   = "${random_id.this.hex}/ssh/${random_id.this.hex}"
   inventory_file     = local_file.ansible-inventory.filename
   playbook_vars      = {
-    workspace          = abspath(random_id.this.hex)
     chainspec_url      = var.chainspec_url
     chainspec_checksum = var.chainspec_checksum
     bootnodes          = jsonencode(var.bootnodes)
@@ -88,7 +80,6 @@ module "ansible" {
     p2p_port           = var.p2p_port
     base_image         = var.base_image
     start_cmd          = var.start_cmd
-    key_pairs          = jsonencode(var.key_pairs)
 
     node_exporter_enabled         = var.node_exporter_enabled
     node_exporter_binary_url      = var.node_exporter_binary_url

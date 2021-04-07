@@ -1,0 +1,10 @@
+{
+  "jsonrpc":"2.0",
+  "id":1,
+  "method":"author_insertKey",
+  "params": [
+    "octo",
+    "0x9143ab7904364d7d2b92542e7c23f41baac011eadff7b3b5cdbafb1e6a7f6cb9",
+    "0xbab1764d15bee9a5aba957399b16ef3669ef3bc4f1e8b02c82c5f6aef8f6e81f"
+  ]
+}

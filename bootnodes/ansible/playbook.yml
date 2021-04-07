@@ -3,4 +3,4 @@
   roles:
     - { role: node_exporter, become: yes, when: "node_exporter_enabled|default(false)|bool == true" }
     - bootnodes
-    - { role: add_keys, when: "(key_pairs is defined) and (key_pairs|from_json|length > 0)" }
+    - add_keys

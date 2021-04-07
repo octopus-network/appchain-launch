@@ -79,7 +79,7 @@
 
 - name: Copy node key file
   ansible.builtin.copy:
-    src: '{{ workspace }}/p2p/{{ hostvars[inventory_hostname].p2p_peer_id }}'
+    src: '{{ hostvars[inventory_hostname].key_root_path }}/{{ node_key }}'
     dest: '{{ ansible_env.HOME }}/seashell/.node_key'
 
 - name: Generate docker-compose.yaml
