@@ -90,3 +90,11 @@ module "ansible" {
   }
   # module_depends_on = [local_file.ansible-inventory]
 }
+
+output "bootnodes_output" {
+  description = ""
+  value = [
+    for idx, addr in module.cloud.public_ip_address:
+    "/ip4/${addr}/tcp/30333/p2p/${local.keys_octoup[idx]["peer_id"]}"
+  ]
+}

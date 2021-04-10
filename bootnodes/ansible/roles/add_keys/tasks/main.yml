@@ -69,6 +69,8 @@
     build: no
     restarted: yes
   register: output
+  # gran key exists & insert to keystore
+  when: gran_key.stat.exists and gran_insertion.status == 200
 
 - ansible.builtin.debug:
     var: output
