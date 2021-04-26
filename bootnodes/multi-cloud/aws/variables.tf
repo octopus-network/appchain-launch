@@ -87,8 +87,14 @@ variable "public_key_file" {
   type        = string
 }
 
-variable "create_lb_53_acm" {
-  description = "Whether to create load balancer, route53 record, certificate"
+variable "create_lb" {
+  description = "Whether to create load balancer"
+  type        = bool
+  default     = false 
+}
+
+variable "create_53_acm" {
+  description = "Whether to create route53 record, certificate"
   type        = bool
   default     = false 
 }

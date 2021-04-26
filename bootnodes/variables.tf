@@ -137,7 +137,13 @@ variable "kms_key_alias" {
 }
 
 variable "create_lb" {
-  description = "Whether to create load balancer, dns record, certificate"
+  description = "Whether to create load balancer"
+  type        = bool
+  default     = false 
+}
+
+variable "create_dns_record" {
+  description = "Whether to create DNS record"
   type        = bool
   default     = false 
 }

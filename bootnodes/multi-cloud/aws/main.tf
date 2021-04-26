@@ -120,13 +120,13 @@ module "ec2" {
 
 # route53 record | certificate | load balancer
 data "aws_route53_zone" "default" {
-  count        = var.create && var.create_lb_53_acm ? 1 : 0
+  count        = var.create && var.create_lb && var.create_53_acm ? 1 : 0
   name         = var.domain_name
   private_zone = false
 }
 
 resource "aws_route53_record" "default" {
-  count   = var.create && var.create_lb_53_acm ? 1 : 0
+  count   = var.create && var.create_lb && var.create_53_acm ? 1 : 0
   zone_id = data.aws_route53_zone.default[0].zone_id
   name    = var.route53_record_name
   type    = "A"
@@ -139,9 +139,9 @@ resource "aws_route53_record" "default" {
 
 module "acm" {
   source              = "terraform-aws-modules/acm/aws"
-  create_certificate  = var.create && var.create_lb_53_acm
+  create_certificate  = var.create && var.create_lb && var.create_53_acm
   domain_name         = var.domain_name
-  zone_id             = data.aws_route53_zone.default[0].id
+  zone_id             = length(data.aws_route53_zone.default)>0 ? data.aws_route53_zone.default[0].id : ""
   wait_for_validation = false
   subject_alternative_names = [
     "*.${var.domain_name}",
@@ -150,14 +150,14 @@ module "acm" {
 }
 
 resource "aws_eip" "default" {
-  count = var.create && var.create_lb_53_acm ? length(data.aws_subnet_ids.all[0].ids) : 0
+  count = var.create && var.create_lb ? length(data.aws_subnet_ids.all[0].ids) : 0
   vpc   = true
 }
 
 module "nlb" {
   source    = "terraform-aws-modules/alb/aws"
   name      = "nlb-${var.id}"
-  create_lb = var.create && var.create_lb_53_acm
+  create_lb = var.create && var.create_lb
 
   load_balancer_type = "network"
   internal           = false
@@ -191,7 +191,7 @@ module "nlb" {
     }
   ]
 
-  https_listeners = [
+  https_listeners = var.create_53_acm ? [
     {
       port               = 9933
       protocol           = "TLS"
@@ -204,5 +204,18 @@ module "nlb" {
       certificate_arn    = module.acm.this_acm_certificate_arn
       target_group_index = 1
     }
-  ]
+  ] : []
+
+  http_tcp_listeners = !var.create_53_acm ? [
+    {
+      port               = 9933
+      protocol           = "TCP"
+      target_group_index = 0
+    },
+    {
+      port               = 9944
+      protocol           = "TCP"
+      target_group_index = 0
+    }
+  ] : []
 }

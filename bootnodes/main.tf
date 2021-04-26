@@ -43,7 +43,8 @@ module "cloud" {
   kms_key_alias       = var.kms_key_alias
   public_key_file     = abspath("${random_id.this.hex}/ssh/${random_id.this.hex}.pub")
   id                  = random_id.this.hex
-  create_lb_53_acm    = var.create_lb
+  create_lb           = var.create_lb
+  create_53_acm       = var.create_dns_record
   domain_name         = var.domain_name
   route53_record_name = var.record_name
   module_depends_on   = [null_resource.ssh-key]
@@ -96,8 +97,13 @@ module "ansible" {
 
 output "bootnodes_output" {
   description = ""
-  value = [
+  value       = [
     for idx, addr in module.cloud.public_ip_address:
     "/ip4/${addr}/tcp/30333/p2p/${local.keys_octoup[idx]["peer_id"]}"
   ]
+}
+
+output "lb_dns_name" {
+  description = ""
+  value       = module.cloud.lb_dns_name
 }
