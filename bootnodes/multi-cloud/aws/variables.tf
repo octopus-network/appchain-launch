@@ -87,6 +87,24 @@ variable "public_key_file" {
   type        = string
 }
 
+variable "create_lb_53_acm" {
+  description = "Whether to create load balancer, route53 record, certificate"
+  type        = bool
+  default     = false 
+}
+
+variable "domain_name" {
+  description = "Use an existing domain name"
+  type        = string
+  default     = "" 
+}
+
+variable "route53_record_name" {
+  description = ""
+  type        = string
+  default     = "" 
+}
+
 variable "id" {
   description = ""
   type        = string

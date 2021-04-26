@@ -29,21 +29,24 @@ resource "null_resource" "ssh-key" {
 }
 
 module "cloud" {
-  source            = "./multi-cloud/aws"
+  source              = "./multi-cloud/aws"
 
-  access_key         = var.access_key
-  secret_key         = var.secret_key
-  region             = var.region
-  availability_zones = var.availability_zones
-  instance_count     = var.instance_count
-  instance_type      = var.instance_type
-  volume_type        = var.volume_type
-  volume_size        = var.volume_size
-  kms_key_spec       = var.kms_key_spec
-  kms_key_alias      = var.kms_key_alias
-  public_key_file    = abspath("${random_id.this.hex}/ssh/${random_id.this.hex}.pub")
-  id                 = random_id.this.hex
-  module_depends_on  = [null_resource.ssh-key]
+  access_key          = var.access_key
+  secret_key          = var.secret_key
+  region              = var.region
+  availability_zones  = var.availability_zones
+  instance_count      = var.instance_count
+  instance_type       = var.instance_type
+  volume_type         = var.volume_type
+  volume_size         = var.volume_size
+  kms_key_spec        = var.kms_key_spec
+  kms_key_alias       = var.kms_key_alias
+  public_key_file     = abspath("${random_id.this.hex}/ssh/${random_id.this.hex}.pub")
+  id                  = random_id.this.hex
+  create_lb_53_acm    = var.create_lb
+  domain_name         = var.domain_name
+  route53_record_name = var.record_name
+  module_depends_on   = [null_resource.ssh-key]
 }
 
 locals {

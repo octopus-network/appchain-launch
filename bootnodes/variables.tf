@@ -136,6 +136,24 @@ variable "kms_key_alias" {
   default     = "alias/octopus-key-alias"
 }
 
+variable "create_lb" {
+  description = "Whether to create load balancer, dns record, certificate"
+  type        = bool
+  default     = false 
+}
+
+variable "domain_name" {
+  description = "Use an existing domain name"
+  type        = string
+  default     = ""
+}
+
+variable "record_name" {
+  description = ""
+  type        = string
+  default     = "" 
+}
+
 variable "node_exporter_enabled" {
   description = "Enable node exporter"
   type        = bool
@@ -171,7 +189,6 @@ variable "node_exporter_password" {
   type        = string
   default     = "node_exporter"
 }
-
 
 variable "user" {
   description = ""

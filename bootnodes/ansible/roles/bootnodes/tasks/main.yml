@@ -12,6 +12,9 @@
       - gnupg
       - lsb-release
       - python3-pip
+  register: apt_install
+  retries: 10
+  until: apt_install is success
   become: yes
   become_method: sudo
 

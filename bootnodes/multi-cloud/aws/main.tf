@@ -114,6 +114,95 @@ module "ec2" {
       delete_on_termination = true
     },
   ]
-  key_name                    = aws_key_pair.key_pair[0].key_name
-  iam_instance_profile        = aws_iam_instance_profile.default.name
+  key_name             = aws_key_pair.key_pair[0].key_name
+  iam_instance_profile = aws_iam_instance_profile.default.name
+}
+
+# route53 record | certificate | load balancer
+data "aws_route53_zone" "default" {
+  count        = var.create && var.create_lb_53_acm ? 1 : 0
+  name         = var.domain_name
+  private_zone = false
+}
+
+resource "aws_route53_record" "default" {
+  count   = var.create && var.create_lb_53_acm ? 1 : 0
+  zone_id = data.aws_route53_zone.default[0].zone_id
+  name    = var.route53_record_name
+  type    = "A"
+  alias {
+    name                   = module.nlb.this_lb_dns_name
+    zone_id                = module.nlb.this_lb_zone_id
+    evaluate_target_health = true
+  }
+}
+
+module "acm" {
+  source              = "terraform-aws-modules/acm/aws"
+  create_certificate  = var.create && var.create_lb_53_acm
+  domain_name         = var.domain_name
+  zone_id             = data.aws_route53_zone.default[0].id
+  wait_for_validation = false
+  subject_alternative_names = [
+    "*.${var.domain_name}",
+    "*.rpc.testnet.${var.domain_name}",
+  ]
+}
+
+resource "aws_eip" "default" {
+  count = var.create && var.create_lb_53_acm ? length(data.aws_subnet_ids.all[0].ids) : 0
+  vpc   = true
+}
+
+module "nlb" {
+  source    = "terraform-aws-modules/alb/aws"
+  name      = "nlb-${var.id}"
+  create_lb = var.create && var.create_lb_53_acm
+
+  load_balancer_type = "network"
+  internal           = false
+  vpc_id             = data.aws_vpc.default[0].id
+  subnet_mapping     = [for i, eip in aws_eip.default : { allocation_id : eip.id, subnet_id : tolist(data.aws_subnet_ids.all[0].ids)[i] }]
+
+  target_groups = [
+    {
+      name_prefix      = "rpc-"
+      backend_protocol = "TCP"
+      backend_port     = 9933
+      target_type      = "instance"
+      targets = [
+        for id in module.ec2.id : {
+          target_id = id
+          port      = 9933
+        }
+      ]
+    },
+    {
+      name_prefix      = "ws-"
+      backend_protocol = "TCP"
+      backend_port     = 9944
+      target_type      = "instance"
+      targets = [
+        for id in module.ec2.id : {
+          target_id = id
+          port      = 9944
+        }
+      ]
+    }
+  ]
+
+  https_listeners = [
+    {
+      port               = 9933
+      protocol           = "TLS"
+      certificate_arn    = module.acm.this_acm_certificate_arn
+      target_group_index = 0
+    },
+    {
+      port               = 9944
+      protocol           = "TLS"
+      certificate_arn    = module.acm.this_acm_certificate_arn
+      target_group_index = 1
+    }
+  ]
 }
