@@ -160,6 +160,30 @@ variable "record_name" {
   default     = "" 
 }
 
+variable "import_certificate" {
+  description = "Whether to import certificate"
+  type        = bool
+  default     = false
+}
+
+variable "private_key" {
+  description = "The certificate's PEM-formatted private key"
+  type        = string
+  default     = ""
+}
+
+variable "certificate_body" {
+  description = "The certificate's PEM-formatted public key"
+  type        = string
+  default     = ""
+}
+
+variable "certificate_chain" {
+  description = "The certificate's PEM-formatted chain"
+  type        = string
+  default     = ""
+}
+
 variable "node_exporter_enabled" {
   description = "Enable node exporter"
   type        = bool

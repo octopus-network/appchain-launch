@@ -104,7 +104,7 @@ module "ec2" {
   instance_count              = var.create ? var.instance_count : 0
   instance_type               = var.instance_type
   monitoring                  = true
-  vpc_security_group_ids      = [module.default_sg.this_security_group_id]
+  vpc_security_group_ids      = [module.default_sg.security_group_id]
   subnet_id                   = tolist(data.aws_subnet_ids.all[0].ids)[0]
   associate_public_ip_address = true
   root_block_device = [
@@ -149,6 +149,13 @@ module "acm" {
   ]
 }
 
+resource "aws_acm_certificate" "default" {
+  count             = var.import_certificate ? 1 : 0
+  private_key       = var.private_key
+  certificate_body  = var.certificate_body
+  certificate_chain = var.certificate_chain
+}
+
 module "alb" {
   source    = "terraform-aws-modules/alb/aws"
   name      = "alb-${var.id}"
@@ -158,7 +165,7 @@ module "alb" {
   internal           = false
   vpc_id             = data.aws_vpc.default[0].id
   subnets            = data.aws_subnet_ids.all[0].ids
-  security_groups    = [module.default_sg.this_security_group_id]
+  security_groups    = [module.default_sg.security_group_id]
 
   target_groups = [
     {
@@ -191,18 +198,31 @@ module "alb" {
     {
       port               = 9933
       protocol           = "HTTPS"
-      certificate_arn    = module.acm.this_acm_certificate_arn
+      certificate_arn    = module.acm.acm_certificate_arn
       target_group_index = 0
     },
     {
       port               = 9944
       protocol           = "HTTPS"
-      certificate_arn    = module.acm.this_acm_certificate_arn
+      certificate_arn    = module.acm.acm_certificate_arn
+      target_group_index = 1
+    }
+  ] : var.import_certificate ? [
+    {
+      port               = 9933
+      protocol           = "HTTPS"
+      certificate_arn    = aws_acm_certificate.default[0].arn
+      target_group_index = 0
+    },
+    {
+      port               = 9944
+      protocol           = "HTTPS"
+      certificate_arn    = aws_acm_certificate.default[0].arn
       target_group_index = 1
     }
   ] : []
 
-  http_tcp_listeners = !var.create_53_acm ? [
+  http_tcp_listeners = !var.create_53_acm && !var.import_certificate ? [
     {
       port               = 9933
       protocol           = "HTTP"
