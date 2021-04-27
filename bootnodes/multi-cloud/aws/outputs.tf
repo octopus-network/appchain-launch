@@ -6,5 +6,5 @@ output "public_ip_address" {
 
 output "lb_dns_name" {
   description = "The DNS name of the load balancer."
-  value       = var.create && var.create_lb ? module.nlb.lb_dns_name : ""
+  value       = var.create && var.create_lb ? module.alb.lb_dns_name : ""
 }

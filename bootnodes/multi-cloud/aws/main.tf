@@ -131,8 +131,8 @@ resource "aws_route53_record" "default" {
   name    = var.route53_record_name
   type    = "A"
   alias {
-    name                   = module.nlb.lb_dns_name
-    zone_id                = module.nlb.lb_zone_id
+    name                   = module.alb.lb_dns_name
+    zone_id                = module.alb.lb_zone_id
     evaluate_target_health = true
   }
 }
@@ -149,25 +149,21 @@ module "acm" {
   ]
 }
 
-resource "aws_eip" "default" {
-  count = var.create && var.create_lb ? length(data.aws_subnet_ids.all[0].ids) : 0
-  vpc   = true
-}
-
-module "nlb" {
+module "alb" {
   source    = "terraform-aws-modules/alb/aws"
-  name      = "nlb-${var.id}"
+  name      = "alb-${var.id}"
   create_lb = var.create && var.create_lb
 
-  load_balancer_type = "network"
+  load_balancer_type = "application"
   internal           = false
   vpc_id             = data.aws_vpc.default[0].id
-  subnet_mapping     = [for i, eip in aws_eip.default : { allocation_id : eip.id, subnet_id : tolist(data.aws_subnet_ids.all[0].ids)[i] }]
+  subnets            = data.aws_subnet_ids.all[0].ids
+  security_groups    = [module.default_sg.this_security_group_id]
 
   target_groups = [
     {
       name_prefix      = "rpc-"
-      backend_protocol = "TCP"
+      backend_protocol = "HTTP"
       backend_port     = 9933
       target_type      = "instance"
       targets = [
@@ -179,7 +175,7 @@ module "nlb" {
     },
     {
       name_prefix      = "ws-"
-      backend_protocol = "TCP"
+      backend_protocol = "HTTP"
       backend_port     = 9944
       target_type      = "instance"
       targets = [
@@ -194,13 +190,13 @@ module "nlb" {
   https_listeners = var.create_53_acm ? [
     {
       port               = 9933
-      protocol           = "TLS"
+      protocol           = "HTTPS"
       certificate_arn    = module.acm.this_acm_certificate_arn
       target_group_index = 0
     },
     {
       port               = 9944
-      protocol           = "TLS"
+      protocol           = "HTTPS"
       certificate_arn    = module.acm.this_acm_certificate_arn
       target_group_index = 1
     }
@@ -209,13 +205,13 @@ module "nlb" {
   http_tcp_listeners = !var.create_53_acm ? [
     {
       port               = 9933
-      protocol           = "TCP"
+      protocol           = "HTTP"
       target_group_index = 0
     },
     {
       port               = 9944
-      protocol           = "TCP"
-      target_group_index = 0
+      protocol           = "HTTP"
+      target_group_index = 1
     }
   ] : []
 }
