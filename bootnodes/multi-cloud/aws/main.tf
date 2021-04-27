@@ -149,13 +149,6 @@ module "acm" {
   ]
 }
 
-resource "aws_acm_certificate" "default" {
-  count             = var.import_certificate ? 1 : 0
-  private_key       = var.private_key
-  certificate_body  = var.certificate_body
-  certificate_chain = var.certificate_chain
-}
-
 module "alb" {
   source    = "terraform-aws-modules/alb/aws"
   name      = "alb-${var.id}"
@@ -207,22 +200,22 @@ module "alb" {
       certificate_arn    = module.acm.acm_certificate_arn
       target_group_index = 1
     }
-  ] : var.import_certificate ? [
+  ] : var.certificate_arn!="" ? [
     {
       port               = 9933
       protocol           = "HTTPS"
-      certificate_arn    = aws_acm_certificate.default[0].arn
+      certificate_arn    = var.certificate_arn
       target_group_index = 0
     },
     {
       port               = 9944
       protocol           = "HTTPS"
-      certificate_arn    = aws_acm_certificate.default[0].arn
+      certificate_arn    = var.certificate_arn
       target_group_index = 1
     }
   ] : []
 
-  http_tcp_listeners = !var.create_53_acm && !var.import_certificate ? [
+  http_tcp_listeners = !var.create_53_acm && var.certificate_arn=="" ? [
     {
       port               = 9933
       protocol           = "HTTP"

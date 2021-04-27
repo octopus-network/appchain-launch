@@ -111,28 +111,10 @@ variable "route53_record_name" {
   default     = "" 
 }
 
-variable "import_certificate" {
-  description = "Whether to import certificate"
-  type        = bool
-  default     = false
-}
-
-variable "private_key" {
-  description = "The certificate's PEM-formatted private key"
+variable "certificate_arn" {
+  description = ""
   type        = string
   default     = ""
-}
-
-variable "certificate_body" {
-  description = "The certificate's PEM-formatted public key"
-  type        = string
-  default     = ""
-}
-
-variable "certificate_chain" {
-  description = "The certificate's PEM-formatted chain"
-  type        = string
-  default     = null
 }
 
 variable "id" {

@@ -47,10 +47,7 @@ module "cloud" {
   create_53_acm       = var.create_dns_record
   domain_name         = var.domain_name
   route53_record_name = var.record_name
-  import_certificate  = var.import_certificate
-  private_key         = fileexists(var.private_key) ? file(var.private_key) : ""
-  certificate_body    = fileexists(var.certificate_body) ? file(var.certificate_body) : ""
-  certificate_chain   = fileexists(var.certificate_chain) ? file(var.certificate_chain) : null
+  certificate_arn     = var.certificate
   module_depends_on   = [null_resource.ssh-key]
 }
 

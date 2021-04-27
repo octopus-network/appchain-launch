@@ -160,26 +160,8 @@ variable "record_name" {
   default     = "" 
 }
 
-variable "import_certificate" {
-  description = "Whether to import certificate"
-  type        = bool
-  default     = false
-}
-
-variable "private_key" {
-  description = "The certificate's PEM-formatted private key"
-  type        = string
-  default     = ""
-}
-
-variable "certificate_body" {
-  description = "The certificate's PEM-formatted public key"
-  type        = string
-  default     = ""
-}
-
-variable "certificate_chain" {
-  description = "The certificate's PEM-formatted chain"
+variable "certificate" {
+  description = ""
   type        = string
   default     = ""
 }
