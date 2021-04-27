@@ -1,0 +1,10 @@
+{
+  "jsonrpc":"2.0",
+  "id":1,
+  "method":"author_insertKey",
+  "params": [
+    "imon",
+    "0xde97a402751ec682ed9f0d8b35e1e7078bf74da1985ba2e4bc379e015526d9b5",
+    "0x94f5b04d26628ccb48375597554fa6eb4dba52b5871afa5ac4787e36ee871905"
+  ]
+}

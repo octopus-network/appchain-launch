@@ -1,24 +1,24 @@
 ---
-# aura key
-- name: check if aura key exists
-  local_action: stat path="{{ hostvars[inventory_hostname].key_root_path }}/{{ aura_json }}"
-  register: aura_key
+# babe key
+- name: check if babe key exists
+  local_action: stat path="{{ hostvars[inventory_hostname].key_root_path }}/{{ babe_json }}"
+  register: babe_key
 
-- name: add aura key to keystore
+- name: add babe key to keystore
   uri:
     url: http://localhost:9933
     method: "POST"
     body_format: json
-    body: "{{ lookup('file','{{ hostvars[inventory_hostname].key_root_path }}/{{ aura_json }}') }}"
-  register: aura_insertion
-  until: aura_insertion.status == 200
+    body: "{{ lookup('file','{{ hostvars[inventory_hostname].key_root_path }}/{{ babe_json }}') }}"
+  register: babe_insertion
+  until: babe_insertion.status == 200
   retries: 3
   delay: 5
-  when: aura_key.stat.exists
+  when: babe_key.stat.exists
 
-- name: show aura response
+- name: show babe response
   debug:
-    var: aura_insertion
+    var: babe_insertion
 
 # gran key
 - name: check if gran key exists
@@ -40,6 +40,27 @@
 - name: show gran response
   debug:
     var: gran_insertion
+
+# imon key
+- name: check if imon key exists
+  local_action: stat path="{{ hostvars[inventory_hostname].key_root_path }}/{{ imon_json }}"
+  register: imon_key
+
+- name: add imon key to keystore
+  uri:
+    url: http://localhost:9933
+    method: "POST"
+    body_format: json
+    body: "{{ lookup('file','{{ hostvars[inventory_hostname].key_root_path }}/{{ imon_json }}') }}"
+  register: imon_insertion
+  until: imon_insertion.status == 200
+  retries: 3
+  delay: 5
+  when: imon_key.stat.exists
+
+- name: show imon response
+  debug:
+    var: imon_insertion
 
 # octo key
 - name: check if octo key exists
