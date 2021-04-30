@@ -87,6 +87,15 @@ module "default_sg" {
       rule_no     = 103
     },
   ]
+  ingress_with_self = [
+    {
+      from_port   = 0
+      to_port     = 0
+      protocol    = "-1"
+      description = "internal"
+      self        = true
+    }
+  ]
 }
 
 resource "aws_key_pair" "key_pair" {
@@ -114,8 +123,7 @@ module "ec2" {
       delete_on_termination = true
     },
   ]
-  key_name             = aws_key_pair.key_pair[0].key_name
-  iam_instance_profile = aws_iam_instance_profile.default.name
+  key_name = aws_key_pair.key_pair[0].key_name
 }
 
 # route53 record | certificate | load balancer
@@ -172,6 +180,17 @@ module "alb" {
           port      = 9933
         }
       ]
+      health_check = {
+        enabled = true
+        interval = 30
+        path = "/metrics"
+        port = 9090
+        healthy_threshold = 3
+        unhealthy_threshold = 3
+        timeout = 5
+        protocol = "HTTP"
+        matcher = "200"
+      }
     },
     {
       name_prefix      = "ws-"
@@ -184,6 +203,17 @@ module "alb" {
           port      = 9944
         }
       ]
+      health_check = {
+        enabled = true
+        interval = 30
+        path = "/metrics"
+        port = 9090
+        healthy_threshold = 3
+        unhealthy_threshold = 3
+        timeout = 5
+        protocol = "HTTP"
+        matcher = "200"
+      }
     }
   ]
 

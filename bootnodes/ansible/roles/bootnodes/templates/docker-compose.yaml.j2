@@ -29,6 +29,7 @@ services:
       --bootnodes {{ node }}
 {% endfor %}
     ports:
+      - 9090:9090
       - 9933:9933
       - 9944:9944
       - 30333:30333
