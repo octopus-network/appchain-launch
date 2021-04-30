@@ -70,6 +70,12 @@ variable "volume_size" {
   default     = 80
 }
 
+variable "bind_eip" {
+  description = ""
+  type        = bool
+  default     = true
+}
+
 variable "kms_key_spec" {
   description = ""
   type        = string

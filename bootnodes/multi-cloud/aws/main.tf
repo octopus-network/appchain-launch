@@ -115,7 +115,7 @@ module "ec2" {
   monitoring                  = true
   vpc_security_group_ids      = [module.default_sg.security_group_id]
   subnet_id                   = tolist(data.aws_subnet_ids.all[0].ids)[0]
-  associate_public_ip_address = true
+  associate_public_ip_address = var.bind_eip ? false : true
   root_block_device = [
     {
       volume_type           = var.volume_type
@@ -124,6 +124,12 @@ module "ec2" {
     },
   ]
   key_name = aws_key_pair.key_pair[0].key_name
+}
+
+resource "aws_eip" "default" {
+  count    = var.create && var.bind_eip ? var.instance_count : 0
+  vpc      = true
+  instance = module.ec2.id[count.index]
 }
 
 # route53 record | certificate | load balancer
