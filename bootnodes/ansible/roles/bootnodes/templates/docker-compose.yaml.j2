@@ -18,6 +18,10 @@ services:
       --ws-port 9944
       --ws-external
       --validator
+      --no-telemetry
+      --prometheus-external
+      --prometheus-port 9090
+      --wasm-execution Compiled
 {% for node in groups['validator'] %}{% if hostvars[inventory_hostname].p2p_peer_id != hostvars[node].p2p_peer_id %}
       --bootnodes /ip4/{{ node }}/tcp/30333/p2p/{{ hostvars[node].p2p_peer_id }}
 {% endif %}{% endfor %}
