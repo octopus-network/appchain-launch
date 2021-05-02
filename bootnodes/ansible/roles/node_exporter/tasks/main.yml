@@ -5,12 +5,18 @@
     state: present
     update_cache: yes
   changed_when: false
+  register: apt_install_apache2utils
+  retries: 10
+  until: apt_install_apache2utils is success
 
 - name: install nginx
   apt:
     name: nginx
     state: present
     update_cache: yes
+  register: apt_install_nginx
+  retries: 10
+  until: apt_install_nginx is success
 
 - name: check if .htpasswd file already exists
   stat:
