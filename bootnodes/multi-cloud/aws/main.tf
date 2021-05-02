@@ -190,7 +190,7 @@ module "alb" {
         enabled = true
         interval = 30
         path = "/metrics"
-        port = 9090
+        port = 9615
         healthy_threshold = 3
         unhealthy_threshold = 3
         timeout = 5
@@ -213,7 +213,7 @@ module "alb" {
         enabled = true
         interval = 30
         path = "/metrics"
-        port = 9090
+        port = 9615
         healthy_threshold = 3
         unhealthy_threshold = 3
         timeout = 5
