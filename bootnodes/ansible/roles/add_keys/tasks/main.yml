@@ -62,6 +62,27 @@
   debug:
     var: imon_insertion
 
+# beef key
+- name: check if beef key exists
+  local_action: stat path="{{ hostvars[inventory_hostname].key_root_path }}/{{ beef_json }}"
+  register: beef_key
+
+- name: add beef key to keystore
+  uri:
+    url: http://localhost:9933
+    method: "POST"
+    body_format: json
+    body: "{{ lookup('file','{{ hostvars[inventory_hostname].key_root_path }}/{{ beef_json }}') }}"
+  register: beef_insertion
+  until: beef_insertion.status == 200
+  retries: 3
+  delay: 5
+  when: beef_key.stat.exists
+
+- name: show beef response
+  debug:
+    var: beef_insertion
+
 # octo key
 - name: check if octo key exists
   local_action: stat path="{{ hostvars[inventory_hostname].key_root_path }}/{{ octo_json }}"
@@ -90,8 +111,8 @@
     build: no
     restarted: yes
   register: output
-  # gran key exists & insert to keystore
-  when: gran_key.stat.exists and gran_insertion.status == 200
+  # octo key exists & insert to keystore
+  when: octo_key.stat.exists and octo_insertion.status == 200
 
 - ansible.builtin.debug:
     var: output
