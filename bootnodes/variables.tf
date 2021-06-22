@@ -62,11 +62,19 @@ variable "cloud_vendor" {
 variable "access_key" {
   description = "Access key"
   type        = string
+  default     = ""
 }
 
 variable "secret_key" {
   description = "Secret key"
   type        = string
+  default     = ""
+}
+
+variable "project" {
+  description = "ID of the gcp project"
+  type        = string
+  default     = ""
 }
 
 variable "region" {

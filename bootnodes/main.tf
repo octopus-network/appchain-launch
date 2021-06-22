@@ -51,6 +51,20 @@ module "cloud" {
   module_depends_on   = [null_resource.ssh-key]
 }
 
+# module "cloud" {
+#   source              = "./multi-cloud/gcp"
+
+#   project             = var.project
+#   region              = var.region
+#   availability_zones  = var.availability_zones
+#   instance_count      = var.instance_count
+#   instance_type       = var.instance_type
+#   volume_type         = var.volume_type
+#   volume_size         = var.volume_size
+#   public_key_file     = abspath("${random_id.this.hex}/ssh/${random_id.this.hex}.pub")
+#   id                  = random_id.this.hex
+# }
+
 locals {
   keys_octoup = [
     for i in fileset(path.module, "${var.keys_octoup}/*/peer-id"): {
@@ -104,7 +118,7 @@ output "bootnodes_output" {
   ]
 }
 
-output "lb_dns_name" {
-  description = ""
-  value       = module.cloud.lb_dns_name
-}
+# output "lb_dns_name" {
+#   description = ""
+#   value       = module.cloud.lb_dns_name
+# }
