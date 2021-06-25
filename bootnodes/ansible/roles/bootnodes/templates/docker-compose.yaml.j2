@@ -22,6 +22,7 @@ services:
       --prometheus-external
       --prometheus-port 9615
       --wasm-execution Compiled
+      --enable-offchain-indexing true
 {% for node in groups['validator'] %}{% if hostvars[inventory_hostname].p2p_peer_id != hostvars[node].p2p_peer_id %}
       --bootnodes /ip4/{{ node }}/tcp/30333/p2p/{{ hostvars[node].p2p_peer_id }}
 {% endif %}{% endfor %}
