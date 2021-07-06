@@ -1,9 +1,0 @@
-
----
-# octoup keys default filename
-node_key: "node-key"
-babe_json: "babe.json"
-gran_json: "gran.json"
-imon_json: "imon.json"
-beef_json: "beef.json"
-octo_json: "octo.json"
