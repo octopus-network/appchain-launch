@@ -222,6 +222,7 @@ resource "kubernetes_service" "default" {
     session_affinity = "ClientIP"
     port {
       name        = "p2p"
+      protocol    = "TCP"
       port        = 30333
       target_port = 30333
     }
@@ -230,15 +231,36 @@ resource "kubernetes_service" "default" {
       port        = 9615
       target_port = 9615
     }
+    type                    = "LoadBalancer"
+    load_balancer_ip        = google_compute_address.default[count.index].address
+    external_traffic_policy = "Local"
+  }
+}
+
+resource "kubernetes_service" "internal" {
+  count = var.bootnodes
+  metadata {
+    name = "${var.chain_name}-${count.index}-internal"
+  }
+  spec {
+    selector = {
+      "statefulset.kubernetes.io/pod-name" = "${var.chain_name}-${count.index}"
+    }
     port {
       name        = "rpc"
       port        = 9933
       target_port = 9933
     }
-    type                    = "LoadBalancer"
-    load_balancer_ip        = google_compute_address.default[count.index].address
-    external_traffic_policy = "Local"
+    type = "ClusterIP"
   }
+}
+
+module "add-keys" {
+  source            = "./add-keys"
+  chain_name        = var.chain_name
+  dirs              = [for i in local.keys_octoup: i["key_dir"]]
+  keys              = ["babe.json", "gran.json", "imon.json", "beef.json", "octo.json"]
+  module_depends_on = [kubernetes_stateful_set.default]
 }
 
 output "bootnodes_output" {
