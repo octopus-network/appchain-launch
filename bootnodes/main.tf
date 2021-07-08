@@ -4,6 +4,10 @@ provider "google" {
   region  = var.region
 }
 
+
+data "google_client_config" "default" {
+}
+
 data "google_container_cluster" "default" {
   name     = var.cluster
   location = var.region
@@ -29,8 +33,14 @@ locals {
   ]
 }
 
+# provider "kubernetes" {
+#   config_path = "~/.kube/config"
+# }
+
 provider "kubernetes" {
-  config_path = "~/.kube/config"
+  host                   = "https://${data.google_container_cluster.default.endpoint}"
+  token                  = data.google_client_config.default.access_token
+  cluster_ca_certificate = base64decode(data.google_container_cluster.default.master_auth[0].cluster_ca_certificate)
 }
 
 resource "kubernetes_config_map" "default" {
