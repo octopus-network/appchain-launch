@@ -3,7 +3,6 @@ set -ex
 for i in /chain/keys/*.json; do
   idx="${i//[!0-9]/}"
   host=$(echo "$1_${idx}_internal_service_host" | tr '[:lower:]' '[:upper:]')
-  # eval "host_port=\$$host:9933"
   port=$(echo "testnet_${idx}_internal_service_port_rpc" | tr '[:lower:]' '[:upper:]')
   eval "host_port=\$$host:\$$port"
   retry=0

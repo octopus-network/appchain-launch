@@ -30,39 +30,60 @@ resource "kubernetes_config_map" "default" {
   }
 }
 
-resource "kubernetes_pod" "default" {
+resource "kubernetes_job" "default" {
   metadata {
     name = "${var.chain_name}-add-keys"
   }
   spec {
-    container {
-      image   = "radial/busyboxplus:curl"
-      name    = "${var.chain_name}-add-keys"
-      command = ["/chain/run.sh", var.chain_name]
-      volume_mount {
-        name       = "${var.chain_name}-job-config-volume"
-        mount_path = "/chain/run.sh"
-        sub_path = "run.sh"
-      }
-      volume_mount {
-        name       = "${var.chain_name}-job-secret-volume"
-        mount_path = "/chain/keys"
+    template {
+      metadata {}
+      spec {
+        container {
+          image   = "radial/busyboxplus:curl"
+          name    = "${var.chain_name}-add-keys"
+          command = ["/chain/run.sh", var.chain_name]
+          resources {
+            limits = {
+              cpu    = "100m"
+              memory = "100Mi"
+            }
+            requests = {
+              cpu    = "100m"
+              memory = "100Mi"
+            }
+          }
+          volume_mount {
+            name       = "${var.chain_name}-job-config-volume"
+            mount_path = "/chain/run.sh"
+            sub_path = "run.sh"
+          }
+          volume_mount {
+            name       = "${var.chain_name}-job-secret-volume"
+            mount_path = "/chain/keys"
+          }
+        }
+        volume {
+          name = "${var.chain_name}-job-config-volume"
+          config_map {
+            name = "${var.chain_name}-job-config-map"
+            default_mode = "0555"
+          }
+        }
+        volume {
+          name = "${var.chain_name}-job-secret-volume"
+          secret {
+            secret_name = "${var.chain_name}-job-secret"
+          }
+        }
+        restart_policy = "Never"
       }
     }
-    volume {
-      name = "${var.chain_name}-job-config-volume"
-      config_map {
-        name = "${var.chain_name}-job-config-map"
-        default_mode = "0555"
-      }
-    }
-    volume {
-      name = "${var.chain_name}-job-secret-volume"
-      secret {
-        secret_name = "${var.chain_name}-job-secret"
-      }
-    }
-    restart_policy = "Never"
+    # backoff_limit           = 3
+  }
+  wait_for_completion = true
+  timeouts {
+    create = "5m"
+    update = "5m"
   }
   depends_on = [var.module_depends_on]
 }
