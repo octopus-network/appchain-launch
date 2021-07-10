@@ -87,3 +87,10 @@ resource "kubernetes_job" "default" {
   }
   depends_on = [var.module_depends_on]
 }
+
+resource "null_resource" "default" {
+  depends_on = [kubernetes_job.default]
+  provisioner "local-exec" {
+    command = "kubectl rollout restart sts ${var.chain_name}"
+  }
+}
