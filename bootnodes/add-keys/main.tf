@@ -91,6 +91,7 @@ resource "kubernetes_job" "default" {
 resource "null_resource" "default" {
   depends_on = [kubernetes_job.default]
   provisioner "local-exec" {
+    interpreter = ["/bin/bash", "-c"]
     command = "kubectl rollout restart sts ${var.chain_name}"
   }
 }
