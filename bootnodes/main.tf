@@ -33,10 +33,6 @@ locals {
   ]
 }
 
-# provider "kubernetes" {
-#   config_path = "~/.kube/config"
-# }
-
 provider "kubernetes" {
   host                   = "https://${data.google_container_cluster.default.endpoint}"
   token                  = data.google_client_config.default.access_token
@@ -101,6 +97,7 @@ resource "kubernetes_stateful_set" "default" {
         init_container {
           name              = "${var.chain_name}-init-nodekey"
           image             = "busybox"
+          image_pull_policy = "IfNotPresent"
           command           = ["sh", "-c", "cp /tmp/node-key-$${HOSTNAME##*-} /substrate/.node-key"]
           resources {
             limits = {
@@ -173,21 +170,21 @@ resource "kubernetes_stateful_set" "default" {
             name       = "${var.chain_name}-data"
             mount_path = "/substrate"
           }
-          # readiness_probe {
-          #   http_get {
-          #     path = "/metrics"
-          #     port = 9615
-          #   }
-          #   initial_delay_seconds = 30
-          #   timeout_seconds       = 30
-          # }
+          readiness_probe {
+            http_get {
+              path = "/metrics"
+              port = 9615
+            }
+            initial_delay_seconds = 10
+            timeout_seconds       = 1
+          }
           liveness_probe {
             http_get {
               path   = "/metrics"
               port   = 9615
             }
-            initial_delay_seconds = 30
-            timeout_seconds       = 30
+            initial_delay_seconds = 10
+            timeout_seconds       = 1
           }
         }
         volume {
@@ -197,7 +194,6 @@ resource "kubernetes_stateful_set" "default" {
           }
         }
         security_context {
-          # run_as_user = 1000
           fs_group = 1000
         }
         termination_grace_period_seconds = 300

@@ -78,20 +78,84 @@ resource "kubernetes_job" "default" {
         restart_policy = "Never"
       }
     }
-    # backoff_limit           = 3
+    # backoff_limit = 3
   }
   wait_for_completion = true
   timeouts {
     create = "5m"
-    update = "5m"
   }
   depends_on = [var.module_depends_on]
 }
 
-resource "null_resource" "default" {
-  depends_on = [kubernetes_job.default]
-  provisioner "local-exec" {
-    interpreter = ["/bin/bash", "-c"]
-    command = "kubectl rollout restart sts ${var.chain_name}"
+
+# Substrate nodes require a restart after inserting a GRANDPA key
+resource "kubernetes_role" "restart" {
+  metadata {
+    name = "${var.chain_name}-restart-role"
+  }
+  rule {
+    api_groups     = ["apps"]
+    resources      = ["statefulsets"]
+    resource_names = [var.chain_name]
+    verbs          = ["get", "patch"]
   }
 }
+
+resource "kubernetes_role_binding" "restart" {
+  metadata {
+    name = "${var.chain_name}-restart-role-binding"
+  }
+  role_ref {
+    api_group = "rbac.authorization.k8s.io"
+    kind      = "Role"
+    name      = "${var.chain_name}-restart-role"
+  }
+  subject {
+    kind      = "ServiceAccount"
+    name      = "default"
+  }
+}
+
+resource "kubernetes_job" "restart" {
+  metadata {
+    name = "${var.chain_name}-restart-nodes"
+  }
+  spec {
+    template {
+      metadata {}
+      spec {
+        container {
+          image   = "bitnami/kubectl"
+          name    = "${var.chain_name}-restart-nodes"
+          command = ["kubectl", "rollout", "restart", "statefulsets/${var.chain_name}"]
+          resources {
+            limits = {
+              cpu    = "100m"
+              memory = "100Mi"
+            }
+            requests = {
+              cpu    = "100m"
+              memory = "100Mi"
+            }
+          }
+        }
+        restart_policy = "Never"
+        service_account_name = "default"
+      }
+    }
+    # backoff_limit = 3
+  }
+  wait_for_completion = true
+  timeouts {
+    create = "5m"
+  }
+  depends_on = [kubernetes_job.default]
+}
+
+# resource "null_resource" "default" {
+#   depends_on = [kubernetes_job.default]
+#   provisioner "local-exec" {
+#     interpreter = ["/bin/bash", "-c"]
+#     command = "kubectl rollout restart sts ${var.chain_name}"
+#   }
+# }
