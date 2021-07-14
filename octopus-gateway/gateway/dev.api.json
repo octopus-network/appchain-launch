@@ -1,0 +1,11 @@
+{
+    "name": "api",
+    "port": 7003,
+    "messengers": {
+        "testnet": [
+            "ws://messager:7004"
+        ]
+    },
+    "pool": 10,
+    "statServer": "stat:7002"
+}

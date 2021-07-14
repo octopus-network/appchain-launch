@@ -17,7 +17,6 @@ variable "chainspec_checksum" {
 variable "bootnodes" {
   description = "Bootnodes"
   type        = list(string)
-  default     = []
 }
 
 variable "base_image" {
@@ -31,20 +30,10 @@ variable "start_cmd" {
   default     = "node-template"
 }
 
-# gke
-variable "project" {
-  description = "Project"
-  type        = string
-}
-
-variable "region" {
-  description = "Region"
-  type        = string
-}
-
-variable "cluster" {
-  description = "Cluster"
-  type        = string
+variable "replicas" {
+  description = ""
+  type        = number
+  default     = 1
 }
 
 variable "cpu_requests" {
