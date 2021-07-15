@@ -18,7 +18,8 @@ provider "kubernetes" {
 }
 
 module "redis" {
-  source        = "./redis"
+  source = "./redis"
+
   region        = var.region
   tier          = "BASIC"
   redis_version = "REDIS_5_0"
@@ -28,19 +29,34 @@ module "redis" {
 }
 
 module "fullnode" {
-    source             = "./nodes"
-    chain_name         = var.chain_name
-    chainspec_url      = var.chainspec_url
-    chainspec_checksum = var.chainspec_checksum
-    bootnodes          = var.bootnodes
-    base_image         = var.base_image
-    start_cmd          = var.start_cmd
+  source = "./nodes"
+
+  for_each      = var.chains
+  chain_name    = each.key
+  chainspec_url = each.value.chainspec
+  bootnodes     = each.value.bootnodes
+  base_image    = each.value.image
+  start_cmd     = each.value.command
+}
+
+locals {
+  fullnode = [
+    for k, v in module.fullnode : {
+      name = k
+      service = v.service_name
+    }
+  ]
 }
 
 module "gateway" {
-    source         = "./gateway"
-    redis_host     = module.redis.host
-    redis_port     = module.redis.port
-    redis_password = module.redis.auth
-    redis_cert     = module.redis.cert
+  source         = "./gateway"
+
+  gateway = var.gateway
+  chains  = local.fullnode
+  redis = {
+    host     = module.redis.host
+    port     = module.redis.port
+    password = module.redis.auth
+    tls_cert = module.redis.cert
+  }
 }

@@ -1,3 +1,22 @@
+
+locals {
+  dev_api_json = templatefile("${path.module}/dev.api.tpl", {
+    messengers = jsonencode({for x in var.chains : x.name => ["ws://messenger:7004"]})
+  })
+
+  dev_messenger_json = templatefile("${path.module}/dev.messenger.tpl", {
+    chain = jsonencode({for x in var.chains : x.name => {
+      rpc = ["http://${x.service}:9933"]
+      ws = ["ws://${x.service}:9944"]
+      processors = ["node", "cache"]
+    }})
+  })
+
+  dev_stat_json = templatefile("${path.module}/dev.stat.tpl", {
+    chain = jsonencode({for x in var.chains : x.name => {}})
+  })
+}
+
 resource "kubernetes_namespace" "default" {
   metadata {
     labels = {
@@ -14,13 +33,13 @@ resource "kubernetes_config_map" "api" {
     namespace = "gateway"
   }
   data = {
-    "dev.env.json" = file("${path.module}/dev.api.json")
+    "dev.env.json" = local.dev_api_json
   }
 }
 
 resource "kubernetes_deployment" "api" {
   metadata {
-    name      = "api"
+    name = "api"
     labels = {
       app = "api"
     }
@@ -42,7 +61,7 @@ resource "kubernetes_deployment" "api" {
       spec {
         container {
           name  = "api"
-          image = "asia-northeast1-docker.pkg.dev/orbital-builder-316023/docker-repository/octopus-gateway-api:0.0.1"
+          image = var.gateway.api_image
           port {
             container_port = 7003
           }
@@ -74,7 +93,7 @@ resource "kubernetes_deployment" "api" {
 
 resource "kubernetes_service" "api" {
   metadata {
-    name     = "api"
+    name      = "api"
     namespace = "gateway"
   }
   spec {
@@ -91,32 +110,32 @@ resource "kubernetes_service" "api" {
   }
 }
 
-# messager
-resource "kubernetes_config_map" "messager" {
+# messenger
+resource "kubernetes_config_map" "messenger" {
   metadata {
-    name      = "messager-config-map"
+    name      = "messenger-config-map"
     namespace = "gateway"
   }
   data = {
-    "dev.env.json" = file("${path.module}/dev.messager.json")
+    "dev.env.json" = local.dev_messenger_json
   }
 }
 
-resource "kubernetes_config_map" "messager-chain" {
+resource "kubernetes_config_map" "messenger-chain" {
   metadata {
-    name      = "messager-chain-config-map"
+    name      = "messenger-chain-config-map"
     namespace = "gateway"
   }
   data = {
-    "testnet.json" = file("${path.module}/dev.chain.json")
+    for x in var.chains : "${x.name}.json" => file("${path.module}/dev.chain.json")
   }
 }
 
-resource "kubernetes_deployment" "messager" {
+resource "kubernetes_deployment" "messenger" {
   metadata {
-    name      = "messager"
+    name = "messenger"
     labels = {
-      app = "messager"
+      app = "messenger"
     }
     namespace = "gateway"
   }
@@ -124,30 +143,33 @@ resource "kubernetes_deployment" "messager" {
     replicas = 1
     selector {
       match_labels = {
-        app = "messager"
+        app = "messenger"
       }
     }
     template {
       metadata {
         labels = {
-          app = "messager"
+          app = "messenger"
         }
       }
       spec {
         container {
-          name  = "messager"
-          image = "asia-northeast1-docker.pkg.dev/orbital-builder-316023/docker-repository/octopus-gateway-messager:0.0.1"
+          name  = "messenger"
+          image = var.gateway.messenger_image
           port {
             container_port = 7004
           }
           volume_mount {
-            name       = "messager-config-volume"
-            mount_path = "/app/messager/config/env"
+            name       = "messenger-config-volume"
+            mount_path = "/app/messenger/config/env"
           }
-          volume_mount {
-            name       = "messager-chain-volume"
-            mount_path = "/app/messager/config/testnet.json"
-            sub_path = "testnet.json"
+          dynamic "volume_mount" {
+            for_each = toset([for x in var.chains : x.name])
+            content {
+              name       = "messenger-chain-volume"
+              mount_path = "/app/messenger/config/${volume_mount.key}.json"
+              sub_path = "${volume_mount.key}.json"
+            }
           }
           resources {
             limits = {
@@ -161,15 +183,15 @@ resource "kubernetes_deployment" "messager" {
           }
         }
         volume {
-          name = "messager-config-volume"
+          name = "messenger-config-volume"
           config_map {
-            name = kubernetes_config_map.messager.metadata.0.name
+            name = kubernetes_config_map.messenger.metadata.0.name
           }
         }
         volume {
-          name = "messager-chain-volume"
+          name = "messenger-chain-volume"
           config_map {
-            name = kubernetes_config_map.messager-chain.metadata.0.name
+            name = kubernetes_config_map.messenger-chain.metadata.0.name
           }
         }
       }
@@ -177,15 +199,15 @@ resource "kubernetes_deployment" "messager" {
   }
 }
 
-resource "kubernetes_service" "messager" {
+resource "kubernetes_service" "messenger" {
   metadata {
-    name     = "messager"
+    name      = "messenger"
     namespace = "gateway"
   }
   spec {
     type = "ClusterIP"
     selector = {
-      app = kubernetes_deployment.messager.metadata.0.labels.app
+      app = kubernetes_deployment.messenger.metadata.0.labels.app
     }
     # session_affinity = "ClientIP"
     port {
@@ -202,7 +224,7 @@ resource "kubernetes_config_map" "stat" {
     namespace = "gateway"
   }
   data = {
-      "dev.env.json" = file("${path.module}/dev.stat.json")
+    "dev.env.json" = local.dev_stat_json
   }
 }
 
@@ -212,16 +234,16 @@ resource "kubernetes_secret" "stat" {
     namespace = "gateway"
   }
   data = {
-    REDIS_HOST     = var.redis_host
-    REDIS_PORT     = var.redis_port
-    REDIS_PASSWORD = var.redis_password
-    REDIS_TLS_CRT  = var.redis_cert
+    REDIS_HOST     = var.redis.host
+    REDIS_PORT     = var.redis.port
+    REDIS_PASSWORD = var.redis.password
+    REDIS_TLS_CRT  = var.redis.tls_cert
   }
 }
 
 resource "kubernetes_deployment" "stat" {
   metadata {
-    name      = "stat"
+    name = "stat"
     labels = {
       app = "stat"
     }
@@ -243,7 +265,7 @@ resource "kubernetes_deployment" "stat" {
       spec {
         container {
           name  = "stat"
-          image = "asia-northeast1-docker.pkg.dev/orbital-builder-316023/docker-repository/octopus-gateway-stat:0.0.1"
+          image = var.gateway.stat_image
           port {
             container_port = 7002
           }
@@ -278,10 +300,9 @@ resource "kubernetes_deployment" "stat" {
   }
 }
 
-
 resource "kubernetes_service" "stat" {
   metadata {
-    name     = "stat"
+    name      = "stat"
     namespace = "gateway"
   }
   spec {

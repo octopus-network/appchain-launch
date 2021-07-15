@@ -30,7 +30,5 @@
     "timeout": 5000,
     "requests": 1000,
     "test": true,
-    "chain": {
-        "testnet": {}
-    }
+    "chain": ${chain}
 }

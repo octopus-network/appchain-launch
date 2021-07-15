@@ -1,3 +1,3 @@
 output "service_name" {
-  value = "fullnode-service.${var.chain_name}"
+  value = "fullnode.${var.chain_name}"
 }

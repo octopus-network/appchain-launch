@@ -9,18 +9,13 @@ variable "chainspec_url" {
   type        = string
 }
 
-variable "chainspec_checksum" {
-  description = "Specifies which chain specification to use"
-  type        = string
-}
-
 variable "bootnodes" {
   description = "Bootnodes"
   type        = list(string)
 }
 
 variable "base_image" {
-  description = "Pull base image from  Docker Hub or a different registry"
+  description = "Pull base image from Docker Hub or a different registry"
   type        = string
 }
 

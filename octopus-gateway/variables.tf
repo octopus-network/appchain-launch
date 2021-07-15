@@ -1,36 +1,3 @@
-
-variable "chain_name" {
-  description = ""
-  type        = string
-}
-
-variable "chainspec_url" {
-  description = "Specifies which chain specification to use"
-  type        = string
-}
-
-variable "chainspec_checksum" {
-  description = "Specifies which chain specification to use"
-  type        = string
-}
-
-variable "bootnodes" {
-  description = "Bootnodes"
-  type        = list(string)
-  default     = []
-}
-
-variable "base_image" {
-  description = "Pull base image from  Docker Hub or a different registry"
-  type        = string
-}
-
-variable "start_cmd" {
-  description = ""
-  type        = string
-  default     = "node-template"
-}
-
 # gke
 variable "project" {
   description = "Project"
@@ -47,38 +14,25 @@ variable "cluster" {
   type        = string
 }
 
-variable "cpu_requests" {
-  description = ""
-  type        = string
-  default     = "500m"
+# 
+variable "gateway" {
+  description = "Gateway Configuration"
+  type = object({
+    api_image       = string
+    messenger_image = string
+    stat_image      = string
+  })
 }
 
-variable "cpu_limits" {
-  description = ""
-  type        = string
-  default     = "500m"
-}
-
-variable "memory_requests" {
-  description = ""
-  type        = string
-  default     = "1000Mi"
-}
-
-variable "memory_limits" {
-  description = ""
-  type        = string
-  default     = "1000Mi"
-}
-
-variable "volume_type" {
-  description = ""
-  type        = string
-  default     = "standard-rwo"
-}
-
-variable "volume_size" {
-  description = ""
-  type        = string
-  default     = "10Gi"
+# 
+variable "chains" {
+  description = "Chains Configuration"
+  type = map(object({
+    # name      = string
+    chainspec = string
+    bootnodes = list(string)
+    image     = string
+    command   = string
+    replicas  = number
+  }))
 }

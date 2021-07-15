@@ -1,20 +1,25 @@
-
-variable "redis_host" {
-  description = ""
-  type        = string
+variable "gateway" {
+  type = object({
+    api_image       = string
+    messenger_image = string
+    stat_image      = string
+  })
 }
 
-variable "redis_port" {
+variable "chains" {
   description = ""
-  type        = string
+  type        = list(object({
+    name    = string
+    service = string
+  }))
 }
 
-variable "redis_password" {
+variable "redis" {
   description = ""
-  type        = string
-}
-
-variable "redis_cert" {
-  description = ""
-  type        = string
+  type = object({
+    host     = string
+    port     = string
+    password = string
+    tls_cert = string
+  })
 }
