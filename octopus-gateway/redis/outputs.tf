@@ -1,17 +1,17 @@
 
 output "host" {
-  value = google_redis_instance.default.host
+  value = var.create ? google_redis_instance.default.0.host : data.google_redis_instance.default.0.host
 }
 
 output "port" {
-  value = google_redis_instance.default.port
+  value = var.create ? google_redis_instance.default.0.port : data.google_redis_instance.default.0.port
 }
 
 output "auth" {
-  value = var.auth_enabled ? google_redis_instance.default.auth_string : ""
+  value = var.create ? google_redis_instance.default.0.auth_string : data.google_redis_instance.default.0.auth_string
   sensitive = true
 }
 
 output "cert" {
-  value = var.tls_enabled ? google_redis_instance.default.server_ca_certs.0.cert : ""
+  value = var.create ? (var.tls_enabled ? google_redis_instance.default.0.server_ca_certs.0.cert : "") : (data.google_redis_instance.default.0.transit_encryption_mode == "SERVER_AUTHENTICATION" ? data.google_redis_instance.default.0.server_ca_certs.0.cert : "")
 }

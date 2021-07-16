@@ -1,6 +1,18 @@
+variable "create" {
+  description = ""
+  type        = bool
+  default     = true
+}
+
 variable "region" {
   description = "Region"
   type        = string
+}
+
+variable "name" {
+  description = ""
+  type        = string
+  default     = "octopus-redis"
 }
 
 variable "tier" {
