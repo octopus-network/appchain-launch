@@ -36,3 +36,18 @@ variable "chains" {
     replicas  = number
   }))
 }
+
+#
+variable "redis" {
+  description = "Redis Configuration"
+  type = object({
+    create       = bool
+    name         = string
+    region       = string
+    tier         = string
+    version      = string
+    memory_size  = number
+    auth_enabled = bool
+    tls_enabled  = bool
+  })
+}

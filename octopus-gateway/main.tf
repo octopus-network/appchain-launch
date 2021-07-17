@@ -20,12 +20,14 @@ provider "kubernetes" {
 module "redis" {
   source = "./redis"
 
-  region        = var.region
-  tier          = "BASIC"
-  redis_version = "REDIS_5_0"
-  memory_size   = 1
-  auth_enabled  = true
-  tls_enabled   = true
+  create        = var.redis.create
+  region        = var.redis.region
+  name          = var.redis.name
+  tier          = var.redis.tier
+  redis_version = var.redis.version
+  memory_size   = var.redis.memory_size
+  auth_enabled  = var.redis.auth_enabled
+  tls_enabled   = var.redis.tls_enabled
 }
 
 module "fullnode" {
