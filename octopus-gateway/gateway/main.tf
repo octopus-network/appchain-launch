@@ -96,8 +96,8 @@ resource "kubernetes_service" "api" {
     name      = "api"
     namespace = "gateway"
     annotations = {
-      # "cloud.google.com/neg" = "{\"ingress\": true}"
-      "cloud.google.com/neg" = "{\"exposed_ports\":{\"80\":{\"name\": \"gateway-api-neg\"}}}"
+      "cloud.google.com/neg" = "{\"ingress\": true}"
+      # "cloud.google.com/neg" = "{\"exposed_ports\":{\"80\":{\"name\": \"gateway-api-neg\"}}}"
     }
   }
   spec {
@@ -119,98 +119,98 @@ resource "google_compute_global_address" "api" {
 }
 
 resource "google_compute_managed_ssl_certificate" "api" {
-  name = "gateway-managed-ssl-certificate"
+  name = "gateway.testnet.octopus.network"
   managed {
     domains = var.gateway.api_domains
   }
 }
 
-# # TODO: terraform not support cloud.google.com/backend-config (health check, ws timeout)
-# resource "kubernetes_ingress" "api" {
-#   metadata {
-#     name        = "api-ingress"
-#     namespace   = "gateway"
-#     annotations = {
-#       "kubernetes.io/ingress.global-static-ip-name" = google_compute_global_address.api.name
-#       "networking.gke.io/managed-certificates"      = google_compute_managed_ssl_certificate.api.name
-#       "kubernetes.io/ingress.class"                 = "gce"
-#       # "kubernetes.io/ingress.allow-http"            = false
-#     }
-#   }
-#   spec {
-#     backend {
-#       service_name = kubernetes_service.api.metadata.0.name
-#       service_port = 80
-#     }
+# TODO: terraform not support cloud.google.com/backend-config (health check, ws timeout)
+resource "kubernetes_ingress" "api" {
+  metadata {
+    name        = "api-ingress"
+    namespace   = "gateway"
+    annotations = {
+      "kubernetes.io/ingress.global-static-ip-name" = google_compute_global_address.api.name
+      "networking.gke.io/managed-certificates"      = google_compute_managed_ssl_certificate.api.name
+      "kubernetes.io/ingress.class"                 = "gce"
+      # "kubernetes.io/ingress.allow-http"            = false
+    }
+  }
+  spec {
+    backend {
+      service_name = kubernetes_service.api.metadata.0.name
+      service_port = 80
+    }
+  }
+}
+
+# resource "google_compute_health_check" "api" {
+#   name        = "gateway-health-check"
+#   timeout_sec         = 1
+#   check_interval_sec  = 1
+#   http_health_check {
+#     port         = 7003
+#     request_path = "/healthz"
 #   }
 # }
-
-resource "google_compute_health_check" "api" {
-  name        = "gateway-health-check"
-  timeout_sec         = 1
-  check_interval_sec  = 1
-  http_health_check {
-    port         = 7003
-    request_path = "/healthz"
-  }
-}
-
-resource "google_compute_backend_service" "api" {
-  name          = "gateway-backend-service"
-  timeout_sec   = 3600 # [1, 86400] connection_draining_timeout_sec
-  health_checks = [google_compute_health_check.api.id]
-  # TODO: projects/{{project}}/zones/{{zone}}/networkEndpointGroups/{{name}}
-  backend {
-    balancing_mode        = "RATE"
-    max_rate_per_endpoint = 100
-    group                 = "https://www.googleapis.com/compute/v1/projects/orbital-builder-316023/zones/asia-northeast1-a/networkEndpointGroups/gateway-api-neg"
-  }
-  backend {
-    balancing_mode        = "RATE"
-    max_rate_per_endpoint = 100
-    group                 = "https://www.googleapis.com/compute/v1/projects/orbital-builder-316023/zones/asia-northeast1-c/networkEndpointGroups/gateway-api-neg"
-  }
-}
-
-resource "google_compute_url_map" "api" {
-  name            = "gateway-url-map"
-  default_service = google_compute_backend_service.api.id
-}
-
-resource "google_compute_target_https_proxy" "api" {
-  name             = "gateway-target-https-proxy"
-  url_map          = google_compute_url_map.api.id
-  ssl_certificates = [google_compute_managed_ssl_certificate.api.id]
-}
-
-resource "google_compute_global_forwarding_rule" "api" {
-  name       = "gateway-forwarding-rule"
-  ip_address = google_compute_global_address.api.address
-  port_range = 443
-  target     = google_compute_target_https_proxy.api.id
-}
-
-resource "google_compute_url_map" "api_http" {
-  name            = "gateway-url-map-redirect"
-  default_url_redirect {
-    https_redirect         = true
-    redirect_response_code = "MOVED_PERMANENTLY_DEFAULT"
-    strip_query            = false
-  }
-}
-
-resource "google_compute_target_http_proxy" "api_http" {
-  name    = "gateway-target-http-proxy"
-  # url_map = google_compute_url_map.api_http.id
-  url_map = google_compute_url_map.api.id
-}
-
-resource "google_compute_global_forwarding_rule" "api_http" {
-  name       = "gateway-forwarding-rule-redirect"
-  ip_address = google_compute_global_address.api.address
-  port_range = 80
-  target     = google_compute_target_http_proxy.api_http.id
-}
+# 
+# resource "google_compute_backend_service" "api" {
+#   name          = "gateway-backend-service"
+#   timeout_sec   = 3600 # [1, 86400] connection_draining_timeout_sec
+#   health_checks = [google_compute_health_check.api.id]
+#   # TODO: projects/{{project}}/zones/{{zone}}/networkEndpointGroups/{{name}}
+#   backend {
+#     balancing_mode        = "RATE"
+#     max_rate_per_endpoint = 100
+#     group                 = "https://www.googleapis.com/compute/v1/projects/orbital-builder-316023/zones/asia-northeast1-a/networkEndpointGroups/gateway-api-neg"
+#   }
+#   backend {
+#     balancing_mode        = "RATE"
+#     max_rate_per_endpoint = 100
+#     group                 = "https://www.googleapis.com/compute/v1/projects/orbital-builder-316023/zones/asia-northeast1-c/networkEndpointGroups/gateway-api-neg"
+#   }
+# }
+# 
+# resource "google_compute_url_map" "api" {
+#   name            = "gateway-url-map"
+#   default_service = google_compute_backend_service.api.id
+# }
+# 
+# resource "google_compute_target_https_proxy" "api" {
+#   name             = "gateway-target-https-proxy"
+#   url_map          = google_compute_url_map.api.id
+#   ssl_certificates = [google_compute_managed_ssl_certificate.api.id]
+# }
+# 
+# resource "google_compute_global_forwarding_rule" "api" {
+#   name       = "gateway-forwarding-rule"
+#   ip_address = google_compute_global_address.api.address
+#   port_range = 443
+#   target     = google_compute_target_https_proxy.api.id
+# }
+# 
+# resource "google_compute_url_map" "api_http" {
+#   name            = "gateway-url-map-redirect"
+#   default_url_redirect {
+#     https_redirect         = true
+#     redirect_response_code = "MOVED_PERMANENTLY_DEFAULT"
+#     strip_query            = false
+#   }
+# }
+# 
+# resource "google_compute_target_http_proxy" "api_http" {
+#   name    = "gateway-target-http-proxy"
+#   # url_map = google_compute_url_map.api_http.id
+#   url_map = google_compute_url_map.api.id
+# }
+# 
+# resource "google_compute_global_forwarding_rule" "api_http" {
+#   name       = "gateway-forwarding-rule-redirect"
+#   ip_address = google_compute_global_address.api.address
+#   port_range = 80
+#   target     = google_compute_target_http_proxy.api_http.id
+# }
 
 # messenger
 resource "kubernetes_config_map" "messenger" {
