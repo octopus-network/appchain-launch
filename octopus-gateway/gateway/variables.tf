@@ -1,5 +1,6 @@
 variable "gateway" {
   type = object({
+    api_domains     = list(string)
     api_image       = string
     messenger_image = string
     stat_image      = string
