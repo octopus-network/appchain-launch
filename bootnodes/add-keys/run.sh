@@ -2,8 +2,8 @@
 set -ex
 for i in /chain/keys/*.json; do
   idx="${i//[!0-9]/}"
-  host=$(echo "$1_${idx}_internal_service_host" | tr '[:lower:]' '[:upper:]')
-  port=$(echo "$1_${idx}_internal_service_port_rpc" | tr '[:lower:]' '[:upper:]')
+  host=$(echo "$1_${idx}_internal_service_host" | tr '[:lower:]' '[:upper:]' | tr '-' '_')
+  port=$(echo "$1_${idx}_internal_service_port_rpc" | tr '[:lower:]' '[:upper:]' | tr '-' '_')
   eval "host_port=\$$host:\$$port"
   retry=0
   until [ "$retry" -ge 3 ]; do
