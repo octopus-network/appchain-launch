@@ -119,7 +119,7 @@ resource "google_compute_global_address" "api" {
 }
 
 resource "google_compute_managed_ssl_certificate" "api" {
-  name = "gateway.testnet.octopus.network"
+  name = "gateway-testnet-octopus-network"
   managed {
     domains = var.gateway.api_domains
   }
