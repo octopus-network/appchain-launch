@@ -9,23 +9,23 @@ resource "kubernetes_namespace" "default" {
 
 resource "kubernetes_stateful_set" "default" {
   metadata {
-    name      = "fullnode"
+    name      = "${var.chain_name}-fullnode"
     namespace = var.chain_name
   }
   spec {
-    service_name           = "fullnode"
+    service_name           = "${var.chain_name}-fullnode"
     pod_management_policy  = "Parallel"
     replicas               = var.replicas
     revision_history_limit = 5
     selector {
       match_labels = {
-        app = "fullnode"
+        app = "${var.chain_name}-fullnode"
       }
     }
     template {
       metadata {
         labels = {
-          app = "fullnode"
+          app = "${var.chain_name}-fullnode"
         }
       }
       spec {
@@ -50,7 +50,7 @@ resource "kubernetes_stateful_set" "default" {
           }
         }
         container {
-          name              = "fullnode"
+          name              = "${var.chain_name}-fullnode"
           image             = var.base_image
           image_pull_policy = "IfNotPresent"
           command = [var.start_cmd]
@@ -144,7 +144,7 @@ resource "kubernetes_stateful_set" "default" {
 
 resource "kubernetes_service" "default" {
   metadata {
-    name      = "fullnode"
+    name      = "${var.chain_name}-fullnode"
     namespace = var.chain_name
   }
   spec {
@@ -160,7 +160,7 @@ resource "kubernetes_service" "default" {
     }
     cluster_ip = "None"
     selector = {
-      app = "fullnode"
+      app = "${var.chain_name}-fullnode"
     }
     session_affinity = "ClientIP"
   }

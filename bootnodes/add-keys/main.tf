@@ -79,6 +79,7 @@ resource "kubernetes_job" "default" {
       }
     }
     # backoff_limit = 3
+    ttl_seconds_after_finished = 100
   }
   wait_for_completion = true
   timeouts {
