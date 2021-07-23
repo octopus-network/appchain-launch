@@ -113,12 +113,6 @@ resource "kubernetes_stateful_set" "default" {
             timeout_seconds       = 1
           }
         }
-        volume {
-          name = "fullnode-config"
-          config_map {
-            name = "fullnode-config-map"
-          }
-        }
         security_context {
           fs_group = 1000
         }
