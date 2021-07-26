@@ -1,0 +1,10 @@
+{
+  "jsonrpc":"2.0",
+  "id":1,
+  "method":"author_insertKey",
+  "params": [
+    "beef",
+    "0xf15db6d95e32d976a47c0d3f05c5ddcfb67bcf7431843dafdd30ee3035386ca1",
+    "0x026e5ad0b436a8a5d9666592ce75add9fd31ac8b94ffa635762bf4df1519ac198d"
+  ]
+}

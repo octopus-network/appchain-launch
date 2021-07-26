@@ -1,124 +1,274 @@
-resource "random_id" "this" {
-  byte_length = 8
+
+provider "google" {
+  project = var.project
+  region  = var.region
 }
 
-resource "null_resource" "workspace" {
-  triggers = {
-    workspace = random_id.this.hex
-  }
-
-  provisioner "local-exec" {
-    command = "mkdir -p ${random_id.this.hex}/ssh"
-  }
-
-  provisioner "local-exec" {
-    when    = destroy
-    command = "rm -rf ${self.triggers.workspace}"
-  }
+data "google_client_config" "default" {
 }
 
-resource "null_resource" "ssh-key" {
-  triggers = {
-    ssh_key = random_id.this.hex
-  }
-
-  provisioner "local-exec" {
-    command = "ssh-keygen -t rsa -P '' -f ${random_id.this.hex}/ssh/${random_id.this.hex} <<<y"
-  }
-  depends_on = [null_resource.workspace]
+data "google_container_cluster" "default" {
+  name     = var.cluster
+  location = var.region
 }
 
-module "cloud" {
-  source              = "./multi-cloud/aws"
-
-  access_key          = var.access_key
-  secret_key          = var.secret_key
-  region              = var.region
-  availability_zones  = var.availability_zones
-  instance_count      = var.instance_count
-  instance_type       = var.instance_type
-  volume_type         = var.volume_type
-  volume_size         = var.volume_size
-  kms_key_spec        = var.kms_key_spec
-  kms_key_alias       = var.kms_key_alias
-  public_key_file     = abspath("${random_id.this.hex}/ssh/${random_id.this.hex}.pub")
-  id                  = random_id.this.hex
-  create_lb           = var.create_lb
-  create_53_acm       = var.create_dns_record
-  domain_name         = var.domain_name
-  route53_record_name = var.record_name
-  certificate_arn     = var.certificate
-  module_depends_on   = [null_resource.ssh-key]
+resource "google_compute_address" "default" {
+  count = var.bootnodes
+  name  = "ip-${var.chain_name}-${count.index}"
 }
-
-# module "cloud" {
-#   source              = "./multi-cloud/gcp"
-
-#   project             = var.project
-#   region              = var.region
-#   availability_zones  = var.availability_zones
-#   instance_count      = var.instance_count
-#   instance_type       = var.instance_type
-#   volume_type         = var.volume_type
-#   volume_size         = var.volume_size
-#   public_key_file     = abspath("${random_id.this.hex}/ssh/${random_id.this.hex}.pub")
-#   id                  = random_id.this.hex
-# }
 
 locals {
   keys_octoup = [
     for i in fileset(path.module, "${var.keys_octoup}/*/peer-id"): {
       peer_id = chomp(file(i))
+      node_key = chomp(file(replace(i, "peer-id", "node-key")))
       key_dir = dirname(abspath(i))
     }
   ]
+
+  bootnodes = [
+    for idx, addr in google_compute_address.default.*.address:
+      "/ip4/${addr}/tcp/30333/p2p/${local.keys_octoup[idx]["peer_id"]}"
+  ]
 }
 
-resource "local_file" "ansible-inventory" {
-  filename = "${random_id.this.hex}/ansible_inventory"
-  content  = templatefile("${path.module}/ansible/ansible_inventory.tpl", {
-    public_ips  = module.cloud.public_ip_address,
-    keys_octoup = local.keys_octoup
-  })
+provider "kubernetes" {
+  host                   = "https://${data.google_container_cluster.default.endpoint}"
+  token                  = data.google_client_config.default.access_token
+  cluster_ca_certificate = base64decode(data.google_container_cluster.default.master_auth[0].cluster_ca_certificate)
 }
 
-module "ansible" {
-  source = "github.com/insight-infrastructure/terraform-ansible-playbook.git"
-
-  user               = var.user
-  ips                = module.cloud.public_ip_address
-  playbook_file_path = "${path.module}/ansible/playbook.yml"
-  private_key_path   = "${random_id.this.hex}/ssh/${random_id.this.hex}"
-  inventory_file     = local_file.ansible-inventory.filename
-  playbook_vars      = {
-    chainspec_url      = var.chainspec_url
-    chainspec_checksum = var.chainspec_checksum
-    bootnodes          = jsonencode(var.bootnodes)
-    rpc_port           = var.rpc_port 
-    ws_port            = var.ws_port
-    p2p_port           = var.p2p_port
-    base_image         = var.base_image
-    start_cmd          = var.start_cmd
-
-    node_exporter_enabled         = var.node_exporter_enabled
-    node_exporter_binary_url      = var.node_exporter_binary_url
-    node_exporter_binary_checksum = var.node_exporter_binary_checksum
-    node_exporter_port            = var.node_exporter_port
-    node_exporter_user            = var.node_exporter_user
-    node_exporter_password        = var.node_exporter_password
+resource "kubernetes_config_map" "default" {
+  metadata {
+    name = "${var.chain_name}-config-map"
   }
-  # module_depends_on = [local_file.ansible-inventory]
+  data = {
+    for i, v in local.keys_octoup: "node-key-${i}" => v["node_key"]
+  }
+}
+
+resource "kubernetes_stateful_set" "default" {
+  metadata {
+    name = "${var.chain_name}"
+    # labels = {
+    #   k8s-app                           = "${var.chain_name}"
+    #   "kubernetes.io/cluster-service"   = "true"
+    #   "addonmanager.kubernetes.io/mode" = "Reconcile"
+    # }
+  }
+  spec {
+    service_name           = "${var.chain_name}"
+    pod_management_policy  = "Parallel"
+    replicas               = var.bootnodes
+    revision_history_limit = 5
+    selector {
+      match_labels = {
+        k8s-app = "${var.chain_name}"
+      }
+    }
+    template {
+      metadata {
+        labels = {
+          k8s-app = "${var.chain_name}"
+        }
+      }
+      spec {
+        init_container {
+          name              = "${var.chain_name}-init-chainspec"
+          image             = "busybox"
+          image_pull_policy = "IfNotPresent"
+          command           = ["wget", "-O", "/substrate/chainSpec.json", var.chainspec_url]
+          resources {
+            limits = {
+              cpu    = "100m"
+              memory = "100Mi"
+            }
+            requests = {
+              cpu    = "100m"
+              memory = "100Mi"
+            }
+          }
+          volume_mount {
+            name       = "${var.chain_name}-data"
+            mount_path = "/substrate"
+          }
+        }
+        init_container {
+          name              = "${var.chain_name}-init-nodekey"
+          image             = "busybox"
+          image_pull_policy = "IfNotPresent"
+          command           = ["sh", "-c", "cp /tmp/node-key-$${HOSTNAME##*-} /substrate/.node-key"]
+          resources {
+            limits = {
+              cpu    = "100m"
+              memory = "100Mi"
+            }
+            requests = {
+              cpu    = "100m"
+              memory = "100Mi"
+            }
+          }
+          volume_mount {
+            name       = "${var.chain_name}-data"
+            mount_path = "/substrate"
+          }
+          volume_mount {
+            name       = "${var.chain_name}-config"
+            mount_path = "/tmp"
+          }
+        }
+        container {
+          name              = "${var.chain_name}-bootnodes"
+          image             = var.base_image
+          image_pull_policy = "IfNotPresent"
+          command = [var.start_cmd]
+          args = concat([
+            "--chain",
+            "/substrate/chainSpec.json",
+            "--node-key-file",
+            "/substrate/.node-key",
+            "--base-path",
+            "/substrate/data",
+            "--port",
+            "30333",
+            "--rpc-external",
+            "--rpc-cors",
+            "all",
+            "--rpc-methods",
+            "Unsafe",
+            "--validator",
+            "--no-telemetry",
+            "--prometheus-external",
+            "--prometheus-port",
+            "9615",
+            "--wasm-execution",
+            "Compiled",
+            "--enable-offchain-indexing",
+            "true",
+          ], flatten([for i, x in local.bootnodes: ["--bootnodes", x]]))
+          port {
+            container_port = 9933
+          }
+          port {
+            container_port = 30333
+          }
+          port {
+            container_port = 9615
+          }
+          resources {
+            limits = {
+              cpu    = var.cpu_limits
+              memory = var.memory_limits
+            }
+            requests = {
+              cpu    = var.cpu_requests
+              memory = var.memory_requests
+            }
+          }
+          volume_mount {
+            name       = "${var.chain_name}-data"
+            mount_path = "/substrate"
+          }
+          readiness_probe {
+            http_get {
+              path = "/metrics"
+              port = 9615
+            }
+            initial_delay_seconds = 10
+            timeout_seconds       = 1
+          }
+          liveness_probe {
+            http_get {
+              path   = "/metrics"
+              port   = 9615
+            }
+            initial_delay_seconds = 10
+            timeout_seconds       = 1
+          }
+        }
+        volume {
+          name = "${var.chain_name}-config"
+          config_map {
+            name = "${var.chain_name}-config-map"
+          }
+        }
+        security_context {
+          fs_group = 1000
+        }
+        termination_grace_period_seconds = 300
+      }
+    }
+    volume_claim_template {
+      metadata {
+        name = "${var.chain_name}-data"
+      }
+      spec {
+        access_modes       = ["ReadWriteOnce"]
+        storage_class_name = var.volume_type
+        resources {
+          requests = {
+            storage = var.volume_size
+          }
+        }
+      }
+    }
+  }
+}
+
+resource "kubernetes_service" "default" {
+  count = var.bootnodes
+  metadata {
+    name = "${var.chain_name}-${count.index}"
+  }
+  spec {
+    selector = {
+      "statefulset.kubernetes.io/pod-name" = "${var.chain_name}-${count.index}"
+    }
+    session_affinity = "ClientIP"
+    port {
+      name        = "p2p"
+      protocol    = "TCP"
+      port        = 30333
+      target_port = 30333
+    }
+    port {
+      name        = "metrics"
+      port        = 9615
+      target_port = 9615
+    }
+    type                    = "LoadBalancer"
+    load_balancer_ip        = google_compute_address.default[count.index].address
+    external_traffic_policy = "Local"
+  }
+}
+
+resource "kubernetes_service" "internal" {
+  count = var.bootnodes
+  metadata {
+    name = "${var.chain_name}-${count.index}-internal"
+  }
+  spec {
+    selector = {
+      "statefulset.kubernetes.io/pod-name" = "${var.chain_name}-${count.index}"
+    }
+    port {
+      name        = "rpc"
+      port        = 9933
+      target_port = 9933
+    }
+    type = "ClusterIP"
+  }
+}
+
+module "add-keys" {
+  source            = "./add-keys"
+  chain_name        = var.chain_name
+  dirs              = [for i in local.keys_octoup: i["key_dir"]]
+  keys              = ["babe.json", "gran.json", "imon.json", "beef.json", "octo.json"]
+  module_depends_on = [kubernetes_stateful_set.default]
 }
 
 output "bootnodes_output" {
   description = ""
-  value       = [
-    for idx, addr in module.cloud.public_ip_address:
-    "/ip4/${addr}/tcp/30333/p2p/${local.keys_octoup[idx]["peer_id"]}"
-  ]
+  value       = local.bootnodes
 }
-
-# output "lb_dns_name" {
-#   description = ""
-#   value       = module.cloud.lb_dns_name
-# }
