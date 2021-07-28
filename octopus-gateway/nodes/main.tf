@@ -63,6 +63,8 @@ resource "kubernetes_stateful_set" "default" {
             "--rpc-external",
             "--rpc-cors",
             "all",
+            "--rpc-methods",
+            "Unsafe",
             "--no-telemetry",
             "--prometheus-external",
             "--prometheus-port",
