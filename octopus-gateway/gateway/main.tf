@@ -2,6 +2,10 @@
 locals {
   dev_api_json = templatefile("${path.module}/dev.api.tpl", {
     messengers = jsonencode({for x in var.chains : x.name => ["ws://messenger:7004"]})
+    pubsub     = jsonencode({
+      topic = var.pubsub.topic
+      subscription = var.pubsub.subscription
+    })
   })
 
   dev_messenger_json = templatefile("${path.module}/dev.messenger.tpl", {
@@ -13,7 +17,11 @@ locals {
   })
 
   dev_stat_json = templatefile("${path.module}/dev.stat.tpl", {
-    chain = jsonencode({for x in var.chains : x.name => {}})
+    chain  = jsonencode({for x in var.chains : x.name => {}})
+    pubsub = jsonencode({
+      topic = var.pubsub.topic
+      subscription = var.pubsub.subscription
+    })
   })
 }
 
@@ -23,6 +31,17 @@ resource "kubernetes_namespace" "default" {
       name = "gateway"
     }
     name = "gateway"
+  }
+}
+
+# sa key
+resource "kubernetes_secret" "pubsub" {
+  metadata {
+    name      = "pubsub-key-secret"
+    namespace = "gateway"
+  }
+  data = {
+    "sa-key.json" = file(var.pubsub.sa_key)
   }
 }
 
@@ -69,6 +88,14 @@ resource "kubernetes_deployment" "api" {
             name       = "api-config-volume"
             mount_path = "/app/api/config/env"
           }
+          volume_mount {
+            name       = "api-pubsub-secret"
+            mount_path = "/app/certs"
+          }
+          env {
+            name  = "GOOGLE_APPLICATION_CREDENTIALS"
+            value = "/app/certs/sa-key.json"
+          }
           resources {
             limits = {
               cpu    = "500m"
@@ -86,6 +113,12 @@ resource "kubernetes_deployment" "api" {
             name = kubernetes_config_map.api.metadata.0.name
           }
         }
+        volume {
+          name = "api-pubsub-secret"
+          secret {
+            secret_name = kubernetes_secret.pubsub.metadata.0.name
+          }
+        }
       }
     }
   }
@@ -97,7 +130,6 @@ resource "kubernetes_service" "api" {
     namespace = "gateway"
     annotations = {
       "cloud.google.com/neg" = "{\"ingress\": true}"
-      # "cloud.google.com/neg" = "{\"exposed_ports\":{\"80\":{\"name\": \"gateway-api-neg\"}}}"
     }
   }
   spec {
@@ -107,7 +139,7 @@ resource "kubernetes_service" "api" {
     }
     # session_affinity = "ClientIP"
     port {
-      port        = 80
+      port        = 7003
       target_port = 7003
       protocol    = "TCP"
     }
@@ -140,77 +172,38 @@ resource "kubernetes_ingress" "api" {
   spec {
     backend {
       service_name = kubernetes_service.api.metadata.0.name
-      service_port = 80
+      service_port = 7003
+    }
+    rule {
+      http {
+        dynamic "path" {
+          for_each = toset(["stat", "project", "plugins", "assets"])
+          content {
+            backend {
+              service_name = kubernetes_service.stat.metadata.0.name
+              service_port = 7002
+            }
+            path = "/${path.key}/*"
+          }
+        }
+        path {
+          backend {
+            service_name = kubernetes_service.stat.metadata.0.name
+            service_port = 7002
+          }
+          path = "/dashboard"
+        }
+        # path {
+        #   backend {
+        #     service_name = kubernetes_service.api.metadata.0.name
+        #     service_port = 7003
+        #   }
+        #   path = "/*"
+        # }
+      }
     }
   }
 }
-
-# resource "google_compute_health_check" "api" {
-#   name        = "gateway-health-check"
-#   timeout_sec         = 1
-#   check_interval_sec  = 1
-#   http_health_check {
-#     port         = 7003
-#     request_path = "/healthz"
-#   }
-# }
-# 
-# resource "google_compute_backend_service" "api" {
-#   name          = "gateway-backend-service"
-#   timeout_sec   = 3600 # [1, 86400] connection_draining_timeout_sec
-#   health_checks = [google_compute_health_check.api.id]
-#   # TODO: projects/{{project}}/zones/{{zone}}/networkEndpointGroups/{{name}}
-#   backend {
-#     balancing_mode        = "RATE"
-#     max_rate_per_endpoint = 100
-#     group                 = "https://www.googleapis.com/compute/v1/projects/orbital-builder-316023/zones/asia-northeast1-a/networkEndpointGroups/gateway-api-neg"
-#   }
-#   backend {
-#     balancing_mode        = "RATE"
-#     max_rate_per_endpoint = 100
-#     group                 = "https://www.googleapis.com/compute/v1/projects/orbital-builder-316023/zones/asia-northeast1-c/networkEndpointGroups/gateway-api-neg"
-#   }
-# }
-# 
-# resource "google_compute_url_map" "api" {
-#   name            = "gateway-url-map"
-#   default_service = google_compute_backend_service.api.id
-# }
-# 
-# resource "google_compute_target_https_proxy" "api" {
-#   name             = "gateway-target-https-proxy"
-#   url_map          = google_compute_url_map.api.id
-#   ssl_certificates = [google_compute_managed_ssl_certificate.api.id]
-# }
-# 
-# resource "google_compute_global_forwarding_rule" "api" {
-#   name       = "gateway-forwarding-rule"
-#   ip_address = google_compute_global_address.api.address
-#   port_range = 443
-#   target     = google_compute_target_https_proxy.api.id
-# }
-# 
-# resource "google_compute_url_map" "api_http" {
-#   name            = "gateway-url-map-redirect"
-#   default_url_redirect {
-#     https_redirect         = true
-#     redirect_response_code = "MOVED_PERMANENTLY_DEFAULT"
-#     strip_query            = false
-#   }
-# }
-# 
-# resource "google_compute_target_http_proxy" "api_http" {
-#   name    = "gateway-target-http-proxy"
-#   # url_map = google_compute_url_map.api_http.id
-#   url_map = google_compute_url_map.api.id
-# }
-# 
-# resource "google_compute_global_forwarding_rule" "api_http" {
-#   name       = "gateway-forwarding-rule-redirect"
-#   ip_address = google_compute_global_address.api.address
-#   port_range = 80
-#   target     = google_compute_target_http_proxy.api_http.id
-# }
 
 # messenger
 resource "kubernetes_config_map" "messenger" {
@@ -408,7 +401,7 @@ resource "kubernetes_service" "stat" {
     namespace = "gateway"
   }
   spec {
-    type = "ClusterIP"
+    type = "NodePort" # "ClusterIP"
     selector = {
       app = kubernetes_deployment.stat.metadata.0.labels.app
     }
@@ -416,6 +409,135 @@ resource "kubernetes_service" "stat" {
     port {
       port        = 7002
       target_port = 7002
+    }
+  }
+}
+
+# stat-sub
+resource "kubernetes_deployment" "stat-sub" {
+  metadata {
+    name = "stat-sub"
+    labels = {
+      app = "stat-sub"
+    }
+    namespace = "gateway"
+  }
+  spec {
+    replicas = 1
+    selector {
+      match_labels = {
+        app = "stat-sub"
+      }
+    }
+    template {
+      metadata {
+        labels = {
+          app = "stat-sub"
+        }
+      }
+      spec {
+        container {
+          name    = "stat-sub"
+          image   = var.gateway.stat_image
+          command = ["node", "stat/pubsub/consumer.js"]
+          volume_mount {
+            name       = "stat-config-volume"
+            mount_path = "/app/stat/config/env"
+          }
+          env_from {
+            secret_ref {
+              name = kubernetes_secret.stat.metadata.0.name
+            }
+          }
+          volume_mount {
+            name       = "stat-pubsub-secret"
+            mount_path = "/app/certs"
+          }
+          env {
+            name  = "GOOGLE_APPLICATION_CREDENTIALS"
+            value = "/app/certs/sa-key.json"
+          }
+          resources {
+            limits = {
+              cpu    = "500m"
+              memory = "512Mi"
+            }
+            requests = {
+              cpu    = "250m"
+              memory = "256Mi"
+            }
+          }
+        }
+        volume {
+          name = "stat-config-volume"
+          config_map {
+            name = kubernetes_config_map.stat.metadata.0.name
+          }
+        }
+        volume {
+          name = "stat-pubsub-secret"
+          secret {
+            secret_name = kubernetes_secret.pubsub.metadata.0.name
+          }
+        }
+      }
+    }
+  }
+}
+
+# stat-cronjob
+resource "kubernetes_cron_job" "stat-cron" {
+  metadata {
+    name = "stat-cron"
+    namespace = "gateway"
+  }
+  spec {
+    concurrency_policy            = "Forbid"
+    schedule                      = "* * * * *"
+    # failed_jobs_history_limit     = 5
+    # starting_deadline_seconds     = 10
+    # successful_jobs_history_limit = 10
+    job_template {
+      metadata {}
+      spec {
+        template {
+          metadata {}
+          spec {
+            container {
+              name    = "stat-cron"
+              image   = var.gateway.stat_image
+              command = ["node", "stat/timer/dashboard.js"]
+              volume_mount {
+                name       = "stat-config-volume"
+                mount_path = "/app/stat/config/env"
+              }
+              env_from {
+                secret_ref {
+                  name = kubernetes_secret.stat.metadata.0.name
+                }
+              }
+              resources {
+                limits = {
+                  cpu    = "500m"
+                  memory = "512Mi"
+                }
+                requests = {
+                  cpu    = "250m"
+                  memory = "256Mi"
+                }
+              }
+            }
+            volume {
+              name = "stat-config-volume"
+              config_map {
+                name = kubernetes_config_map.stat.metadata.0.name
+              }
+            }
+          }
+        }
+        # backoff_limit              = 3
+        ttl_seconds_after_finished = 30
+      }
     }
   }
 }

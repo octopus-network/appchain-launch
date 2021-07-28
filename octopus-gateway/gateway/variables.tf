@@ -24,3 +24,13 @@ variable "redis" {
     tls_cert = string
   })
 }
+
+variable "pubsub" {
+  description = ""
+  type = object({
+    topic        = string
+    subscription = string
+    # service account key file
+    sa_key       = string
+  })
+}

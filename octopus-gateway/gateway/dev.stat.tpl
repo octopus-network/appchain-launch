@@ -30,5 +30,6 @@
     "timeout": 5000,
     "requests": 1000,
     "test": true,
+    "pubsub": ${pubsub},
     "chain": ${chain}
 }

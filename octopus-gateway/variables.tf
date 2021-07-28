@@ -52,3 +52,14 @@ variable "redis" {
     tls_enabled  = bool
   })
 }
+
+# pubsub
+variable "pubsub" {
+  description = ""
+  type = object({
+    topic        = string
+    subscription = string
+    # service account key file
+    sa_key       = string
+  })
+}
