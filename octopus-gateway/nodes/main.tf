@@ -68,8 +68,10 @@ resource "kubernetes_stateful_set" "default" {
             "--prometheus-port",
             "9615",
             "--wasm-execution",
-            "Compiled"],
-            flatten([for x in var.bootnodes : ["--bootnodes", x]]))
+            "Compiled",
+            "--enable-offchain-indexing",
+            "true",
+          ], flatten([for x in var.bootnodes : ["--bootnodes", x]]))
           port {
             container_port = 9933
           }
