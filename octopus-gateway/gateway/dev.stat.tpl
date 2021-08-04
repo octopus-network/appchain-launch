@@ -1,8 +1,8 @@
 {
+    "name": "stat",
     "keys": [
         "stat@#^*&"
     ],
-    "name": "stat",
     "port": 7002,
     "session": {
         "key": "sid",
@@ -15,6 +15,11 @@
         "port": "",
         "password": "",
         "cert": ""
+    },
+    "etcd": {
+        "hosts": "",
+        "username": "",
+        "password": ""
     },
     "limit": {
         "daily": {
@@ -31,5 +36,5 @@
     "requests": 1000,
     "test": true,
     "pubsub": ${pubsub},
-    "chain": ${chain}
+    "chain": {}
 }

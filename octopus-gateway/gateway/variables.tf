@@ -25,6 +25,15 @@ variable "redis" {
   })
 }
 
+variable "etcd" {
+  description = ""
+  type = object({
+    hosts    = string
+    username = string
+    password = string
+  })
+}
+
 variable "pubsub" {
   description = ""
   type = object({

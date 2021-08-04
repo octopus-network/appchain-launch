@@ -34,7 +34,7 @@ resource "kubernetes_namespace" "default" {
   }
 }
 
-# sa key
+# secrets
 resource "kubernetes_secret" "pubsub" {
   metadata {
     name      = "pubsub-key-secret"
@@ -42,6 +42,31 @@ resource "kubernetes_secret" "pubsub" {
   }
   data = {
     "sa-key.json" = file(var.pubsub.sa_key)
+  }
+}
+
+resource "kubernetes_secret" "redis" {
+  metadata {
+    name      = "redis-secret"
+    namespace = "gateway"
+  }
+  data = {
+    REDIS_HOST     = var.redis.host
+    REDIS_PORT     = var.redis.port
+    REDIS_PASSWORD = var.redis.password
+    REDIS_TLS_CRT  = var.redis.tls_cert
+  }
+}
+
+resource "kubernetes_secret" "etcd" {
+  metadata {
+    name      = "etcd-secret"
+    namespace = "gateway"
+  }
+  data = {
+    ETCD_HOSTS    = var.etcd.hosts
+    ETCD_USERNAME = var.etcd.username
+    ETCD_PASSWORD = var.etcd.password
   }
 }
 
@@ -95,6 +120,11 @@ resource "kubernetes_deployment" "api" {
           env {
             name  = "GOOGLE_APPLICATION_CREDENTIALS"
             value = "/app/certs/sa-key.json"
+          }
+          env_from {
+            secret_ref {
+              name = kubernetes_secret.etcd.metadata.0.name
+            }
           }
           resources {
             limits = {
@@ -216,16 +246,6 @@ resource "kubernetes_config_map" "messenger" {
   }
 }
 
-resource "kubernetes_config_map" "messenger-chain" {
-  metadata {
-    name      = "messenger-chain-config-map"
-    namespace = "gateway"
-  }
-  data = {
-    for x in var.chains : "${x.name}.json" => file("${path.module}/dev.chain.json")
-  }
-}
-
 resource "kubernetes_deployment" "messenger" {
   metadata {
     name = "messenger"
@@ -258,12 +278,9 @@ resource "kubernetes_deployment" "messenger" {
             name       = "messenger-config-volume"
             mount_path = "/app/messenger/config/env"
           }
-          dynamic "volume_mount" {
-            for_each = toset([for x in var.chains : x.name])
-            content {
-              name       = "messenger-chain-volume"
-              mount_path = "/app/messenger/config/${volume_mount.key}.json"
-              sub_path = "${volume_mount.key}.json"
+          env_from {
+            secret_ref {
+              name = kubernetes_secret.etcd.metadata.0.name
             }
           }
           resources {
@@ -281,12 +298,6 @@ resource "kubernetes_deployment" "messenger" {
           name = "messenger-config-volume"
           config_map {
             name = kubernetes_config_map.messenger.metadata.0.name
-          }
-        }
-        volume {
-          name = "messenger-chain-volume"
-          config_map {
-            name = kubernetes_config_map.messenger-chain.metadata.0.name
           }
         }
       }
@@ -320,19 +331,6 @@ resource "kubernetes_config_map" "stat" {
   }
   data = {
     "dev.env.json" = local.dev_stat_json
-  }
-}
-
-resource "kubernetes_secret" "stat" {
-  metadata {
-    name      = "stat-secret"
-    namespace = "gateway"
-  }
-  data = {
-    REDIS_HOST     = var.redis.host
-    REDIS_PORT     = var.redis.port
-    REDIS_PASSWORD = var.redis.password
-    REDIS_TLS_CRT  = var.redis.tls_cert
   }
 }
 
@@ -370,7 +368,12 @@ resource "kubernetes_deployment" "stat" {
           }
           env_from {
             secret_ref {
-              name = kubernetes_secret.stat.metadata.0.name
+              name = kubernetes_secret.redis.metadata.0.name
+            }
+          }
+          env_from {
+            secret_ref {
+              name = kubernetes_secret.etcd.metadata.0.name
             }
           }
           resources {
@@ -413,131 +416,131 @@ resource "kubernetes_service" "stat" {
   }
 }
 
-# stat-sub
-resource "kubernetes_deployment" "stat-sub" {
-  metadata {
-    name = "stat-sub"
-    labels = {
-      app = "stat-sub"
-    }
-    namespace = "gateway"
-  }
-  spec {
-    replicas = 1
-    selector {
-      match_labels = {
-        app = "stat-sub"
-      }
-    }
-    template {
-      metadata {
-        labels = {
-          app = "stat-sub"
-        }
-      }
-      spec {
-        container {
-          name    = "stat-sub"
-          image   = var.gateway.stat_image
-          command = ["node", "stat/pubsub/consumer.js"]
-          volume_mount {
-            name       = "stat-config-volume"
-            mount_path = "/app/stat/config/env"
-          }
-          env_from {
-            secret_ref {
-              name = kubernetes_secret.stat.metadata.0.name
-            }
-          }
-          volume_mount {
-            name       = "stat-pubsub-secret"
-            mount_path = "/app/certs"
-          }
-          env {
-            name  = "GOOGLE_APPLICATION_CREDENTIALS"
-            value = "/app/certs/sa-key.json"
-          }
-          resources {
-            limits = {
-              cpu    = "500m"
-              memory = "512Mi"
-            }
-            requests = {
-              cpu    = "250m"
-              memory = "256Mi"
-            }
-          }
-        }
-        volume {
-          name = "stat-config-volume"
-          config_map {
-            name = kubernetes_config_map.stat.metadata.0.name
-          }
-        }
-        volume {
-          name = "stat-pubsub-secret"
-          secret {
-            secret_name = kubernetes_secret.pubsub.metadata.0.name
-          }
-        }
-      }
-    }
-  }
-}
+# # stat-sub
+# resource "kubernetes_deployment" "stat-sub" {
+#   metadata {
+#     name = "stat-sub"
+#     labels = {
+#       app = "stat-sub"
+#     }
+#     namespace = "gateway"
+#   }
+#   spec {
+#     replicas = 1
+#     selector {
+#       match_labels = {
+#         app = "stat-sub"
+#       }
+#     }
+#     template {
+#       metadata {
+#         labels = {
+#           app = "stat-sub"
+#         }
+#       }
+#       spec {
+#         container {
+#           name    = "stat-sub"
+#           image   = var.gateway.stat_image
+#           command = ["node", "stat/pubsub/consumer.js"]
+#           volume_mount {
+#             name       = "stat-config-volume"
+#             mount_path = "/app/stat/config/env"
+#           }
+#           env_from {
+#             secret_ref {
+#               name = kubernetes_secret.redis.metadata.0.name
+#             }
+#           }
+#           volume_mount {
+#             name       = "stat-pubsub-secret"
+#             mount_path = "/app/certs"
+#           }
+#           env {
+#             name  = "GOOGLE_APPLICATION_CREDENTIALS"
+#             value = "/app/certs/sa-key.json"
+#           }
+#           resources {
+#             limits = {
+#               cpu    = "500m"
+#               memory = "512Mi"
+#             }
+#             requests = {
+#               cpu    = "250m"
+#               memory = "256Mi"
+#             }
+#           }
+#         }
+#         volume {
+#           name = "stat-config-volume"
+#           config_map {
+#             name = kubernetes_config_map.stat.metadata.0.name
+#           }
+#         }
+#         volume {
+#           name = "stat-pubsub-secret"
+#           secret {
+#             secret_name = kubernetes_secret.pubsub.metadata.0.name
+#           }
+#         }
+#       }
+#     }
+#   }
+# }
 
-# stat-cronjob
-resource "kubernetes_cron_job" "stat-cron" {
-  metadata {
-    name = "stat-cron"
-    namespace = "gateway"
-  }
-  spec {
-    concurrency_policy            = "Forbid"
-    schedule                      = "* * * * *"
-    # failed_jobs_history_limit     = 5
-    # starting_deadline_seconds     = 10
-    # successful_jobs_history_limit = 10
-    job_template {
-      metadata {}
-      spec {
-        template {
-          metadata {}
-          spec {
-            container {
-              name    = "stat-cron"
-              image   = var.gateway.stat_image
-              command = ["node", "stat/timer/dashboard.js"]
-              volume_mount {
-                name       = "stat-config-volume"
-                mount_path = "/app/stat/config/env"
-              }
-              env_from {
-                secret_ref {
-                  name = kubernetes_secret.stat.metadata.0.name
-                }
-              }
-              resources {
-                limits = {
-                  cpu    = "500m"
-                  memory = "512Mi"
-                }
-                requests = {
-                  cpu    = "250m"
-                  memory = "256Mi"
-                }
-              }
-            }
-            volume {
-              name = "stat-config-volume"
-              config_map {
-                name = kubernetes_config_map.stat.metadata.0.name
-              }
-            }
-          }
-        }
-        # backoff_limit              = 3
-        ttl_seconds_after_finished = 30
-      }
-    }
-  }
-}
+# # stat-cronjob
+# resource "kubernetes_cron_job" "stat-cron" {
+#   metadata {
+#     name = "stat-cron"
+#     namespace = "gateway"
+#   }
+#   spec {
+#     concurrency_policy            = "Forbid"
+#     schedule                      = "* * * * *"
+#     # failed_jobs_history_limit     = 5
+#     # starting_deadline_seconds     = 10
+#     # successful_jobs_history_limit = 10
+#     job_template {
+#       metadata {}
+#       spec {
+#         template {
+#           metadata {}
+#           spec {
+#             container {
+#               name    = "stat-cron"
+#               image   = var.gateway.stat_image
+#               command = ["node", "stat/timer/dashboard.js"]
+#               volume_mount {
+#                 name       = "stat-config-volume"
+#                 mount_path = "/app/stat/config/env"
+#               }
+#               env_from {
+#                 secret_ref {
+#                   name = kubernetes_secret.redis.metadata.0.name
+#                 }
+#               }
+#               resources {
+#                 limits = {
+#                   cpu    = "500m"
+#                   memory = "512Mi"
+#                 }
+#                 requests = {
+#                   cpu    = "250m"
+#                   memory = "256Mi"
+#                 }
+#               }
+#             }
+#             volume {
+#               name = "stat-config-volume"
+#               config_map {
+#                 name = kubernetes_config_map.stat.metadata.0.name
+#               }
+#             }
+#           }
+#         }
+#         # backoff_limit              = 3
+#         ttl_seconds_after_finished = 30
+#       }
+#     }
+#   }
+# }

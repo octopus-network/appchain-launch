@@ -61,5 +61,6 @@ module "gateway" {
     password = module.redis.auth
     tls_cert = module.redis.cert
   }
+  etcd = var.etcd
   pubsub = var.pubsub
 }

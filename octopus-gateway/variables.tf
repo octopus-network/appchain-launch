@@ -38,7 +38,7 @@ variable "chains" {
   }))
 }
 
-#
+# redis
 variable "redis" {
   description = "Redis Configuration"
   type = object({
@@ -50,6 +50,16 @@ variable "redis" {
     memory_size  = number
     auth_enabled = bool
     tls_enabled  = bool
+  })
+}
+
+# etcd
+variable "etcd" {
+  description = "Etcd Configuration"
+  type = object({
+    hosts    = string
+    username = string
+    password = string
   })
 }
 
