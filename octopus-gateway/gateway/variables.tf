@@ -25,19 +25,6 @@ variable "gateway" {
   })
 }
 
-# 
-variable "chains" {
-  description = "Chains Configuration"
-  type = map(object({
-    # name      = string
-    chainspec = string
-    bootnodes = list(string)
-    image     = string
-    command   = string
-    replicas  = number
-  }))
-}
-
 # redis
 variable "redis" {
   description = "Redis Configuration"

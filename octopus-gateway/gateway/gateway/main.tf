@@ -396,6 +396,9 @@ resource "kubernetes_service" "stat" {
   metadata {
     name      = "stat"
     namespace = "gateway"
+    annotations = {
+      "cloud.google.com/neg" = "{\"ingress\": true}"
+    }
   }
   spec {
     type = "NodePort" # "ClusterIP"
@@ -406,135 +409,136 @@ resource "kubernetes_service" "stat" {
     port {
       port        = 7002
       target_port = 7002
+      protocol    = "TCP"
     }
   }
 }
 
-# # stat-sub
-# resource "kubernetes_deployment" "stat-sub" {
-#   metadata {
-#     name = "stat-sub"
-#     labels = {
-#       app = "stat-sub"
-#     }
-#     namespace = "gateway"
-#   }
-#   spec {
-#     replicas = 1
-#     selector {
-#       match_labels = {
-#         app = "stat-sub"
-#       }
-#     }
-#     template {
-#       metadata {
-#         labels = {
-#           app = "stat-sub"
-#         }
-#       }
-#       spec {
-#         container {
-#           name    = "stat-sub"
-#           image   = var.gateway.stat_image
-#           command = ["node", "stat/pubsub/consumer.js"]
-#           volume_mount {
-#             name       = "stat-config-volume"
-#             mount_path = "/app/stat/config/env"
-#           }
-#           env_from {
-#             secret_ref {
-#               name = kubernetes_secret.redis.metadata.0.name
-#             }
-#           }
-#           volume_mount {
-#             name       = "stat-pubsub-secret"
-#             mount_path = "/app/certs"
-#           }
-#           env {
-#             name  = "GOOGLE_APPLICATION_CREDENTIALS"
-#             value = "/app/certs/sa-key.json"
-#           }
-#           resources {
-#             limits = {
-#               cpu    = "500m"
-#               memory = "512Mi"
-#             }
-#             requests = {
-#               cpu    = "250m"
-#               memory = "256Mi"
-#             }
-#           }
-#         }
-#         volume {
-#           name = "stat-config-volume"
-#           config_map {
-#             name = kubernetes_config_map.stat.metadata.0.name
-#           }
-#         }
-#         volume {
-#           name = "stat-pubsub-secret"
-#           secret {
-#             secret_name = kubernetes_secret.pubsub.metadata.0.name
-#           }
-#         }
-#       }
-#     }
-#   }
-# }
+# stat-sub
+resource "kubernetes_deployment" "stat-sub" {
+  metadata {
+    name = "stat-sub"
+    labels = {
+      app = "stat-sub"
+    }
+    namespace = "gateway"
+  }
+  spec {
+    replicas = 1
+    selector {
+      match_labels = {
+        app = "stat-sub"
+      }
+    }
+    template {
+      metadata {
+        labels = {
+          app = "stat-sub"
+        }
+      }
+      spec {
+        container {
+          name    = "stat-sub"
+          image   = var.gateway.stat_image
+          command = ["node", "stat/pubsub/consumer.js"]
+          volume_mount {
+            name       = "stat-config-volume"
+            mount_path = "/app/stat/config/env"
+          }
+          env_from {
+            secret_ref {
+              name = kubernetes_secret.redis.metadata.0.name
+            }
+          }
+          volume_mount {
+            name       = "stat-pubsub-secret"
+            mount_path = "/app/certs"
+          }
+          env {
+            name  = "GOOGLE_APPLICATION_CREDENTIALS"
+            value = "/app/certs/sa-key.json"
+          }
+          resources {
+            limits = {
+              cpu    = "500m"
+              memory = "512Mi"
+            }
+            requests = {
+              cpu    = "250m"
+              memory = "256Mi"
+            }
+          }
+        }
+        volume {
+          name = "stat-config-volume"
+          config_map {
+            name = kubernetes_config_map.stat.metadata.0.name
+          }
+        }
+        volume {
+          name = "stat-pubsub-secret"
+          secret {
+            secret_name = kubernetes_secret.pubsub.metadata.0.name
+          }
+        }
+      }
+    }
+  }
+}
 
-# # stat-cronjob
-# resource "kubernetes_cron_job" "stat-cron" {
-#   metadata {
-#     name = "stat-cron"
-#     namespace = "gateway"
-#   }
-#   spec {
-#     concurrency_policy            = "Forbid"
-#     schedule                      = "* * * * *"
-#     # failed_jobs_history_limit     = 5
-#     # starting_deadline_seconds     = 10
-#     # successful_jobs_history_limit = 10
-#     job_template {
-#       metadata {}
-#       spec {
-#         template {
-#           metadata {}
-#           spec {
-#             container {
-#               name    = "stat-cron"
-#               image   = var.gateway.stat_image
-#               command = ["node", "stat/timer/dashboard.js"]
-#               volume_mount {
-#                 name       = "stat-config-volume"
-#                 mount_path = "/app/stat/config/env"
-#               }
-#               env_from {
-#                 secret_ref {
-#                   name = kubernetes_secret.redis.metadata.0.name
-#                 }
-#               }
-#               resources {
-#                 limits = {
-#                   cpu    = "500m"
-#                   memory = "512Mi"
-#                 }
-#                 requests = {
-#                   cpu    = "250m"
-#                   memory = "256Mi"
-#                 }
-#               }
-#             }
-#             volume {
-#               name = "stat-config-volume"
-#               config_map {
-#                 name = kubernetes_config_map.stat.metadata.0.name
-#               }
-#             }
-#           }
-#         }
-#         # backoff_limit              = 3
-#         ttl_seconds_after_finished = 30
-#       }
-#     }
-#   }
-# }
+# stat-cronjob
+resource "kubernetes_cron_job" "stat-cron" {
+  metadata {
+    name = "stat-cron"
+    namespace = "gateway"
+  }
+  spec {
+    concurrency_policy            = "Forbid"
+    schedule                      = "* * * * *"
+    # failed_jobs_history_limit     = 5
+    # starting_deadline_seconds     = 10
+    # successful_jobs_history_limit = 10
+    job_template {
+      metadata {}
+      spec {
+        template {
+          metadata {}
+          spec {
+            container {
+              name    = "stat-cron"
+              image   = var.gateway.stat_image
+              command = ["node", "stat/timer/dashboard.js"]
+              volume_mount {
+                name       = "stat-config-volume"
+                mount_path = "/app/stat/config/env"
+              }
+              env_from {
+                secret_ref {
+                  name = kubernetes_secret.redis.metadata.0.name
+                }
+              }
+              resources {
+                limits = {
+                  cpu    = "500m"
+                  memory = "512Mi"
+                }
+                requests = {
+                  cpu    = "250m"
+                  memory = "256Mi"
+                }
+              }
+            }
+            volume {
+              name = "stat-config-volume"
+              config_map {
+                name = kubernetes_config_map.stat.metadata.0.name
+              }
+            }
+          }
+        }
+        # backoff_limit              = 3
+        ttl_seconds_after_finished = 30
+      }
+    }
+  }
+}
