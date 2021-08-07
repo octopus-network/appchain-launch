@@ -41,5 +41,5 @@ module "gateway" {
     tls_cert = module.redis.cert
   }
   etcd = var.etcd
-  pubsub = var.pubsub
+  kafka = var.kafka
 }

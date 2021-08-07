@@ -26,12 +26,15 @@ variable "etcd" {
   })
 }
 
-variable "pubsub" {
+variable "kafka" {
   description = ""
   type = object({
-    topic        = string
-    subscription = string
-    # service account key file
-    sa_key       = string
+    hosts = string
+    topic = string
+    sasl = object({
+      mechanisms = string
+      username   = string
+      password   = string
+    })
   })
 }

@@ -1,24 +1,3 @@
-
-locals {
-  dev_api_json = templatefile("${path.module}/dev.api.tpl", {
-    pubsub     = jsonencode({
-      topic = var.pubsub.topic
-      subscription = var.pubsub.subscription
-    })
-  })
-
-  dev_messenger_json = templatefile("${path.module}/dev.messenger.tpl", {
-    
-  })
-
-  dev_stat_json = templatefile("${path.module}/dev.stat.tpl", {
-    pubsub = jsonencode({
-      topic = var.pubsub.topic
-      subscription = var.pubsub.subscription
-    })
-  })
-}
-
 resource "kubernetes_namespace" "default" {
   metadata {
     labels = {
@@ -29,16 +8,6 @@ resource "kubernetes_namespace" "default" {
 }
 
 # secrets
-resource "kubernetes_secret" "pubsub" {
-  metadata {
-    name      = "pubsub-key-secret"
-    namespace = "gateway"
-  }
-  data = {
-    "sa-key.json" = file(var.pubsub.sa_key)
-  }
-}
-
 resource "kubernetes_secret" "redis" {
   metadata {
     name      = "redis-secret"
@@ -64,6 +33,20 @@ resource "kubernetes_secret" "etcd" {
   }
 }
 
+resource "kubernetes_secret" "kafka" {
+  metadata {
+    name      = "kafka-secret"
+    namespace = "gateway"
+  }
+  data = {
+    KAFKA_HOSTS          = var.kafka.hosts
+    KAFKA_TOPIC          = var.kafka.topic
+    KAFKA_SASL_MECHANISM = var.kafka.sasl.mechanisms
+    KAFKA_SASL_USERNAME  = var.kafka.sasl.username
+    KAFKA_SASL_PASSWORD  = var.kafka.sasl.password
+  }
+}
+
 # api
 resource "kubernetes_config_map" "api" {
   metadata {
@@ -71,7 +54,7 @@ resource "kubernetes_config_map" "api" {
     namespace = "gateway"
   }
   data = {
-    "dev.env.json" = local.dev_api_json
+    "dev.env.json" = file("${path.module}/template/api.tpl")
   }
 }
 
@@ -107,17 +90,14 @@ resource "kubernetes_deployment" "api" {
             name       = "api-config-volume"
             mount_path = "/app/api/config/env"
           }
-          volume_mount {
-            name       = "api-pubsub-secret"
-            mount_path = "/app/certs"
-          }
-          env {
-            name  = "GOOGLE_APPLICATION_CREDENTIALS"
-            value = "/app/certs/sa-key.json"
-          }
           env_from {
             secret_ref {
               name = kubernetes_secret.etcd.metadata.0.name
+            }
+          }
+          env_from {
+            secret_ref {
+              name = kubernetes_secret.kafka.metadata.0.name
             }
           }
           resources {
@@ -135,12 +115,6 @@ resource "kubernetes_deployment" "api" {
           name = "api-config-volume"
           config_map {
             name = kubernetes_config_map.api.metadata.0.name
-          }
-        }
-        volume {
-          name = "api-pubsub-secret"
-          secret {
-            secret_name = kubernetes_secret.pubsub.metadata.0.name
           }
         }
       }
@@ -236,7 +210,7 @@ resource "kubernetes_config_map" "messenger" {
     namespace = "gateway"
   }
   data = {
-    "dev.env.json" = local.dev_messenger_json
+    "dev.env.json" = file("${path.module}/template/messenger.tpl")
   }
 }
 
@@ -324,7 +298,7 @@ resource "kubernetes_config_map" "stat" {
     namespace = "gateway"
   }
   data = {
-    "dev.env.json" = local.dev_stat_json
+    "dev.env.json" = file("${path.module}/template/stat.tpl")
   }
 }
 
@@ -450,13 +424,10 @@ resource "kubernetes_deployment" "stat-sub" {
               name = kubernetes_secret.redis.metadata.0.name
             }
           }
-          volume_mount {
-            name       = "stat-pubsub-secret"
-            mount_path = "/app/certs"
-          }
-          env {
-            name  = "GOOGLE_APPLICATION_CREDENTIALS"
-            value = "/app/certs/sa-key.json"
+          env_from {
+            secret_ref {
+              name = kubernetes_secret.kafka.metadata.0.name
+            }
           }
           resources {
             limits = {
@@ -473,12 +444,6 @@ resource "kubernetes_deployment" "stat-sub" {
           name = "stat-config-volume"
           config_map {
             name = kubernetes_config_map.stat.metadata.0.name
-          }
-        }
-        volume {
-          name = "stat-pubsub-secret"
-          secret {
-            secret_name = kubernetes_secret.pubsub.metadata.0.name
           }
         }
       }
