@@ -9,11 +9,6 @@ variable "chainspec_url" {
   type        = string
 }
 
-variable "chainspec_checksum" {
-  description = "Specifies which chain specification to use"
-  type        = string
-}
-
 variable "bootnodes" {
   description = "Count of bootnodes"
   type        = number

@@ -16,14 +16,16 @@ locals {
 
 resource "kubernetes_secret" "default" {
   metadata {
-    name = "${var.chain_name}-job-secret"
+    name      = "${var.chain_name}-job-secret"
+    namespace = var.chain_name
   }
   data = local.dir_key_map
 }
 
 resource "kubernetes_config_map" "default" {
   metadata {
-    name = "${var.chain_name}-job-config-map"
+    name      = "${var.chain_name}-job-config-map"
+    namespace = var.chain_name
   }
   data = {
     "run.sh" = file("${path.module}/run.sh")
@@ -32,7 +34,8 @@ resource "kubernetes_config_map" "default" {
 
 resource "kubernetes_job" "default" {
   metadata {
-    name = "${var.chain_name}-add-keys"
+    name      = "${var.chain_name}-add-keys"
+    namespace = var.chain_name
   }
   spec {
     template {
@@ -92,7 +95,8 @@ resource "kubernetes_job" "default" {
 # Substrate nodes require a restart after inserting a GRANDPA key
 resource "kubernetes_role" "restart" {
   metadata {
-    name = "${var.chain_name}-restart-role"
+    name      = "${var.chain_name}-restart-role"
+    namespace = var.chain_name
   }
   rule {
     api_groups     = ["apps"]
@@ -104,7 +108,8 @@ resource "kubernetes_role" "restart" {
 
 resource "kubernetes_role_binding" "restart" {
   metadata {
-    name = "${var.chain_name}-restart-role-binding"
+    name      = "${var.chain_name}-restart-role-binding"
+    namespace = var.chain_name
   }
   role_ref {
     api_group = "rbac.authorization.k8s.io"
@@ -114,12 +119,14 @@ resource "kubernetes_role_binding" "restart" {
   subject {
     kind      = "ServiceAccount"
     name      = "default"
+    namespace = var.chain_name
   }
 }
 
 resource "kubernetes_job" "restart" {
   metadata {
-    name = "${var.chain_name}-restart-nodes"
+    name      = "${var.chain_name}-restart-nodes"
+    namespace = var.chain_name
   }
   spec {
     template {
