@@ -1,20 +1,14 @@
 {
+    "name": "stat",
     "keys": [
         "stat@#^*&"
     ],
-    "name": "stat",
     "port": 7002,
     "session": {
         "key": "sid",
         "signed": false,
         "maxAge": 2592000000,
         "httpOnly": false
-    },
-    "redis": {
-        "host": "",
-        "port": "",
-        "password": "",
-        "cert": ""
     },
     "limit": {
         "daily": {
@@ -30,6 +24,25 @@
     "timeout": 5000,
     "requests": 1000,
     "test": true,
-    "pubsub": ${pubsub},
-    "chain": ${chain}
+    "chain": {},
+    "redis": {
+        "host": "",
+        "port": "",
+        "password": "",
+        "cert": ""
+    },
+    "etcd": {
+        "hosts": "",
+        "username": "",
+        "password": ""
+    },
+    "kafka": {
+        "hosts": "",
+        "topic": "",
+        "sasl": {
+            "mechanism": "",
+            "username": "",
+            "password": ""
+        }
+    }
 }

@@ -1,4 +1,22 @@
+# gke
+variable "project" {
+  description = "Project"
+  type        = string
+}
+
+variable "region" {
+  description = "Region"
+  type        = string
+}
+
+variable "cluster" {
+  description = "Cluster"
+  type        = string
+}
+
+# 
 variable "gateway" {
+  description = "Gateway Configuration"
   type = object({
     api_domains     = list(string)
     api_image       = string
@@ -7,30 +25,41 @@ variable "gateway" {
   })
 }
 
-variable "chains" {
-  description = ""
-  type        = list(object({
-    name    = string
-    service = string
-  }))
-}
-
+# redis
 variable "redis" {
-  description = ""
+  description = "Redis Configuration"
   type = object({
-    host     = string
-    port     = string
-    password = string
-    tls_cert = string
+    create       = bool
+    name         = string
+    region       = string
+    tier         = string
+    version      = string
+    memory_size  = number
+    auth_enabled = bool
+    tls_enabled  = bool
   })
 }
 
-variable "pubsub" {
+# etcd
+variable "etcd" {
+  description = "Etcd Configuration"
+  type = object({
+    hosts    = string
+    username = string
+    password = string
+  })
+}
+
+# kafka
+variable "kafka" {
   description = ""
   type = object({
-    topic        = string
-    subscription = string
-    # service account key file
-    sa_key       = string
+    hosts = string
+    topic = string
+    sasl = object({
+      mechanisms = string
+      username   = string
+      password   = string
+    })
   })
 }

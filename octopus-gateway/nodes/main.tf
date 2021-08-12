@@ -1,166 +1,99 @@
-resource "kubernetes_namespace" "default" {
-  metadata {
-    labels = {
-      name = var.chain_name
-    }
-    name = var.chain_name
-  }
+provider "google" {
+  project = var.project
+  region  = var.region
 }
 
-resource "kubernetes_stateful_set" "default" {
+data "google_client_config" "default" {
+}
+
+data "google_container_cluster" "default" {
+  name     = var.cluster
+  location = var.region
+}
+
+provider "kubernetes" {
+  host                   = "https://${data.google_container_cluster.default.endpoint}"
+  token                  = data.google_client_config.default.access_token
+  cluster_ca_certificate = base64decode(data.google_container_cluster.default.master_auth[0].cluster_ca_certificate)
+}
+
+module "fullnode" {
+  source = "./node"
+
+  for_each      = var.chains
+  chain_name    = each.key
+  chainspec_url = each.value.chainspec
+  bootnodes     = each.value.bootnodes
+  base_image    = each.value.image
+  start_cmd     = each.value.command
+}
+
+locals {
+  api_config = jsonencode({
+    "messengers": {for k, v in module.fullnode : k => ["ws://messenger:7004"]}
+  })
+
+  stat_config = jsonencode({
+    "chain": {for k, v in module.fullnode : k => {}}
+  })
+
+  messenger_config = jsonencode({
+    "chain": {for k, v in module.fullnode : k => {
+      rpc = ["http://${v.service_name}:9933"]
+      ws = ["ws://${v.service_name}:9944"]
+      processors = ["node", "cache"]
+    }}
+  })
+
+  etcd_txn = templatefile("${path.module}/template/txn.tpl", {
+    api_config = local.api_config
+    stat_config = local.stat_config
+    messenger_config = local.messenger_config
+    messenger_processor_config = file("${path.module}/template/processor.json")
+    chains = [for k, v in module.fullnode : k]
+    # how to escape ??
+    api_config_escape = replace(local.api_config, "\"", "\\\"")
+  })
+}
+
+# Interact with etcd service
+resource "kubernetes_job" "defult" {
   metadata {
-    name      = "${var.chain_name}-fullnode"
-    namespace = var.chain_name
+    name = "etcdctl"
   }
   spec {
-    service_name           = "${var.chain_name}-fullnode"
-    pod_management_policy  = "Parallel"
-    replicas               = var.replicas
-    revision_history_limit = 5
-    selector {
-      match_labels = {
-        app = "${var.chain_name}-fullnode"
-      }
-    }
     template {
-      metadata {
-        labels = {
-          app = "${var.chain_name}-fullnode"
-        }
-      }
+      metadata {}
       spec {
-        init_container {
-          name              = "init-chainspec"
-          image             = "busybox"
-          image_pull_policy = "IfNotPresent"
-          command           = ["wget", "-O", "/substrate/chainSpec.json", var.chainspec_url]
-          resources {
-            limits = {
-              cpu    = "100m"
-              memory = "100Mi"
-            }
-            requests = {
-              cpu    = "100m"
-              memory = "100Mi"
-            }
-          }
-          volume_mount {
-            name       = "fullnode-data"
-            mount_path = "/substrate"
-          }
-        }
         container {
-          name              = "${var.chain_name}-fullnode"
-          image             = var.base_image
-          image_pull_policy = "IfNotPresent"
-          command = [var.start_cmd]
-          args = concat([
-            "--chain",
-            "/substrate/chainSpec.json",
-            "--base-path",
-            "/substrate/data",
-            "--ws-external",
-            "--rpc-external",
-            "--rpc-cors",
-            "all",
-            "--rpc-methods",
-            "Unsafe",
-            "--no-telemetry",
-            "--prometheus-external",
-            "--prometheus-port",
-            "9615",
-            "--wasm-execution",
-            "Compiled",
-            "--enable-offchain-indexing",
-            "true",
-          ], flatten([for x in var.bootnodes : ["--bootnodes", x]]))
-          port {
-            container_port = 9933
-          }
-          port {
-            container_port = 9944
-          }
-          port {
-            container_port = 9615
-          }
-          port {
-            container_port = 30333
-          }
+          image   = "gcr.io/cloud-marketplace/google/etcd@sha256:9e77b8c32ae8a94c322f36f8d68aff4b0b5c7e2ef9d367daba499a7dee4d4faf"
+          name    = "etcdctl"
+          command = ["/bin/sh", "-c"]
+          args = ["echo '${local.etcd_txn}' | etcdctl --endpoints=${var.etcd.hosts} --user=${var.etcd.username}:${var.etcd.password} txn"]
           resources {
             limits = {
-              cpu    = var.cpu_limits
-              memory = var.memory_limits
+              cpu    = "100m"
+              memory = "100Mi"
             }
             requests = {
-              cpu    = var.cpu_requests
-              memory = var.memory_requests
+              cpu    = "100m"
+              memory = "100Mi"
             }
-          }
-          volume_mount {
-            name       = "fullnode-data"
-            mount_path = "/substrate"
-          }
-          readiness_probe {
-            http_get {
-              path = "/metrics"
-              port = 9615
-            }
-            initial_delay_seconds = 10
-            timeout_seconds       = 1
-          }
-          liveness_probe {
-            http_get {
-              path   = "/metrics"
-              port   = 9615
-            }
-            initial_delay_seconds = 10
-            timeout_seconds       = 1
           }
         }
-        security_context {
-          fs_group = 1000
-        }
-        termination_grace_period_seconds = 300
+        restart_policy = "Never"
       }
     }
-    volume_claim_template {
-      metadata {
-        name = "fullnode-data"
-      }
-      spec {
-        access_modes       = ["ReadWriteOnce"]
-        storage_class_name = var.volume_type
-        resources {
-          requests = {
-            storage = var.volume_size
-          }
-        }
-      }
-    }
+    # backoff_limit = 3
+    ttl_seconds_after_finished = 100
+  }
+  wait_for_completion = true
+  timeouts {
+    create = "5m"
   }
 }
 
-resource "kubernetes_service" "default" {
-  metadata {
-    name      = "${var.chain_name}-fullnode"
-    namespace = var.chain_name
-  }
-  spec {
-    port {
-      name        = "rpc"
-      port        = 9933
-      target_port = 9933
-    }
-    port {
-      name        = "ws"
-      port        = 9944
-      target_port = 9944
-    }
-    cluster_ip = "None"
-    selector = {
-      app = "${var.chain_name}-fullnode"
-    }
-    session_affinity = "ClientIP"
-  }
+output "txn" {
+  description = "etcd txn script"
+  value       = local.etcd_txn
 }
-
