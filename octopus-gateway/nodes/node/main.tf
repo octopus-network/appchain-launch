@@ -1,12 +1,3 @@
-# resource "kubernetes_namespace" "default" {
-#   metadata {
-#     labels = {
-#       name = var.chain_name
-#     }
-#     name = var.chain_name
-#   }
-# }
-
 resource "kubernetes_stateful_set" "default" {
   metadata {
     name      = "${var.chain_name}-fullnode"

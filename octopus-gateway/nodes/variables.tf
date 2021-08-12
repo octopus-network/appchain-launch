@@ -18,7 +18,6 @@ variable "cluster" {
 variable "chains" {
   description = "Chains Configuration"
   type = map(object({
-    # name      = string
     chainspec = string
     bootnodes = list(string)
     image     = string
