@@ -50,7 +50,7 @@ resource "kubernetes_namespace" "default" {
 resource "kubernetes_config_map" "default" {
   metadata {
     name      = "${var.chain_name}-config-map"
-    namespace = var.chain_name
+    namespace = kubernetes_namespace.default.metadata.0.name
   }
   data = {
     for i, v in local.keys_octoup: "node-key-${i}" => v["node_key"]
@@ -60,7 +60,7 @@ resource "kubernetes_config_map" "default" {
 resource "kubernetes_stateful_set" "default" {
   metadata {
     name      = var.chain_name
-    namespace = var.chain_name
+    namespace = kubernetes_namespace.default.metadata.0.name
   }
   spec {
     service_name           = "${var.chain_name}"
@@ -195,7 +195,7 @@ resource "kubernetes_stateful_set" "default" {
         volume {
           name = "${var.chain_name}-config"
           config_map {
-            name = "${var.chain_name}-config-map"
+            name = kubernetes_config_map.default.metadata.0.name
           }
         }
         security_context {
@@ -225,7 +225,7 @@ resource "kubernetes_service" "default" {
   count = var.bootnodes
   metadata {
     name      = "${var.chain_name}-${count.index}"
-    namespace = var.chain_name
+    namespace = kubernetes_namespace.default.metadata.0.name
   }
   spec {
     selector = {
@@ -253,7 +253,7 @@ resource "kubernetes_service" "internal" {
   count = var.bootnodes
   metadata {
     name      = "${var.chain_name}-${count.index}-internal"
-    namespace = var.chain_name
+    namespace = kubernetes_namespace.default.metadata.0.name
   }
   spec {
     selector = {

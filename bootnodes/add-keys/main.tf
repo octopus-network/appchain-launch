@@ -19,7 +19,8 @@ resource "kubernetes_secret" "default" {
     name      = "${var.chain_name}-job-secret"
     namespace = var.chain_name
   }
-  data = local.dir_key_map
+  data       = local.dir_key_map
+  depends_on = [var.module_depends_on]
 }
 
 resource "kubernetes_config_map" "default" {
@@ -30,6 +31,7 @@ resource "kubernetes_config_map" "default" {
   data = {
     "run.sh" = file("${path.module}/run.sh")
   }
+  depends_on = [var.module_depends_on]
 }
 
 resource "kubernetes_job" "default" {
@@ -68,14 +70,14 @@ resource "kubernetes_job" "default" {
         volume {
           name = "${var.chain_name}-job-config-volume"
           config_map {
-            name = "${var.chain_name}-job-config-map"
+            name = kubernetes_config_map.default.metadata.0.name
             default_mode = "0555"
           }
         }
         volume {
           name = "${var.chain_name}-job-secret-volume"
           secret {
-            secret_name = "${var.chain_name}-job-secret"
+            secret_name = kubernetes_secret.default.metadata.0.name
           }
         }
         restart_policy = "Never"
@@ -104,6 +106,7 @@ resource "kubernetes_role" "restart" {
     resource_names = [var.chain_name]
     verbs          = ["get", "patch"]
   }
+  depends_on = [var.module_depends_on]
 }
 
 resource "kubernetes_role_binding" "restart" {
@@ -114,7 +117,7 @@ resource "kubernetes_role_binding" "restart" {
   role_ref {
     api_group = "rbac.authorization.k8s.io"
     kind      = "Role"
-    name      = "${var.chain_name}-restart-role"
+    name      = kubernetes_role.restart.metadata.0.name
   }
   subject {
     kind      = "ServiceAccount"
@@ -148,7 +151,7 @@ resource "kubernetes_job" "restart" {
           }
         }
         restart_policy = "Never"
-        service_account_name = "default"
+        service_account_name = kubernetes_role_binding.restart.subject.0.name # "default"
       }
     }
     # backoff_limit = 3
