@@ -11,7 +11,7 @@ resource "kubernetes_namespace" "default" {
 resource "kubernetes_secret" "redis" {
   metadata {
     name      = "redis-secret"
-    namespace = "gateway"
+    namespace = kubernetes_namespace.default.metadata.0.name
   }
   data = {
     REDIS_HOST     = var.redis.host
@@ -24,7 +24,7 @@ resource "kubernetes_secret" "redis" {
 resource "kubernetes_secret" "etcd" {
   metadata {
     name      = "etcd-secret"
-    namespace = "gateway"
+    namespace = kubernetes_namespace.default.metadata.0.name
   }
   data = {
     ETCD_HOSTS    = var.etcd.hosts
@@ -36,7 +36,7 @@ resource "kubernetes_secret" "etcd" {
 resource "kubernetes_secret" "kafka" {
   metadata {
     name      = "kafka-secret"
-    namespace = "gateway"
+    namespace = kubernetes_namespace.default.metadata.0.name
   }
   data = {
     KAFKA_HOSTS          = var.kafka.hosts
@@ -51,7 +51,7 @@ resource "kubernetes_secret" "kafka" {
 resource "kubernetes_config_map" "api" {
   metadata {
     name      = "api-config-map"
-    namespace = "gateway"
+    namespace = kubernetes_namespace.default.metadata.0.name
   }
   data = {
     "dev.env.json" = file("${path.module}/template/api.tpl")
@@ -64,7 +64,7 @@ resource "kubernetes_deployment" "api" {
     labels = {
       app = "api"
     }
-    namespace = "gateway"
+    namespace = kubernetes_namespace.default.metadata.0.name
   }
   spec {
     replicas = 1
@@ -125,7 +125,7 @@ resource "kubernetes_deployment" "api" {
 resource "kubernetes_service" "api" {
   metadata {
     name      = "api"
-    namespace = "gateway"
+    namespace = kubernetes_namespace.default.metadata.0.name
     annotations = {
       "cloud.google.com/neg" = "{\"ingress\": true}"
     }
@@ -159,7 +159,7 @@ resource "google_compute_managed_ssl_certificate" "api" {
 resource "kubernetes_ingress" "api" {
   metadata {
     name        = "api-ingress"
-    namespace   = "gateway"
+    namespace   = kubernetes_namespace.default.metadata.0.name
     annotations = {
       "kubernetes.io/ingress.global-static-ip-name" = google_compute_global_address.api.name
       "networking.gke.io/managed-certificates"      = google_compute_managed_ssl_certificate.api.name
@@ -207,7 +207,7 @@ resource "kubernetes_ingress" "api" {
 resource "kubernetes_config_map" "messenger" {
   metadata {
     name      = "messenger-config-map"
-    namespace = "gateway"
+    namespace = kubernetes_namespace.default.metadata.0.name
   }
   data = {
     "dev.env.json" = file("${path.module}/template/messenger.tpl")
@@ -220,7 +220,7 @@ resource "kubernetes_deployment" "messenger" {
     labels = {
       app = "messenger"
     }
-    namespace = "gateway"
+    namespace = kubernetes_namespace.default.metadata.0.name
   }
   spec {
     replicas = 1
@@ -276,7 +276,7 @@ resource "kubernetes_deployment" "messenger" {
 resource "kubernetes_service" "messenger" {
   metadata {
     name      = "messenger"
-    namespace = "gateway"
+    namespace = kubernetes_namespace.default.metadata.0.name
   }
   spec {
     type = "ClusterIP"
@@ -295,7 +295,7 @@ resource "kubernetes_service" "messenger" {
 resource "kubernetes_config_map" "stat" {
   metadata {
     name      = "stat-config-map"
-    namespace = "gateway"
+    namespace = kubernetes_namespace.default.metadata.0.name
   }
   data = {
     "dev.env.json" = file("${path.module}/template/stat.tpl")
@@ -308,7 +308,7 @@ resource "kubernetes_deployment" "stat" {
     labels = {
       app = "stat"
     }
-    namespace = "gateway"
+    namespace = kubernetes_namespace.default.metadata.0.name
   }
   spec {
     replicas = 1
@@ -369,7 +369,7 @@ resource "kubernetes_deployment" "stat" {
 resource "kubernetes_service" "stat" {
   metadata {
     name      = "stat"
-    namespace = "gateway"
+    namespace = kubernetes_namespace.default.metadata.0.name
     annotations = {
       "cloud.google.com/neg" = "{\"ingress\": true}"
     }
@@ -395,7 +395,7 @@ resource "kubernetes_deployment" "stat-sub" {
     labels = {
       app = "stat-sub"
     }
-    namespace = "gateway"
+    namespace = kubernetes_namespace.default.metadata.0.name
   }
   spec {
     replicas = 1
@@ -455,7 +455,7 @@ resource "kubernetes_deployment" "stat-sub" {
 resource "kubernetes_cron_job" "stat-cron" {
   metadata {
     name = "stat-cron"
-    namespace = "gateway"
+    namespace = kubernetes_namespace.default.metadata.0.name
   }
   spec {
     concurrency_policy            = "Forbid"
