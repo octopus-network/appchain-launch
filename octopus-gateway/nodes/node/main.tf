@@ -64,6 +64,8 @@ resource "kubernetes_stateful_set" "default" {
             "Compiled",
             "--enable-offchain-indexing",
             "true",
+            "--pruning",
+            "archive",
           ], flatten([for x in var.bootnodes : ["--bootnodes", x]]))
           port {
             container_port = 9933
