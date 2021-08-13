@@ -1,12 +1,11 @@
 variable "relays" {
   description = "Relay Configuration"
   type = map(object({
-    appchain_id              = string
-    appchain_endpoint        = string
-    relay_contract_id        = string
-    relayer_private_key_name = string
-    relayer_private_key_ver  = string
-    relayer_image            = string
+    appchain_id         = string
+    appchain_endpoint   = string
+    relay_contract_id   = string
+    relayer_private_key = string
+    relayer_image       = string
   }))
 }
 

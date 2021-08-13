@@ -1,8 +1,3 @@
-data "google_secret_manager_secret_version" "default" {
-  secret  = var.relayer_private_key_name
-  version = var.relayer_private_key_ver
-}
-
 resource "kubernetes_config_map" "default" {
   metadata {
     name      = "relayer-config-map"
@@ -15,6 +10,16 @@ resource "kubernetes_config_map" "default" {
     NEAR_WALLET_URL   = var.near_wallet_url
     NEAR_HELPER_URL   = var.near_helper_url
     RELAY_CONTRACT_ID = var.relay_contract_id
+  }
+}
+
+resource "kubernetes_secret" "default" {
+  metadata {
+    name      = "relayer-secret"
+    namespace = var.appchain_id
+  }
+  data = {
+    RELAYER_PRIVATE_KEY = var.relayer_private_key
   }
 }
 
@@ -84,9 +89,10 @@ resource "kubernetes_stateful_set" "default" {
               name = kubernetes_config_map.default.metadata.0.name
             }
           }
-          env {
-            name  = "RELAYER_PRIVATE_KEY"
-            value = data.google_secret_manager_secret_version.default.secret_data
+          env_from {
+            secret_ref {
+              name = kubernetes_secret.default.metadata.0.name
+            }
           }
         }
       }

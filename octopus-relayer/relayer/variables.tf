@@ -3,16 +3,9 @@ variable "relayer_image" {
   description = "description"
 }
 
-# gcp secret manager
-variable "relayer_private_key_name" {
+variable "relayer_private_key" {
   description = "description"
   type        = string
-}
-
-variable "relayer_private_key_ver" {
-  description = "description"
-  type        = string
-  default     = "latest"
 }
 
 variable "relay_contract_id" {
