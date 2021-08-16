@@ -17,23 +17,6 @@ provider "kubernetes" {
   cluster_ca_certificate = base64decode(data.google_container_cluster.default.master_auth[0].cluster_ca_certificate)
 }
 
-# subql (appchain)
-module "subql" {
-  source = "./subql"
-
-  for_each            = var.subql
-  appchain_id         = each.value.appchain_id
-  appchain_endpoint   = each.value.appchain_endpoint
-  gce_proxy_image     = each.value.gce_proxy_image
-  gce_proxy_instances = each.value.gce_proxy_instances
-  subql_node_image    = each.value.subql_node_image
-  subql_query_image   = each.value.subql_query_image
-  project             = var.project
-  service_account     = var.service_account
-  database            = var.database
-}
-
-# ingress (octopus-subql)
 resource "kubernetes_namespace" "default" {
   metadata {
     labels = {
@@ -43,6 +26,43 @@ resource "kubernetes_namespace" "default" {
   }
 }
 
+# subql
+resource "kubernetes_service_account" "default" {
+  metadata {
+    name = "subql-ksa"
+    namespace = kubernetes_namespace.default.metadata.0.name
+    annotations = {
+      "iam.gke.io/gcp-service-account" = var.service_account
+    }
+  }
+}
+
+data "google_service_account" "default" {
+  account_id = var.service_account
+}
+
+resource "google_service_account_iam_member" "default" {
+  service_account_id = data.google_service_account.default.name
+  role               = "roles/iam.workloadIdentityUser"
+  member             = "serviceAccount:${var.project}.svc.id.goog[${kubernetes_namespace.default.metadata.0.name}/${kubernetes_service_account.default.metadata.0.name}]"
+}
+
+module "subql" {
+  source = "./subql"
+
+  for_each            = var.subql
+  namespace           = kubernetes_namespace.default.metadata.0.name
+  appchain_id         = each.value.appchain_id
+  appchain_endpoint   = each.value.appchain_endpoint
+  gce_proxy_image     = each.value.gce_proxy_image
+  gce_proxy_instances = each.value.gce_proxy_instances
+  subql_node_image    = each.value.subql_node_image
+  subql_query_image   = each.value.subql_query_image
+  database            = var.database
+  service_account     = kubernetes_service_account.default.metadata.0.name
+}
+
+# ingress
 resource "google_compute_global_address" "default" {
   name  = "subql-global-address"
 }
@@ -51,23 +71,6 @@ resource "google_compute_managed_ssl_certificate" "default" {
   name = "subql-testnet-octopus-network"
   managed {
     domains = var.subql_domains
-  }
-}
-
-resource "kubernetes_service" "default" {
-  for_each = module.subql
-
-  metadata {
-    name        = each.value.service_name
-    namespace   = kubernetes_namespace.default.metadata.0.name
-  }
-  spec {
-    type = "ExternalName"
-    external_name = "${each.value.service_name}.default"
-    # external_name = "${each.value.service_name}.${each.key}" #.svc.cluster.local
-    port {
-      port = each.value.service_port
-    }
   }
 }
 
@@ -98,5 +101,4 @@ resource "kubernetes_ingress" "default" {
       }
     }
   }
-  depends_on = [kubernetes_service.default]
 }

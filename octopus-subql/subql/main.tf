@@ -1,34 +1,24 @@
-
-
-resource "kubernetes_service_account" "default" {
-  metadata {
-    name = "${var.appchain_id}-subql-ksa"
-    namespace = var.appchain_id
-    annotations = {
-      "iam.gke.io/gcp-service-account" = var.service_account
-    }
-  }
-}
-
-data "google_service_account" "default" {
-  account_id = var.service_account
-}
-
-resource "google_service_account_iam_member" "default" {
-  service_account_id = data.google_service_account.default.name
-  role               = "roles/iam.workloadIdentityUser"
-  member             = "serviceAccount:${var.project}.svc.id.goog[${var.appchain_id}/${var.appchain_id}-subql-ksa]"
-}
-
 resource "kubernetes_secret" "default" {
   metadata {
     name      = "${var.appchain_id}-secret"
-    namespace = var.appchain_id
+    namespace = var.namespace
   }
   data = {
     DB_USER     = var.database.username
     DB_PASS     = var.database.password
     DB_DATABASE = var.database.database
+  }
+}
+
+resource "kubernetes_config_map" "default" {
+  metadata {
+    name      = "${var.appchain_id}-config-map"
+    namespace = var.namespace
+  }
+  data = {
+    APPCHAIN_ID         = var.appchain_id
+    APPCHAIN_ENDPOINT   = var.appchain_endpoint
+    GCE_PROXY_INSTANCES = var.gce_proxy_instances
   }
 }
 
@@ -38,7 +28,7 @@ resource "kubernetes_deployment" "default" {
     labels = {
       app = "subql"
     }
-    namespace = var.appchain_id
+    namespace = var.namespace
   }
   spec {
     replicas = 1
@@ -57,15 +47,16 @@ resource "kubernetes_deployment" "default" {
         container {
           name    = "cloud-sql-proxy"
           image   = var.gce_proxy_image
-          command = ["/cloud_sql_proxy", "-instances=${var.gce_proxy_instances}"]
+          command = ["/cloud_sql_proxy", "-instances=$(GCE_PROXY_INSTANCES)"]
+          env_from {
+            config_map_ref {
+              name = kubernetes_config_map.default.metadata.0.name
+            }
+          }
           resources {
             requests = {
-              cpu    = "500m"
-              memory = "512Mi"
-            }
-            limits = {
-              cpu    = "500m"
-              memory = "512Mi"
+              cpu    = "1000m"
+              memory = "2048Mi"
             }
           }
           security_context {
@@ -77,13 +68,18 @@ resource "kubernetes_deployment" "default" {
           image = var.subql_node_image
           args  = [
             "-f=/workdir",
-            "--subquery-name=${var.appchain_id}",
+            "--subquery-name=$(APPCHAIN_ID)",
             "--migrate",
-            "--network-endpoint=${var.appchain_endpoint}"
+            "--network-endpoint=$(APPCHAIN_ENDPOINT)"
           ]
           env_from {
             secret_ref {
               name = kubernetes_secret.default.metadata.0.name
+            }
+          }
+          env_from {
+            config_map_ref {
+              name = kubernetes_config_map.default.metadata.0.name
             }
           }
           resources {
@@ -92,15 +88,15 @@ resource "kubernetes_deployment" "default" {
               memory = "256Mi"
             }
             limits = {
-              cpu    = "200m"
-              memory = "256Mi"
+              cpu    = "500m"
+              memory = "512Mi"
             }
           }
         }
         container {
           name  = "subql-query"
           image = var.subql_query_image
-          args  = [ "--name=${var.appchain_id}", "--playground"]
+          args  = [ "--name=$(APPCHAIN_ID)", "--playground"]
           port {
             container_port = 3001
           }
@@ -113,18 +109,23 @@ resource "kubernetes_deployment" "default" {
               name = kubernetes_secret.default.metadata.0.name
             }
           }
+          env_from {
+            config_map_ref {
+              name = kubernetes_config_map.default.metadata.0.name
+            }
+          }
           resources {
             requests = {
               cpu    = "200m"
               memory = "256Mi"
             }
             limits = {
-              cpu    = "200m"
-              memory = "256Mi"
+              cpu    = "500m"
+              memory = "512Mi"
             }
           }
         }
-        service_account_name = "${var.appchain_id}-subql-ksa"
+        service_account_name = var.service_account
       }
     }
   }
@@ -133,7 +134,7 @@ resource "kubernetes_deployment" "default" {
 resource "kubernetes_service" "default" {
   metadata {
     name        = "${var.appchain_id}-subql"
-    namespace   = var.appchain_id
+    namespace   = var.namespace
     annotations = {
       "cloud.google.com/neg" = "{\"ingress\": true}"
     }

@@ -1,5 +1,5 @@
-variable "project" {
-  description = "Project"
+variable "namespace" {
+  description = "namespace"
   type        = string
 }
 
