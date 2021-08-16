@@ -26,6 +26,7 @@ module "relayer" {
   relay_contract_id   = each.value.relay_contract_id
   relayer_private_key = each.value.relayer_private_key
   relayer_image       = each.value.relayer_image
+  start_block_height  = each.value.start_block_height
   near_node_url       = var.near.node_url
   near_wallet_url     = var.near.wallet_url
   near_helper_url     = var.near.helper_url

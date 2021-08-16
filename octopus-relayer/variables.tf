@@ -6,6 +6,7 @@ variable "relays" {
     relay_contract_id   = string
     relayer_private_key = string
     relayer_image       = string
+    start_block_height  = number
   }))
 }
 
