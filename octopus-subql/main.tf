@@ -95,7 +95,7 @@ resource "kubernetes_ingress" "default" {
               service_name = path.value.service_name
               service_port = path.value.service_port
             }
-            path = "/${path.key}/*"
+            path = "/${path.key}"
           }
         }
       }
