@@ -1,6 +1,6 @@
 # octoup
 
-This module sets up multiple bootnodes for octopus network in GKE (Google Kubernetes Engine).
+This module sets up relayer for octopus network in GKE (Google Kubernetes Engine).
 
 ## Usage
 
@@ -22,12 +22,9 @@ terraform destroy
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| chain\_name | | `string` | | yes |
-| chainspec\_url | | `string` | | yes |
-| bootnodes | The number of bootnodes | `number` | | yes |
-| base\_image | | `string` | | yes |
-| start\_cmd | | `string` | | yes |
-| keys\_octoup | The relative path of the keys file [octokey](https://github.com/octopus-network/octokey) | `string` | | yes |
+| relays<br>- appchain_id<br>- appchain_endpoint<br>- relay_contract_id<br>- relayer_private_key<br>- relayer_image | | `map(object)`<br>- `string`<br>- `string`<br>- `string`<br>- `string`<br>- `string` | | yes |
+| near<br>- node_url<br>- wallet_url<br>- helper_url | | `object`<br>- `string`<br>- `string`<br>- `string` | | yes |
 | project | The GCP project id | `string` | | yes |
 | region | The location for regional resources | `string` | | yes |
 | cluster | The name of the cluster | `string` | | yes |
+
