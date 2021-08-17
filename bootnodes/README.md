@@ -1,4 +1,4 @@
-# octoup
+# bootnodes
 
 This module sets up multiple bootnodes for octopus network in GKE (Google Kubernetes Engine).
 

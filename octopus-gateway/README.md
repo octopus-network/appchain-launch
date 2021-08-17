@@ -1,4 +1,4 @@
-# octoup
+# octopus-gateway
 
 This module sets up gateway and full node for octopus network in GKE (Google Kubernetes Engine).
 

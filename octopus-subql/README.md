@@ -1,4 +1,4 @@
-# octoup
+# octopus-subql
 
 This module sets up subql for octopus network in GKE (Google Kubernetes Engine).
 
