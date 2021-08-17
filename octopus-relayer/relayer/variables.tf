@@ -23,6 +23,11 @@ variable "appchain_endpoint" {
   type        = string
 }
 
+variable "start_block_height" {
+  description = "description"
+  type        = number
+}
+
 variable "near_node_url" {
   description = "description"
   type        = string

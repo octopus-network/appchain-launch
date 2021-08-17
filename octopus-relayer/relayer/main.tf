@@ -4,12 +4,13 @@ resource "kubernetes_config_map" "default" {
     namespace = var.appchain_id
   }
   data = {
-    APPCHAIN_ID       = var.appchain_id
-    APPCHAIN_ENDPOINT = var.appchain_endpoint
-    NEAR_NODE_URL     = var.near_node_url
-    NEAR_WALLET_URL   = var.near_wallet_url
-    NEAR_HELPER_URL   = var.near_helper_url
-    RELAY_CONTRACT_ID = var.relay_contract_id
+    APPCHAIN_ID        = var.appchain_id
+    APPCHAIN_ENDPOINT  = var.appchain_endpoint
+    NEAR_NODE_URL      = var.near_node_url
+    NEAR_WALLET_URL    = var.near_wallet_url
+    NEAR_HELPER_URL    = var.near_helper_url
+    RELAY_CONTRACT_ID  = var.relay_contract_id
+    START_BLOCK_HEIGHT = var.start_block_height
   }
 }
 
