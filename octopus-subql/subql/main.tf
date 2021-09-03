@@ -26,7 +26,7 @@ resource "kubernetes_deployment" "default" {
   metadata {
     name = "${var.appchain_id}-subsql"
     labels = {
-      app = "subql"
+      app = "${var.appchain_id}-subql"
     }
     namespace = var.namespace
   }
@@ -34,13 +34,13 @@ resource "kubernetes_deployment" "default" {
     replicas = 1
     selector {
       match_labels = {
-        app = "subql"
+        app = "${var.appchain_id}-subql"
       }
     }
     template {
       metadata {
         labels = {
-          app = "subql"
+          app = "${var.appchain_id}-subql"
         }
       }
       spec {
