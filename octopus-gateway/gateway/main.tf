@@ -40,6 +40,7 @@ module "gateway" {
     password = module.redis.auth
     tls_cert = module.redis.cert
   }
-  etcd = var.etcd
-  kafka = var.kafka
+  kafka           = var.kafka
+  project         = var.project
+  service_account = var.service_account
 }

@@ -27,11 +27,9 @@ variable "chains" {
 }
 
 #
-variable "etcd" {
-  description = "Etcd Configuration"
+variable "firestore" {
+  description = "Firestore Configuration"
   type = object({
-    hosts    = string
-    username = string
-    password = string
+    collection = string
   })
 }

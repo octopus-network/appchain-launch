@@ -17,15 +17,6 @@ variable "redis" {
   })
 }
 
-variable "etcd" {
-  description = ""
-  type = object({
-    hosts    = string
-    username = string
-    password = string
-  })
-}
-
 variable "kafka" {
   description = ""
   type = object({
@@ -37,4 +28,14 @@ variable "kafka" {
       password   = string
     })
   })
+}
+
+variable "project" {
+  description = "Project"
+  type        = string
+}
+
+variable "service_account" {
+  description = "description"
+  type        = string
 }

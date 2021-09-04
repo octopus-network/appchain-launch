@@ -7,6 +7,27 @@ resource "kubernetes_namespace" "default" {
   }
 }
 
+# service_account
+resource "kubernetes_service_account" "default" {
+  metadata {
+    name = "gateway-ksa"
+    namespace = kubernetes_namespace.default.metadata.0.name
+    annotations = {
+      "iam.gke.io/gcp-service-account" = var.service_account
+    }
+  }
+}
+
+data "google_service_account" "default" {
+  account_id = var.service_account
+}
+
+resource "google_service_account_iam_member" "default" {
+  service_account_id = data.google_service_account.default.name
+  role               = "roles/iam.workloadIdentityUser"
+  member             = "serviceAccount:${var.project}.svc.id.goog[${kubernetes_namespace.default.metadata.0.name}/${kubernetes_service_account.default.metadata.0.name}]"
+}
+
 # secrets
 resource "kubernetes_secret" "redis" {
   metadata {
@@ -18,18 +39,6 @@ resource "kubernetes_secret" "redis" {
     REDIS_PORT     = var.redis.port
     REDIS_PASSWORD = var.redis.password
     REDIS_TLS_CRT  = var.redis.tls_cert
-  }
-}
-
-resource "kubernetes_secret" "etcd" {
-  metadata {
-    name      = "etcd-secret"
-    namespace = kubernetes_namespace.default.metadata.0.name
-  }
-  data = {
-    ETCD_HOSTS    = var.etcd.hosts
-    ETCD_USERNAME = var.etcd.username
-    ETCD_PASSWORD = var.etcd.password
   }
 }
 
@@ -92,11 +101,6 @@ resource "kubernetes_deployment" "api" {
           }
           env_from {
             secret_ref {
-              name = kubernetes_secret.etcd.metadata.0.name
-            }
-          }
-          env_from {
-            secret_ref {
               name = kubernetes_secret.kafka.metadata.0.name
             }
           }
@@ -117,6 +121,7 @@ resource "kubernetes_deployment" "api" {
             name = kubernetes_config_map.api.metadata.0.name
           }
         }
+        service_account_name = kubernetes_service_account.default.metadata.0.name
       }
     }
   }
@@ -246,11 +251,6 @@ resource "kubernetes_deployment" "messenger" {
             name       = "messenger-config-volume"
             mount_path = "/app/messenger/config/env"
           }
-          env_from {
-            secret_ref {
-              name = kubernetes_secret.etcd.metadata.0.name
-            }
-          }
           resources {
             limits = {
               cpu    = "500m"
@@ -268,6 +268,7 @@ resource "kubernetes_deployment" "messenger" {
             name = kubernetes_config_map.messenger.metadata.0.name
           }
         }
+        service_account_name = kubernetes_service_account.default.metadata.0.name
       }
     }
   }
@@ -339,11 +340,6 @@ resource "kubernetes_deployment" "stat" {
               name = kubernetes_secret.redis.metadata.0.name
             }
           }
-          env_from {
-            secret_ref {
-              name = kubernetes_secret.etcd.metadata.0.name
-            }
-          }
           resources {
             limits = {
               cpu    = "500m"
@@ -361,6 +357,7 @@ resource "kubernetes_deployment" "stat" {
             name = kubernetes_config_map.stat.metadata.0.name
           }
         }
+        service_account_name = kubernetes_service_account.default.metadata.0.name
       }
     }
   }
@@ -446,6 +443,7 @@ resource "kubernetes_deployment" "stat-sub" {
             name = kubernetes_config_map.stat.metadata.0.name
           }
         }
+        service_account_name = kubernetes_service_account.default.metadata.0.name
       }
     }
   }
@@ -499,6 +497,7 @@ resource "kubernetes_cron_job" "stat-cron" {
                 name = kubernetes_config_map.stat.metadata.0.name
               }
             }
+            service_account_name = kubernetes_service_account.default.metadata.0.name
           }
         }
         # backoff_limit              = 3

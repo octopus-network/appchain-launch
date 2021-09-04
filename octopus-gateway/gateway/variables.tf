@@ -40,16 +40,6 @@ variable "redis" {
   })
 }
 
-# etcd
-variable "etcd" {
-  description = "Etcd Configuration"
-  type = object({
-    hosts    = string
-    username = string
-    password = string
-  })
-}
-
 # kafka
 variable "kafka" {
   description = ""
@@ -62,4 +52,10 @@ variable "kafka" {
       password   = string
     })
   })
+}
+
+# firestore
+variable "service_account" {
+  description = "description"
+  type        = string
 }
