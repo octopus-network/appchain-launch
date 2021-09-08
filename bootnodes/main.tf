@@ -38,19 +38,10 @@ provider "kubernetes" {
   cluster_ca_certificate = base64decode(data.google_container_cluster.default.master_auth[0].cluster_ca_certificate)
 }
 
-resource "kubernetes_namespace" "default" {
-  metadata {
-    labels = {
-      name = var.chain_name
-    }
-    name = var.chain_name
-  }
-}
-
 resource "kubernetes_config_map" "default" {
   metadata {
     name      = "${var.chain_name}-config-map"
-    namespace = kubernetes_namespace.default.metadata.0.name
+    namespace = var.chain_name
   }
   data = {
     for i, v in local.keys_octoup: "node-key-${i}" => v["node_key"]
@@ -60,7 +51,7 @@ resource "kubernetes_config_map" "default" {
 resource "kubernetes_stateful_set" "default" {
   metadata {
     name      = var.chain_name
-    namespace = kubernetes_namespace.default.metadata.0.name
+    namespace = var.chain_name
   }
   spec {
     service_name           = "${var.chain_name}"
@@ -225,7 +216,7 @@ resource "kubernetes_service" "default" {
   count = var.bootnodes
   metadata {
     name      = "${var.chain_name}-${count.index}"
-    namespace = kubernetes_namespace.default.metadata.0.name
+    namespace = var.chain_name
   }
   spec {
     selector = {
@@ -253,7 +244,7 @@ resource "kubernetes_service" "internal" {
   count = var.bootnodes
   metadata {
     name      = "${var.chain_name}-${count.index}-internal"
-    namespace = kubernetes_namespace.default.metadata.0.name
+    namespace = var.chain_name
   }
   spec {
     selector = {
