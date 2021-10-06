@@ -1,7 +1,7 @@
 resource "kubernetes_config_map" "default" {
   metadata {
-    name      = "relayer-config-map"
-    namespace = var.appchain_id
+    name      = "${var.appchain_id}-relayer-config-map"
+    namespace = var.namespace
   }
   data = {
     APPCHAIN_ID        = var.appchain_id
@@ -16,8 +16,8 @@ resource "kubernetes_config_map" "default" {
 
 resource "kubernetes_secret" "default" {
   metadata {
-    name      = "relayer-secret"
-    namespace = var.appchain_id
+    name      = "${var.appchain_id}-relayer-secret"
+    namespace = var.namespace
   }
   data = {
     RELAYER_PRIVATE_KEY = var.relayer_private_key
@@ -27,7 +27,12 @@ resource "kubernetes_secret" "default" {
 resource "kubernetes_stateful_set" "default" {
   metadata {
     name      = "${var.appchain_id}-relayer"
-    namespace = var.appchain_id
+    namespace = var.namespace
+    labels = {
+      name  = "${var.appchain_id}-relayer"
+      app   = "relayer"
+      chain = var.appchain_id
+    }
   }
   spec {
     service_name           = "${var.appchain_id}-relayer"
@@ -36,18 +41,22 @@ resource "kubernetes_stateful_set" "default" {
     revision_history_limit = 5
     selector {
       match_labels = {
-        k8s-app = "${var.appchain_id}-relayer"
+        name  = "${var.appchain_id}-relayer"
+        app   = "relayer"
+        chain = var.appchain_id
       }
     }
     template {
       metadata {
         labels = {
-          k8s-app = "${var.appchain_id}-relayer"
+          name  = "${var.appchain_id}-relayer"
+          app   = "relayer"
+          chain = var.appchain_id
         }
       }
       spec {
         init_container {
-          name              = "${var.appchain_id}-init-db"
+          name              = "init-db"
           image             = "busybox"
           image_pull_policy = "IfNotPresent"
           command           = ["touch", "/tmp/relayer.db"]
@@ -62,12 +71,12 @@ resource "kubernetes_stateful_set" "default" {
             }
           }
           volume_mount {
-            name       = "${var.appchain_id}-relayer-data"
+            name       = "relayer-data-volume"
             mount_path = "/tmp"
           }
         }
         container {
-          name              = "${var.appchain_id}-relayer"
+          name              = "relayer"
           image             = var.relayer_image
           image_pull_policy = "IfNotPresent"
           resources {
@@ -81,7 +90,7 @@ resource "kubernetes_stateful_set" "default" {
             }
           }
           volume_mount {
-            name       = "${var.appchain_id}-relayer-data"
+            name       = "relayer-data-volume"
             mount_path = "/usr/src/app/relayer.db"
             sub_path   = "relayer.db"
           }
@@ -100,7 +109,7 @@ resource "kubernetes_stateful_set" "default" {
     }
     volume_claim_template {
       metadata {
-        name = "${var.appchain_id}-relayer-data"
+        name = "relayer-data-volume"
       }
       spec {
         access_modes       = ["ReadWriteOnce"]

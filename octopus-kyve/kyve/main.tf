@@ -1,8 +1,8 @@
 
 resource "kubernetes_config_map" "default" {
   metadata {
-    name      = "kyve-config-map"
-    namespace = var.appchain_id
+    name      = "${var.appchain_id}-kyve-config-map"
+    namespace = var.namespace
   }
   data = {
     "uploader.config.json"  = file(var.uploader_config)
@@ -12,8 +12,8 @@ resource "kubernetes_config_map" "default" {
 
 resource "kubernetes_secret" "default" {
   metadata {
-    name      = "kyve-secret"
-    namespace = var.appchain_id
+    name      = "${var.appchain_id}-kyve-secret"
+    namespace = var.namespace
   }
   data = {
     "uploader.key.json"  = file(var.uploader_secret)
@@ -24,19 +24,28 @@ resource "kubernetes_secret" "default" {
 resource "kubernetes_deployment" "default" {
   metadata {
     name = "${var.appchain_id}-kyve"
-    namespace = var.appchain_id
+    namespace = var.namespace
+    labels = {
+      name  = "${var.appchain_id}-kyve"
+      app   = "kyve"
+      chain = var.appchain_id
+    }
   }
   spec {
     replicas = 1
     selector {
       match_labels = {
-        app = "kyve"
+        name  = "${var.appchain_id}-kyve"
+        app   = "kyve"
+        chain = var.appchain_id
       }
     }
     template {
       metadata {
         labels = {
-          app = "kyve"
+          name  = "${var.appchain_id}-kyve"
+          app   = "kyve"
+          chain = var.appchain_id
         }
       }
       spec {

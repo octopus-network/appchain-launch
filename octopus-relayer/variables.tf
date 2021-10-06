@@ -34,3 +34,9 @@ variable "cluster" {
   description = "Cluster"
   type        = string
 }
+
+variable "namespace" {
+  description = "Namespace"
+  type        = string
+  default     = "default" # devnet / testnet / mainnet
+}
