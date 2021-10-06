@@ -43,3 +43,9 @@ variable "kyve_image" {
   type        = string
   description = "description"
 }
+
+variable "namespace" {
+  description = "Namespace"
+  type        = string
+  default     = "default" # devnet / testnet / mainnet
+}

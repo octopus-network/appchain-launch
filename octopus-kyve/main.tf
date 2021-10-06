@@ -27,4 +27,5 @@ module "kyve" {
   uploader_secret  = "${path.module}/${each.value.kyve_files}/uploader-key.json"
   validator_config = "${path.module}/${each.value.kyve_files}/validator-config.json"
   validator_secret = "${path.module}/${each.value.kyve_files}/validator-key.json"
+  namespace        = var.namespace
 }

@@ -1,6 +1,6 @@
 resource "kubernetes_secret" "default" {
   metadata {
-    name      = "${var.appchain_id}-secret"
+    name      = "${var.appchain_id}-subsql-secret"
     namespace = var.namespace
   }
   data = {
@@ -12,7 +12,7 @@ resource "kubernetes_secret" "default" {
 
 resource "kubernetes_config_map" "default" {
   metadata {
-    name      = "${var.appchain_id}-config-map"
+    name      = "${var.appchain_id}-subsql-config-map"
     namespace = var.namespace
   }
   data = {
@@ -26,7 +26,9 @@ resource "kubernetes_deployment" "default" {
   metadata {
     name = "${var.appchain_id}-subsql"
     labels = {
-      app = "${var.appchain_id}-subql"
+      name  = "${var.appchain_id}-subql"
+      app   = "subql"
+      chain = var.appchain_id
     }
     namespace = var.namespace
   }
@@ -34,13 +36,17 @@ resource "kubernetes_deployment" "default" {
     replicas = 1
     selector {
       match_labels = {
-        app = "${var.appchain_id}-subql"
+        name  = "${var.appchain_id}-subql"
+        app   = "subql"
+        chain = var.appchain_id
       }
     }
     template {
       metadata {
         labels = {
-          app = "${var.appchain_id}-subql"
+          name  = "${var.appchain_id}-subql"
+          app   = "subql"
+          chain = var.appchain_id
         }
       }
       spec {
@@ -135,6 +141,11 @@ resource "kubernetes_service" "default" {
   metadata {
     name        = "${var.appchain_id}-subql"
     namespace   = var.namespace
+    labels = {
+      name  = "${var.appchain_id}-subql"
+      app   = "subql"
+      chain = var.appchain_id
+    }
     annotations = {
       "cloud.google.com/neg" = "{\"ingress\": true}"
     }
@@ -142,7 +153,9 @@ resource "kubernetes_service" "default" {
   spec {
     type = "NodePort"
     selector = {
-      app = kubernetes_deployment.default.metadata.0.labels.app
+      name  = "${var.appchain_id}-subql"
+      app   = "subql"
+      chain = var.appchain_id
     }
     port {
       port        = 3001

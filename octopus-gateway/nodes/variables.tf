@@ -14,6 +14,12 @@ variable "cluster" {
   type        = string
 }
 
+variable "namespace" {
+  description = "Namespace"
+  type        = string
+  default     = "default" # devnet / testnet / mainnet
+}
+
 #
 variable "chains" {
   description = "Chains Configuration"

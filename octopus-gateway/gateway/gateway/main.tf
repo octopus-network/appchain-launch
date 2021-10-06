@@ -1,38 +1,8 @@
-resource "kubernetes_namespace" "default" {
-  metadata {
-    labels = {
-      name = "octopus-gateway-${var.network_id}"
-    }
-    name = "octopus-gateway-${var.network_id}"
-  }
-}
-
-# service_account
-resource "kubernetes_service_account" "default" {
-  metadata {
-    name = "gateway-ksa"
-    namespace = kubernetes_namespace.default.metadata.0.name
-    annotations = {
-      "iam.gke.io/gcp-service-account" = var.service_account
-    }
-  }
-}
-
-data "google_service_account" "default" {
-  account_id = var.service_account
-}
-
-resource "google_service_account_iam_member" "default" {
-  service_account_id = data.google_service_account.default.name
-  role               = "roles/iam.workloadIdentityUser"
-  member             = "serviceAccount:${var.project}.svc.id.goog[${kubernetes_namespace.default.metadata.0.name}/${kubernetes_service_account.default.metadata.0.name}]"
-}
-
 # secrets
 resource "kubernetes_secret" "redis" {
   metadata {
-    name      = "redis-secret"
-    namespace = kubernetes_namespace.default.metadata.0.name
+    name      = "gateway-redis-secret"
+    namespace = var.namespace
   }
   data = {
     REDIS_HOST     = var.redis.host
@@ -44,8 +14,8 @@ resource "kubernetes_secret" "redis" {
 
 resource "kubernetes_secret" "kafka" {
   metadata {
-    name      = "kafka-secret"
-    namespace = kubernetes_namespace.default.metadata.0.name
+    name      = "gateway-kafka-secret"
+    namespace = var.namespace
   }
   data = {
     KAFKA_HOSTS          = var.kafka.hosts
@@ -59,8 +29,8 @@ resource "kubernetes_secret" "kafka" {
 # api
 resource "kubernetes_config_map" "api" {
   metadata {
-    name      = "api-config-map"
-    namespace = kubernetes_namespace.default.metadata.0.name
+    name      = "gateway-api-config-map"
+    namespace = var.namespace
   }
   data = {
     "dev.env.json" = file("${path.module}/template/api.tpl")
@@ -69,23 +39,26 @@ resource "kubernetes_config_map" "api" {
 
 resource "kubernetes_deployment" "api" {
   metadata {
-    name = "api"
+    name      = "gateway-api"
+    namespace = var.namespace
     labels = {
-      app = "api"
+      name = "gateway-api"
+      app  = "gateway"
     }
-    namespace = kubernetes_namespace.default.metadata.0.name
   }
   spec {
     replicas = 1
     selector {
       match_labels = {
-        app = "api"
+        name = "gateway-api"
+        app  = "gateway"
       }
     }
     template {
       metadata {
         labels = {
-          app = "api"
+          name = "gateway-api"
+          app  = "gateway"
         }
       }
       spec {
@@ -121,7 +94,7 @@ resource "kubernetes_deployment" "api" {
             name = kubernetes_config_map.api.metadata.0.name
           }
         }
-        service_account_name = kubernetes_service_account.default.metadata.0.name
+        service_account_name = var.service_account
       }
     }
   }
@@ -129,8 +102,12 @@ resource "kubernetes_deployment" "api" {
 
 resource "kubernetes_service" "api" {
   metadata {
-    name      = "api"
-    namespace = kubernetes_namespace.default.metadata.0.name
+    name      = "gateway-api"
+    namespace = var.namespace
+    labels = {
+      name = "gateway-api"
+      app  = "gateway"
+    }
     annotations = {
       "cloud.google.com/neg" = "{\"ingress\": true}"
     }
@@ -138,7 +115,8 @@ resource "kubernetes_service" "api" {
   spec {
     type = "NodePort" # "ClusterIP"
     selector = {
-      app = kubernetes_deployment.api.metadata.0.labels.app
+      name = "gateway-api"
+      app  = "gateway"
     }
     # session_affinity = "ClientIP"
     port {
@@ -163,8 +141,8 @@ resource "google_compute_managed_ssl_certificate" "api" {
 # TODO: terraform not support cloud.google.com/backend-config (health check, ws timeout)
 resource "kubernetes_ingress" "api" {
   metadata {
-    name        = "api-ingress"
-    namespace   = kubernetes_namespace.default.metadata.0.name
+    name        = "gateway-ingress"
+    namespace   = var.namespace
     annotations = {
       "kubernetes.io/ingress.global-static-ip-name" = google_compute_global_address.api.name
       "networking.gke.io/managed-certificates"      = google_compute_managed_ssl_certificate.api.name
@@ -211,8 +189,8 @@ resource "kubernetes_ingress" "api" {
 # messenger
 resource "kubernetes_config_map" "messenger" {
   metadata {
-    name      = "messenger-config-map"
-    namespace = kubernetes_namespace.default.metadata.0.name
+    name      = "gateway-messenger-config-map"
+    namespace = var.namespace
   }
   data = {
     "dev.env.json" = file("${path.module}/template/messenger.tpl")
@@ -221,23 +199,26 @@ resource "kubernetes_config_map" "messenger" {
 
 resource "kubernetes_deployment" "messenger" {
   metadata {
-    name = "messenger"
+    name      = "gateway-messenger"
+    namespace = var.namespace
     labels = {
-      app = "messenger"
+      name = "gateway-messenger"
+      app  = "gateway"
     }
-    namespace = kubernetes_namespace.default.metadata.0.name
   }
   spec {
     replicas = 1
     selector {
       match_labels = {
-        app = "messenger"
+        name = "gateway-messenger"
+        app  = "gateway"
       }
     }
     template {
       metadata {
         labels = {
-          app = "messenger"
+          name = "gateway-messenger"
+          app  = "gateway"
         }
       }
       spec {
@@ -268,7 +249,7 @@ resource "kubernetes_deployment" "messenger" {
             name = kubernetes_config_map.messenger.metadata.0.name
           }
         }
-        service_account_name = kubernetes_service_account.default.metadata.0.name
+        service_account_name = var.service_account
       }
     }
   }
@@ -276,13 +257,18 @@ resource "kubernetes_deployment" "messenger" {
 
 resource "kubernetes_service" "messenger" {
   metadata {
-    name      = "messenger"
-    namespace = kubernetes_namespace.default.metadata.0.name
+    name      = "gateway-messenger"
+    namespace = var.namespace
+    labels = {
+      name = "gateway-messenger"
+      app  = "gateway"
+    }
   }
   spec {
     type = "ClusterIP"
     selector = {
-      app = kubernetes_deployment.messenger.metadata.0.labels.app
+      name = "gateway-messenger"
+      app  = "gateway"
     }
     # session_affinity = "ClientIP"
     port {
@@ -295,8 +281,8 @@ resource "kubernetes_service" "messenger" {
 # stat
 resource "kubernetes_config_map" "stat" {
   metadata {
-    name      = "stat-config-map"
-    namespace = kubernetes_namespace.default.metadata.0.name
+    name      = "gateway-stat-config-map"
+    namespace = var.namespace
   }
   data = {
     "dev.env.json" = file("${path.module}/template/stat.tpl")
@@ -305,23 +291,26 @@ resource "kubernetes_config_map" "stat" {
 
 resource "kubernetes_deployment" "stat" {
   metadata {
-    name = "stat"
+    name      = "gateway-stat"
+    namespace = var.namespace
     labels = {
-      app = "stat"
+      name = "gateway-stat"
+      app  = "gateway"
     }
-    namespace = kubernetes_namespace.default.metadata.0.name
   }
   spec {
     replicas = 1
     selector {
       match_labels = {
-        app = "stat"
+        name = "gateway-stat"
+        app  = "gateway"
       }
     }
     template {
       metadata {
         labels = {
-          app = "stat"
+          name = "gateway-stat"
+          app  = "gateway"
         }
       }
       spec {
@@ -357,7 +346,7 @@ resource "kubernetes_deployment" "stat" {
             name = kubernetes_config_map.stat.metadata.0.name
           }
         }
-        service_account_name = kubernetes_service_account.default.metadata.0.name
+        service_account_name = var.service_account
       }
     }
   }
@@ -365,8 +354,12 @@ resource "kubernetes_deployment" "stat" {
 
 resource "kubernetes_service" "stat" {
   metadata {
-    name      = "stat"
-    namespace = kubernetes_namespace.default.metadata.0.name
+    name      = "gateway-stat"
+    namespace = var.namespace
+    labels = {
+      name = "gateway-stat"
+      app  = "gateway"
+    }
     annotations = {
       "cloud.google.com/neg" = "{\"ingress\": true}"
     }
@@ -374,7 +367,8 @@ resource "kubernetes_service" "stat" {
   spec {
     type = "NodePort" # "ClusterIP"
     selector = {
-      app = kubernetes_deployment.stat.metadata.0.labels.app
+      name = "gateway-stat"
+      app  = "gateway"
     }
     # session_affinity = "ClientIP"
     port {
@@ -388,23 +382,26 @@ resource "kubernetes_service" "stat" {
 # stat-sub
 resource "kubernetes_deployment" "stat-sub" {
   metadata {
-    name = "stat-sub"
+    name      = "gateway-stat-sub"
+    namespace = var.namespace
     labels = {
-      app = "stat-sub"
+      name = "gateway-stat-sub"
+      app  = "gateway"
     }
-    namespace = kubernetes_namespace.default.metadata.0.name
   }
   spec {
     replicas = 1
     selector {
       match_labels = {
-        app = "stat-sub"
+        name = "gateway-stat-sub"
+        app  = "gateway"
       }
     }
     template {
       metadata {
         labels = {
-          app = "stat-sub"
+          name = "gateway-stat-sub"
+          app  = "gateway"
         }
       }
       spec {
@@ -443,7 +440,7 @@ resource "kubernetes_deployment" "stat-sub" {
             name = kubernetes_config_map.stat.metadata.0.name
           }
         }
-        service_account_name = kubernetes_service_account.default.metadata.0.name
+        service_account_name = var.service_account
       }
     }
   }
@@ -452,8 +449,12 @@ resource "kubernetes_deployment" "stat-sub" {
 # stat-cronjob
 resource "kubernetes_cron_job" "stat-cron" {
   metadata {
-    name = "stat-cron"
-    namespace = kubernetes_namespace.default.metadata.0.name
+    name      = "gateway-stat-cron"
+    namespace = var.namespace
+    labels = {
+      name = "gateway-stat-cron"
+      app  = "gateway"
+    }
   }
   spec {
     concurrency_policy            = "Forbid"
@@ -497,7 +498,7 @@ resource "kubernetes_cron_job" "stat-cron" {
                 name = kubernetes_config_map.stat.metadata.0.name
               }
             }
-            service_account_name = kubernetes_service_account.default.metadata.0.name
+            service_account_name = var.service_account
           }
         }
         # backoff_limit              = 3

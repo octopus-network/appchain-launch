@@ -17,12 +17,9 @@ provider "kubernetes" {
   cluster_ca_certificate = base64decode(data.google_container_cluster.default.master_auth[0].cluster_ca_certificate)
 }
 
-resource "kubernetes_namespace" "default" {
+data "kubernetes_namespace" "default" {
   metadata {
-    labels = {
-      name = "octopus-subql-${var.network_id}"
-    }
-    name = "octopus-subql-${var.network_id}"
+    name = var.namespace
   }
 }
 
@@ -30,7 +27,7 @@ resource "kubernetes_namespace" "default" {
 resource "kubernetes_service_account" "default" {
   metadata {
     name = "subql-ksa"
-    namespace = kubernetes_namespace.default.metadata.0.name
+    namespace = data.kubernetes_namespace.default.metadata.0.name
     annotations = {
       "iam.gke.io/gcp-service-account" = var.service_account
     }
@@ -44,14 +41,14 @@ data "google_service_account" "default" {
 resource "google_service_account_iam_member" "default" {
   service_account_id = data.google_service_account.default.name
   role               = "roles/iam.workloadIdentityUser"
-  member             = "serviceAccount:${var.project}.svc.id.goog[${kubernetes_namespace.default.metadata.0.name}/${kubernetes_service_account.default.metadata.0.name}]"
+  member             = "serviceAccount:${var.project}.svc.id.goog[${data.kubernetes_namespace.default.metadata.0.name}/${kubernetes_service_account.default.metadata.0.name}]"
 }
 
 module "subql" {
   source = "./subql"
 
   for_each            = var.subql
-  namespace           = kubernetes_namespace.default.metadata.0.name
+  namespace           = data.kubernetes_namespace.default.metadata.0.name
   appchain_id         = each.value.appchain_id
   appchain_endpoint   = each.value.appchain_endpoint
   gce_proxy_image     = each.value.gce_proxy_image
@@ -77,7 +74,7 @@ resource "google_compute_managed_ssl_certificate" "default" {
 resource "kubernetes_ingress" "default" {
   metadata {
     name        = "subql-ingress"
-    namespace   = kubernetes_namespace.default.metadata.0.name
+    namespace   = data.kubernetes_namespace.default.metadata.0.name
     annotations = {
       "kubernetes.io/ingress.global-static-ip-name" = google_compute_global_address.default.name
       "networking.gke.io/managed-certificates"      = google_compute_managed_ssl_certificate.default.name

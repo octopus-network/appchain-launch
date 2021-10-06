@@ -30,4 +30,5 @@ module "relayer" {
   near_node_url       = var.near.node_url
   near_wallet_url     = var.near.wallet_url
   near_helper_url     = var.near.helper_url
+  namespace           = var.namespace
 }

@@ -38,10 +38,16 @@ provider "kubernetes" {
   cluster_ca_certificate = base64decode(data.google_container_cluster.default.master_auth[0].cluster_ca_certificate)
 }
 
+data "kubernetes_namespace" "default" {
+  metadata {
+    name = var.namespace
+  }
+}
+
 resource "kubernetes_config_map" "default" {
   metadata {
-    name      = "${var.chain_name}-config-map"
-    namespace = var.chain_name
+    name      = "${var.chain_name}-bootnodes-config-map"
+    namespace = data.kubernetes_namespace.default.metadata.0.name
   }
   data = {
     for i, v in local.keys_octoup: "node-key-${i}" => v["node_key"]
@@ -50,28 +56,37 @@ resource "kubernetes_config_map" "default" {
 
 resource "kubernetes_stateful_set" "default" {
   metadata {
-    name      = var.chain_name
-    namespace = var.chain_name
+    name      = "${var.chain_name}-bootnodes"
+    namespace = data.kubernetes_namespace.default.metadata.0.name
+    labels = {
+      name  = "${var.chain_name}-bootnodes"
+      app   = "bootnodes"
+      chain = var.chain_name
+    }
   }
   spec {
-    service_name           = "${var.chain_name}"
+    service_name           = "${var.chain_name}-bootnodes"
     pod_management_policy  = "Parallel"
     replicas               = var.bootnodes
     revision_history_limit = 5
     selector {
       match_labels = {
-        k8s-app = "${var.chain_name}"
+        name  = "${var.chain_name}-bootnodes"
+        app   = "bootnodes"
+        chain = var.chain_name
       }
     }
     template {
       metadata {
         labels = {
-          k8s-app = "${var.chain_name}"
+          name  = "${var.chain_name}-bootnodes"
+          app   = "bootnodes"
+          chain = var.chain_name
         }
       }
       spec {
         init_container {
-          name              = "${var.chain_name}-init-chainspec"
+          name              = "init-chainspec"
           image             = "busybox"
           image_pull_policy = "IfNotPresent"
           command           = ["wget", "-O", "/substrate/chainSpec.json", var.chainspec_url]
@@ -86,12 +101,12 @@ resource "kubernetes_stateful_set" "default" {
             }
           }
           volume_mount {
-            name       = "${var.chain_name}-data"
+            name       = "bootnodes-data-volume"
             mount_path = "/substrate"
           }
         }
         init_container {
-          name              = "${var.chain_name}-init-nodekey"
+          name              = "init-nodekey"
           image             = "busybox"
           image_pull_policy = "IfNotPresent"
           command           = ["sh", "-c", "cp /tmp/node-key-$${HOSTNAME##*-} /substrate/.node-key"]
@@ -106,16 +121,16 @@ resource "kubernetes_stateful_set" "default" {
             }
           }
           volume_mount {
-            name       = "${var.chain_name}-data"
+            name       = "bootnodes-data-volume"
             mount_path = "/substrate"
           }
           volume_mount {
-            name       = "${var.chain_name}-config"
+            name       = "bootnodes-config-volume"
             mount_path = "/tmp"
           }
         }
         container {
-          name              = "${var.chain_name}-bootnodes"
+          name              = "bootnodes"
           image             = var.base_image
           image_pull_policy = "IfNotPresent"
           command = [var.start_cmd]
@@ -163,7 +178,7 @@ resource "kubernetes_stateful_set" "default" {
             }
           }
           volume_mount {
-            name       = "${var.chain_name}-data"
+            name       = "bootnodes-data-volume"
             mount_path = "/substrate"
           }
           readiness_probe {
@@ -184,7 +199,7 @@ resource "kubernetes_stateful_set" "default" {
           }
         }
         volume {
-          name = "${var.chain_name}-config"
+          name = "bootnodes-config-volume"
           config_map {
             name = kubernetes_config_map.default.metadata.0.name
           }
@@ -197,7 +212,7 @@ resource "kubernetes_stateful_set" "default" {
     }
     volume_claim_template {
       metadata {
-        name = "${var.chain_name}-data"
+        name = "bootnodes-data-volume"
       }
       spec {
         access_modes       = ["ReadWriteOnce"]
@@ -215,12 +230,17 @@ resource "kubernetes_stateful_set" "default" {
 resource "kubernetes_service" "default" {
   count = var.bootnodes
   metadata {
-    name      = "${var.chain_name}-${count.index}"
-    namespace = var.chain_name
+    name      = "${var.chain_name}-bootnodes-${count.index}"
+    namespace = data.kubernetes_namespace.default.metadata.0.name
+    labels = {
+      name  = "${var.chain_name}-bootnodes"
+      app   = "bootnodes"
+      chain = var.chain_name
+    }
   }
   spec {
     selector = {
-      "statefulset.kubernetes.io/pod-name" = "${var.chain_name}-${count.index}"
+      "statefulset.kubernetes.io/pod-name" = "${var.chain_name}-bootnodes-${count.index}"
     }
     session_affinity = "ClientIP"
     port {
@@ -243,12 +263,17 @@ resource "kubernetes_service" "default" {
 resource "kubernetes_service" "internal" {
   count = var.bootnodes
   metadata {
-    name      = "${var.chain_name}-${count.index}-internal"
-    namespace = var.chain_name
+    name      = "${var.chain_name}-bootnodes-${count.index}-internal"
+    namespace = data.kubernetes_namespace.default.metadata.0.name
+    labels = {
+      name  = "${var.chain_name}-bootnodes"
+      app   = "bootnodes"
+      chain = var.chain_name
+    }
   }
   spec {
     selector = {
-      "statefulset.kubernetes.io/pod-name" = "${var.chain_name}-${count.index}"
+      "statefulset.kubernetes.io/pod-name" = "${var.chain_name}-bootnodes-${count.index}"
     }
     port {
       name        = "rpc"
@@ -265,7 +290,9 @@ module "add-keys" {
   dirs              = [for i in local.keys_octoup: i["key_dir"]]
   keys              = ["babe.json", "gran.json", "imon.json", "beef.json", "octo.json"]
   module_depends_on = [kubernetes_stateful_set.default]
+  namespace         = data.kubernetes_namespace.default.metadata.0.name
 }
+
 
 output "bootnodes_output" {
   description = ""

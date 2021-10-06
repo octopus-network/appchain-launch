@@ -84,3 +84,9 @@ variable "volume_size" {
   type        = string
   default     = "10Gi"
 }
+
+variable "namespace" {
+  description = "Namespace"
+  type        = string
+  default     = "default" # devnet / testnet / mainnet
+}

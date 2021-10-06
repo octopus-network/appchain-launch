@@ -30,13 +30,6 @@ variable "service_account" {
   type        = string
 }
 
-# network id
-variable "network_id" {
-  description = "Network ID"
-  type        = string
-  default     = "testnet"
-}
-
 # gke
 variable "project" {
   description = "Project"
@@ -51,4 +44,10 @@ variable "region" {
 variable "cluster" {
   description = "Cluster"
   type        = string
+}
+
+variable "namespace" {
+  description = "Namespace"
+  type        = string
+  default     = "default" # devnet / testnet / mainnet
 }

@@ -54,6 +54,12 @@ variable "cluster" {
   type        = string
 }
 
+variable "namespace" {
+  description = "Namespace"
+  type        = string
+  default     = "default" # devnet / testnet / mainnet
+}
+
 variable "cpu_requests" {
   description = ""
   type        = string

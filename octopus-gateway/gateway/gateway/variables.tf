@@ -30,18 +30,12 @@ variable "kafka" {
   })
 }
 
-variable "project" {
-  description = "Project"
-  type        = string
-}
-
 variable "service_account" {
   description = "description"
   type        = string
 }
 
-variable "network_id" {
-  description = "Network ID"
+variable "namespace" {
+  description = "Namespace"
   type        = string
-  default     = "testnet"
 }
