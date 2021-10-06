@@ -53,6 +53,13 @@ variable "contract" {
   sensitive = true
 }
 
+# network id
+variable "network_id" {
+  description = "Network ID"
+  type        = string
+  default     = "testnet"
+}
+
 # gke
 variable "project" {
   description = "Project"

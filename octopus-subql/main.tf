@@ -20,9 +20,9 @@ provider "kubernetes" {
 resource "kubernetes_namespace" "default" {
   metadata {
     labels = {
-      name = "octopus-subql"
+      name = "octopus-subql-${var.network_id}"
     }
-    name = "octopus-subql"
+    name = "octopus-subql-${var.network_id}"
   }
 }
 

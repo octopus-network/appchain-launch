@@ -1,9 +1,9 @@
 resource "kubernetes_namespace" "default" {
   metadata {
     labels = {
-      name = "gateway"
+      name = "octopus-gateway-${var.network_id}"
     }
-    name = "gateway"
+    name = "octopus-gateway-${var.network_id}"
   }
 }
 

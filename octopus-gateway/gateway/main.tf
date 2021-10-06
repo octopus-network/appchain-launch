@@ -43,4 +43,5 @@ module "gateway" {
   kafka           = var.kafka
   project         = var.project
   service_account = var.service_account
+  network_id      = var.network_id
 }

@@ -59,3 +59,10 @@ variable "service_account" {
   description = "description"
   type        = string
 }
+
+# network id
+variable "network_id" {
+  description = "Network ID"
+  type        = string
+  default     = "testnet"
+}
