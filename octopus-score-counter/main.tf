@@ -27,9 +27,9 @@ provider "kubernetes" {
 resource "kubernetes_namespace" "default" {
   metadata {
     labels = {
-      name = "octopus-score-counter"
+      name = "octopus-score-counter-${var.contract.network_id}"
     }
-    name = "octopus-score-counter"
+    name = "octopus-score-counter-${var.contract.network_id}"
   }
 }
 
