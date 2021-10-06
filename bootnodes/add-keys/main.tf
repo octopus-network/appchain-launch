@@ -16,8 +16,8 @@ locals {
 
 resource "kubernetes_secret" "default" {
   metadata {
-    name      = "${var.chain_name}-job-secret"
-    namespace = var.chain_name
+    name      = "${var.chain_name}-bootnodes-job-secret"
+    namespace = var.namespace
   }
   data       = local.dir_key_map
   depends_on = [var.module_depends_on]
@@ -25,8 +25,8 @@ resource "kubernetes_secret" "default" {
 
 resource "kubernetes_config_map" "default" {
   metadata {
-    name      = "${var.chain_name}-job-config-map"
-    namespace = var.chain_name
+    name      = "${var.chain_name}-bootnodes-job-config-map"
+    namespace = var.namespace
   }
   data = {
     "run.sh" = file("${path.module}/run.sh")
@@ -36,30 +36,36 @@ resource "kubernetes_config_map" "default" {
 
 resource "kubernetes_job" "default" {
   metadata {
-    name      = "${var.chain_name}-add-keys"
-    namespace = var.chain_name
+    name      = "${var.chain_name}-bootnodes-add-keys"
+    namespace = var.namespace
     labels = {
-      name = "${var.chain_name}-add-keys"
+      name  = "${var.chain_name}-bootnodes-add-keys"
+      app   = "bootnodes"
+      chain = var.chain_name
     }
   }
   spec {
     manual_selector = true
     selector {
       match_labels = {
-        name = "${var.chain_name}-add-keys"
+        name  = "${var.chain_name}-bootnodes-add-keys"
+        app   = "bootnodes"
+        chain = var.chain_name
       }
     }
     template {
       metadata {
         labels = {
-          name = "${var.chain_name}-add-keys"
+          name  = "${var.chain_name}-bootnodes-add-keys"
+          app   = "bootnodes"
+          chain = var.chain_name
         }
       }
       spec {
         container {
           image   = "radial/busyboxplus:curl"
-          name    = "${var.chain_name}-add-keys"
-          command = ["/chain/run.sh", var.chain_name]
+          name    = "add-keys"
+          command = ["/chain/run.sh", "${var.chain_name}-bootnodes"]
           resources {
             limits = {
               cpu    = "100m"
@@ -71,12 +77,12 @@ resource "kubernetes_job" "default" {
             }
           }
           volume_mount {
-            name       = "${var.chain_name}-job-config-volume"
+            name       = "bootnodes-job-config-volume"
             mount_path = "/chain/run.sh"
             sub_path = "run.sh"
           }
           volume_mount {
-            name       = "${var.chain_name}-job-secret-volume"
+            name       = "bootnodes-job-secret-volume"
             mount_path = "/chain/keys"
           }
           security_context {
@@ -88,14 +94,14 @@ resource "kubernetes_job" "default" {
           }
         }
         volume {
-          name = "${var.chain_name}-job-config-volume"
+          name = "bootnodes-job-config-volume"
           config_map {
             name = kubernetes_config_map.default.metadata.0.name
             default_mode = "0555"
           }
         }
         volume {
-          name = "${var.chain_name}-job-secret-volume"
+          name = "bootnodes-job-secret-volume"
           secret {
             secret_name = kubernetes_secret.default.metadata.0.name
           }
@@ -116,13 +122,13 @@ resource "kubernetes_job" "default" {
 # Substrate nodes require a restart after inserting a GRANDPA key
 resource "kubernetes_role" "restart" {
   metadata {
-    name      = "${var.chain_name}-restart-role"
-    namespace = var.chain_name
+    name      = "${var.chain_name}-bootnodes-restart-role"
+    namespace = var.namespace
   }
   rule {
     api_groups     = ["apps"]
     resources      = ["statefulsets"]
-    resource_names = [var.chain_name]
+    resource_names = ["${var.chain_name}-bootnodes"]
     verbs          = ["get", "patch"]
   }
   depends_on = [var.module_depends_on]
@@ -130,8 +136,8 @@ resource "kubernetes_role" "restart" {
 
 resource "kubernetes_role_binding" "restart" {
   metadata {
-    name      = "${var.chain_name}-restart-role-binding"
-    namespace = var.chain_name
+    name      = "${var.chain_name}-bootnodes-restart-role-binding"
+    namespace = var.namespace
   }
   role_ref {
     api_group = "rbac.authorization.k8s.io"
@@ -141,36 +147,42 @@ resource "kubernetes_role_binding" "restart" {
   subject {
     kind      = "ServiceAccount"
     name      = "default"
-    namespace = var.chain_name
+    namespace = var.namespace
   }
 }
 
 resource "kubernetes_job" "restart" {
   metadata {
-    name      = "${var.chain_name}-restart-nodes"
-    namespace = var.chain_name
+    name      = "${var.chain_name}-bootnodes-restart-nodes"
+    namespace = var.namespace
     labels = {
-      name = "${var.chain_name}-restart-nodes"
+      name  = "${var.chain_name}-bootnodes-restart-nodes"
+      app   = "bootnodes"
+      chain = var.chain_name
     }
   }
   spec {
     manual_selector = true
     selector {
       match_labels = {
-        name = "${var.chain_name}-restart-nodes"
+        name  = "${var.chain_name}-bootnodes-restart-nodes"
+        app   = "bootnodes"
+        chain = var.chain_name
       }
     }
     template {
       metadata {
         labels = {
-          name = "${var.chain_name}-restart-nodes"
+          name  = "${var.chain_name}-bootnodes-restart-nodes"
+          app   = "bootnodes"
+          chain = var.chain_name
         }
       }
       spec {
         container {
           image   = "bitnami/kubectl"
-          name    = "${var.chain_name}-restart-nodes"
-          command = ["kubectl", "rollout", "restart", "statefulsets/${var.chain_name}"]
+          name    = "restart-sts"
+          command = ["kubectl", "rollout", "restart", "statefulsets/${var.chain_name}-bootnodes"]
           resources {
             limits = {
               cpu    = "100m"

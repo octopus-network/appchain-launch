@@ -20,3 +20,9 @@ variable "module_depends_on" {
   type        = any
   default     = []
 }
+
+variable "namespace" {
+  description = "Namespace"
+  type        = string
+  default     = "default" # devnet / testnet / mainnet
+}
