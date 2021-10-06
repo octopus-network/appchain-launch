@@ -38,10 +38,23 @@ resource "kubernetes_job" "default" {
   metadata {
     name      = "${var.chain_name}-add-keys"
     namespace = var.chain_name
+    labels = {
+      name = "${var.chain_name}-add-keys"
+    }
   }
   spec {
+    manual_selector = true
+    selector {
+      match_labels = {
+        name = "${var.chain_name}-add-keys"
+      }
+    }
     template {
-      metadata {}
+      metadata {
+        labels = {
+          name = "${var.chain_name}-add-keys"
+        }
+      }
       spec {
         container {
           image   = "radial/busyboxplus:curl"
@@ -66,6 +79,13 @@ resource "kubernetes_job" "default" {
             name       = "${var.chain_name}-job-secret-volume"
             mount_path = "/chain/keys"
           }
+          security_context {
+            allow_privilege_escalation = false
+            capabilities {
+              add  = []
+              drop = ["NET_RAW"]
+            }
+          }
         }
         volume {
           name = "${var.chain_name}-job-config-volume"
@@ -83,7 +103,6 @@ resource "kubernetes_job" "default" {
         restart_policy = "Never"
       }
     }
-    # backoff_limit = 3
     ttl_seconds_after_finished = 100
   }
   wait_for_completion = true
@@ -130,10 +149,23 @@ resource "kubernetes_job" "restart" {
   metadata {
     name      = "${var.chain_name}-restart-nodes"
     namespace = var.chain_name
+    labels = {
+      name = "${var.chain_name}-restart-nodes"
+    }
   }
   spec {
+    manual_selector = true
+    selector {
+      match_labels = {
+        name = "${var.chain_name}-restart-nodes"
+      }
+    }
     template {
-      metadata {}
+      metadata {
+        labels = {
+          name = "${var.chain_name}-restart-nodes"
+        }
+      }
       spec {
         container {
           image   = "bitnami/kubectl"
@@ -149,12 +181,18 @@ resource "kubernetes_job" "restart" {
               memory = "100Mi"
             }
           }
+          security_context {
+            allow_privilege_escalation = false
+            capabilities {
+              add  = []
+              drop = ["NET_RAW"]
+            }
+          }
         }
         restart_policy = "Never"
-        service_account_name = kubernetes_role_binding.restart.subject.0.name # "default"
+        service_account_name = kubernetes_role_binding.restart.subject.0.name
       }
     }
-    # backoff_limit = 3
     ttl_seconds_after_finished = 100
   }
   wait_for_completion = true
