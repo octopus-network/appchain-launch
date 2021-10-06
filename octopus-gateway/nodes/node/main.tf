@@ -1,7 +1,12 @@
 resource "kubernetes_stateful_set" "default" {
   metadata {
     name      = "${var.chain_name}-fullnode"
-    namespace = var.chain_name
+    namespace = var.namespace
+    labels = {
+      name  = "${var.chain_name}-fullnode"
+      app   = "fullnode"
+      chain = var.chain_name
+    }
   }
   spec {
     service_name           = "${var.chain_name}-fullnode"
@@ -10,13 +15,17 @@ resource "kubernetes_stateful_set" "default" {
     revision_history_limit = 5
     selector {
       match_labels = {
-        app = "${var.chain_name}-fullnode"
+        name  = "${var.chain_name}-fullnode"
+        app   = "fullnode"
+        chain = var.chain_name
       }
     }
     template {
       metadata {
         labels = {
-          app = "${var.chain_name}-fullnode"
+          name  = "${var.chain_name}-fullnode"
+          app   = "fullnode"
+          chain = var.chain_name
         }
       }
       spec {
@@ -36,12 +45,12 @@ resource "kubernetes_stateful_set" "default" {
             }
           }
           volume_mount {
-            name       = "fullnode-data"
+            name       = "fullnode-data-volume"
             mount_path = "/substrate"
           }
         }
         container {
-          name              = "${var.chain_name}-fullnode"
+          name              = "fullnode"
           image             = var.base_image
           image_pull_policy = "IfNotPresent"
           command = [var.start_cmd]
@@ -90,7 +99,7 @@ resource "kubernetes_stateful_set" "default" {
             }
           }
           volume_mount {
-            name       = "fullnode-data"
+            name       = "fullnode-data-volume"
             mount_path = "/substrate"
           }
           readiness_probe {
@@ -118,7 +127,7 @@ resource "kubernetes_stateful_set" "default" {
     }
     volume_claim_template {
       metadata {
-        name = "fullnode-data"
+        name = "fullnode-data-volume"
       }
       spec {
         access_modes       = ["ReadWriteOnce"]
@@ -136,7 +145,12 @@ resource "kubernetes_stateful_set" "default" {
 resource "kubernetes_service" "default" {
   metadata {
     name      = "${var.chain_name}-fullnode"
-    namespace = var.chain_name
+    namespace = var.namespace
+    labels = {
+      name  = "${var.chain_name}-fullnode"
+      app   = "fullnode"
+      chain = var.chain_name
+    }
   }
   spec {
     port {
@@ -151,7 +165,9 @@ resource "kubernetes_service" "default" {
     }
     cluster_ip = "None"
     selector = {
-      app = "${var.chain_name}-fullnode"
+      name  = "${var.chain_name}-fullnode"
+      app   = "fullnode"
+      chain = var.chain_name
     }
     session_affinity = "ClientIP"
   }

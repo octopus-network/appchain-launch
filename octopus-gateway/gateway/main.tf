@@ -30,6 +30,33 @@ module "redis" {
   tls_enabled   = var.redis.tls_enabled
 }
 
+# service_account
+data "kubernetes_namespace" "default" {
+  metadata {
+    name = var.namespace
+  }
+}
+
+resource "kubernetes_service_account" "default" {
+  metadata {
+    name = "gateway-ksa"
+    namespace = data.kubernetes_namespace.default.metadata.0.name
+    annotations = {
+      "iam.gke.io/gcp-service-account" = var.service_account
+    }
+  }
+}
+
+data "google_service_account" "default" {
+  account_id = var.service_account
+}
+
+resource "google_service_account_iam_member" "default" {
+  service_account_id = data.google_service_account.default.name
+  role               = "roles/iam.workloadIdentityUser"
+  member             = "serviceAccount:${var.project}.svc.id.goog[${data.kubernetes_namespace.default.metadata.0.name}/${kubernetes_service_account.default.metadata.0.name}]"
+}
+
 module "gateway" {
   source         = "./gateway"
 
@@ -41,7 +68,6 @@ module "gateway" {
     tls_cert = module.redis.cert
   }
   kafka           = var.kafka
-  project         = var.project
-  service_account = var.service_account
-  network_id      = var.network_id
+  service_account = kubernetes_service_account.default.metadata.0.name
+  namespace       = data.kubernetes_namespace.default.metadata.0.name
 }

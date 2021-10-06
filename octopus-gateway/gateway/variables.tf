@@ -14,6 +14,12 @@ variable "cluster" {
   type        = string
 }
 
+variable "namespace" {
+  description = "Namespace"
+  type        = string
+  default     = "default" # devnet / testnet / mainnet
+}
+
 # 
 variable "gateway" {
   description = "Gateway Configuration"
@@ -58,11 +64,4 @@ variable "kafka" {
 variable "service_account" {
   description = "description"
   type        = string
-}
-
-# network id
-variable "network_id" {
-  description = "Network ID"
-  type        = string
-  default     = "testnet"
 }

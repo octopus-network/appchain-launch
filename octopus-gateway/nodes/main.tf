@@ -26,13 +26,13 @@ module "fullnode" {
   bootnodes     = each.value.bootnodes
   base_image    = each.value.image
   start_cmd     = each.value.command
+  namespace     = var.namespace
 }
 
 locals {
   api_config = jsonencode({
-    "messengers": {for k, v in module.fullnode : k => ["ws://messenger:7004"]}
+    "messengers": {for k, v in module.fullnode : k => ["ws://gateway-messenger:7004"]}
   })
-
 
   stat_config = jsonencode({
     "chain": {for k, v in module.fullnode : k => {}}
