@@ -17,26 +17,17 @@ provider "kubernetes" {
   cluster_ca_certificate = base64decode(data.google_container_cluster.default.master_auth[0].cluster_ca_certificate)
 }
 
-# 
-# data "kubernetes_namespace" "default" {
-#   metadata {
-#     name = "default"
-#   }
-# }
 
-resource "kubernetes_namespace" "default" {
+data "kubernetes_namespace" "default" {
   metadata {
-    labels = {
-      name = "octopus-score-counter-${var.network_id}"
-    }
-    name = "octopus-score-counter-${var.network_id}"
+    name = var.namespace
   }
 }
 
 resource "kubernetes_service_account" "default" {
   metadata {
     name        = "score-counter-ksa"
-    namespace   = kubernetes_namespace.default.metadata.0.name
+    namespace   = data.kubernetes_namespace.default.metadata.0.name
     annotations = {
       "iam.gke.io/gcp-service-account" = var.service_account
     }
@@ -50,13 +41,13 @@ data "google_service_account" "default" {
 resource "google_service_account_iam_member" "default" {
   service_account_id = data.google_service_account.default.name
   role               = "roles/iam.workloadIdentityUser"
-  member             = "serviceAccount:${var.project}.svc.id.goog[${kubernetes_namespace.default.metadata.0.name}/${kubernetes_service_account.default.metadata.0.name}]"
+  member             = "serviceAccount:${var.project}.svc.id.goog[${data.kubernetes_namespace.default.metadata.0.name}/${kubernetes_service_account.default.metadata.0.name}]"
 }
 
 resource "kubernetes_secret" "default" {
   metadata {
     name      = "score-counter-secret"
-    namespace = kubernetes_namespace.default.metadata.0.name
+    namespace = data.kubernetes_namespace.default.metadata.0.name
   }
   data = {
     PGUSER     = var.database.username
@@ -70,7 +61,7 @@ resource "kubernetes_secret" "default" {
 resource "kubernetes_config_map" "default" {
   metadata {
     name      = "score-counter-config-map"
-    namespace = kubernetes_namespace.default.metadata.0.name
+    namespace = data.kubernetes_namespace.default.metadata.0.name
   }
   data = {
     GCE_PROXY_INSTANCES = var.gce_proxy_instances
@@ -94,7 +85,7 @@ resource "kubernetes_deployment" "default" {
     labels = {
       app = "score-counter"
     }
-    namespace = kubernetes_namespace.default.metadata.0.name
+    namespace = data.kubernetes_namespace.default.metadata.0.name
   }
   spec {
     replicas = 1
