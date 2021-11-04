@@ -4,11 +4,6 @@ variable "chain_name" {
   type        = string
 }
 
-variable "chainspec_url" {
-  description = "Specifies which chain specification to use"
-  type        = string
-}
-
 variable "bootnodes" {
   description = "Bootnodes"
   type        = list(string)

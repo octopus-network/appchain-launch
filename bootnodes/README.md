@@ -23,7 +23,6 @@ terraform destroy
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | chain\_name | | `string` | | yes |
-| chainspec\_url | | `string` | | yes |
 | bootnodes | The number of bootnodes | `number` | | yes |
 | base\_image | | `string` | | yes |
 | start\_cmd | | `string` | | yes |

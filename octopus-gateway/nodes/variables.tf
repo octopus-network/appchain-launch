@@ -24,7 +24,6 @@ variable "namespace" {
 variable "chains" {
   description = "Chains Configuration"
   type = map(object({
-    chainspec = string
     bootnodes = list(string)
     image     = string
     command   = string

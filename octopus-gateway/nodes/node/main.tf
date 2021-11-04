@@ -29,26 +29,6 @@ resource "kubernetes_stateful_set" "default" {
         }
       }
       spec {
-        init_container {
-          name              = "init-chainspec"
-          image             = "busybox"
-          image_pull_policy = "IfNotPresent"
-          command           = ["wget", "-O", "/substrate/chainSpec.json", var.chainspec_url]
-          resources {
-            limits = {
-              cpu    = "100m"
-              memory = "100Mi"
-            }
-            requests = {
-              cpu    = "100m"
-              memory = "100Mi"
-            }
-          }
-          volume_mount {
-            name       = "fullnode-data-volume"
-            mount_path = "/substrate"
-          }
-        }
         container {
           name              = "fullnode"
           image             = var.base_image
@@ -56,7 +36,7 @@ resource "kubernetes_stateful_set" "default" {
           command = [var.start_cmd]
           args = concat([
             "--chain",
-            "/substrate/chainSpec.json",
+            var.chain_name,
             "--base-path",
             "/substrate/data",
             "--ws-external",

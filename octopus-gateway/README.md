@@ -34,7 +34,7 @@ terraform destroy
 ### Full Node
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| chains<br>- chainspec<br>- bootnodes<br>- image<br>- command<br>- replicas | | `map(object)`<br>- `string`<br>- `list(string)`<br>- `string`<br>- `string`<br>- `number` | | yes |
+| chains<br>- bootnodes<br>- image<br>- command<br>- replicas | | `map(object)`<br>- `list(string)`<br>- `string`<br>- `string`<br>- `number` | | yes |
 | etcd | | `object` | | yes |
 | project | The GCP project id | `string` | | yes |
 | region | The location for regional resources | `string` | | yes |
