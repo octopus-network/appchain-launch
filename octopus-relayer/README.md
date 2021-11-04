@@ -22,7 +22,7 @@ terraform destroy
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| relays<br>- appchain_id<br>- appchain_endpoint<br>- relay_contract_id<br>- relayer_private_key<br>- relayer_image<br>- start_block_height | | `map(object)`<br>- `string`<br>- `string`<br>- `string`<br>- `string`<br>- `string`<br>- `number` | | yes |
+| relays<br>- appchain_id<br>- appchain_endpoint<br>- anchor_contract_id<br>- relayer_private_key<br>- relayer_image<br>- start_block_height | | `map(object)`<br>- `string`<br>- `string`<br>- `string`<br>- `string`<br>- `string`<br>- `number` | | yes |
 | near<br>- node_url<br>- wallet_url<br>- helper_url | | `object`<br>- `string`<br>- `string`<br>- `string` | | yes |
 | project | The GCP project id | `string` | | yes |
 | region | The location for regional resources | `string` | | yes |

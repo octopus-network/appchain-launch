@@ -8,7 +8,7 @@ variable "relayer_private_key" {
   type        = string
 }
 
-variable "relay_contract_id" {
+variable "anchor_contract_id" {
   description = "description"
   type        = string
 }
