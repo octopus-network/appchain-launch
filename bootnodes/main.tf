@@ -88,7 +88,6 @@ resource "kubernetes_stateful_set" "default" {
         init_container {
           name              = "init-nodekey"
           image             = "busybox"
-          image_pull_policy = "IfNotPresent"
           command           = ["sh", "-c", "cp /tmp/node-key-$${HOSTNAME##*-} /substrate/.node-key"]
           resources {
             limits = {
@@ -112,7 +111,6 @@ resource "kubernetes_stateful_set" "default" {
         container {
           name              = "bootnodes"
           image             = var.base_image
-          image_pull_policy = "IfNotPresent"
           command = [var.start_cmd]
           args = concat([
             "--chain",

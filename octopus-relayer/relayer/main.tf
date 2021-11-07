@@ -58,7 +58,6 @@ resource "kubernetes_stateful_set" "default" {
         init_container {
           name              = "init-db"
           image             = "busybox"
-          image_pull_policy = "IfNotPresent"
           command           = ["touch", "/tmp/relayer.db"]
           resources {
             limits = {
@@ -78,7 +77,6 @@ resource "kubernetes_stateful_set" "default" {
         container {
           name              = "relayer"
           image             = var.relayer_image
-          image_pull_policy = "IfNotPresent"
           resources {
             limits = {
               cpu    = var.cpu_limits

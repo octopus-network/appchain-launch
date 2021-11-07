@@ -32,7 +32,6 @@ resource "kubernetes_stateful_set" "default" {
         container {
           name              = "fullnode"
           image             = var.base_image
-          image_pull_policy = "IfNotPresent"
           command = [var.start_cmd]
           args = [
             "--chain",
