@@ -3,7 +3,7 @@ variable "relays" {
   type = map(object({
     appchain_id         = string
     appchain_endpoint   = string
-    anchor_contract_id   = string
+    anchor_contract_id  = string
     relayer_private_key = string
     relayer_image       = string
     start_block_height  = number

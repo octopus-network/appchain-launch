@@ -34,7 +34,7 @@ resource "kubernetes_stateful_set" "default" {
           image             = var.base_image
           image_pull_policy = "IfNotPresent"
           command = [var.start_cmd]
-          args = concat([
+          args = [
             "--chain",
             var.chain_name,
             "--base-path",
@@ -54,8 +54,8 @@ resource "kubernetes_stateful_set" "default" {
             "--enable-offchain-indexing",
             "true",
             "--pruning",
-            "archive",
-          ], flatten([for x in var.bootnodes : ["--bootnodes", x]]))
+            "archive"
+          ]
           port {
             container_port = 9933
           }

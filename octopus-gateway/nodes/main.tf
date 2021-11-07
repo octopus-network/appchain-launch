@@ -22,7 +22,6 @@ module "fullnode" {
 
   for_each      = var.chains
   chain_name    = each.key
-  bootnodes     = each.value.bootnodes
   base_image    = each.value.image
   start_cmd     = each.value.command
   namespace     = var.namespace

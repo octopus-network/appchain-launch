@@ -4,11 +4,6 @@ variable "chain_name" {
   type        = string
 }
 
-variable "bootnodes" {
-  description = "Bootnodes"
-  type        = list(string)
-}
-
 variable "base_image" {
   description = "Pull base image from Docker Hub or a different registry"
   type        = string
