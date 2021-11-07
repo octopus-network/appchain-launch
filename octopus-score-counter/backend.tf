@@ -1,6 +1,6 @@
 terraform {
   backend "gcs" {
     bucket  = "tf-state-octopus"
-    prefix  = "terraform/state"
+    prefix  = "terraform/state/octopus-score-counter"
   }
 }
