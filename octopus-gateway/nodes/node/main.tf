@@ -35,7 +35,7 @@ resource "kubernetes_stateful_set" "default" {
           command = [var.start_cmd]
           args = [
             "--chain",
-            var.chain_name,
+            var.chain_spec,
             "--base-path",
             "/substrate/data",
             "--ws-external",

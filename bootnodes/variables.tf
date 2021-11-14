@@ -4,6 +4,11 @@ variable "chain_name" {
   type        = string
 }
 
+variable "chain_spec" {
+  description = "Specifies which chain specification to use"
+  type        = string
+}
+
 variable "bootnodes" {
   description = "Count of bootnodes"
   type        = number

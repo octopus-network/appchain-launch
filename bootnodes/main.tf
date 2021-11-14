@@ -114,7 +114,7 @@ resource "kubernetes_stateful_set" "default" {
           command = [var.start_cmd]
           args = concat([
             "--chain",
-            var.chain_name,
+            var.chain_spec,
             "--node-key-file",
             "/substrate/.node-key",
             "--base-path",
