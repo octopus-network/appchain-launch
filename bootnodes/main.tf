@@ -127,12 +127,9 @@ resource "kubernetes_stateful_set" "default" {
             "--rpc-methods",
             "Unsafe",
             "--validator",
-            "--no-telemetry",
             "--prometheus-external",
             "--prometheus-port",
             "9615",
-            "--wasm-execution",
-            "Compiled",
             "--enable-offchain-indexing",
             "true",
           ], flatten([for i, x in local.bootnodes: ["--bootnodes", x]]))
