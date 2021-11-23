@@ -20,12 +20,13 @@ provider "kubernetes" {
 module "fullnode" {
   source = "./node"
 
-  for_each   = var.chains
-  chain_name = each.key
-  chain_spec = each.value.chain_spec
-  base_image = each.value.image
-  start_cmd  = each.value.command
-  namespace  = var.namespace
+  for_each      = var.chains
+  chain_name    = each.key
+  chain_spec    = each.value.chain_spec
+  base_image    = each.value.image
+  start_cmd     = each.value.command
+  telemetry_url = each.value.telemetry_url
+  namespace     = var.namespace
 }
 
 locals {
