@@ -38,11 +38,6 @@ variable "keys_octoup" {
   default     = ""
 }
 
-variable "telemetry_url" {
-  description = "Telemetry URL"
-  type        = string
-}
-
 # gke
 variable "project" {
   description = "Project"

@@ -132,8 +132,6 @@ resource "kubernetes_stateful_set" "default" {
             "9615",
             "--enable-offchain-indexing",
             "true",
-            "--telemetry-url",
-            "${var.telemetry_url}"
           ], flatten([for i, x in local.bootnodes: ["--bootnodes", x]]))
           port {
             container_port = 9933

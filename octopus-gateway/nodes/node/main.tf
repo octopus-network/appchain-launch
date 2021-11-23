@@ -52,9 +52,7 @@ resource "kubernetes_stateful_set" "default" {
             "--enable-offchain-indexing",
             "true",
             "--pruning",
-            "archive",
-            "--telemetry-url",
-            "${var.telemetry_url}"
+            "archive"
           ]
           port {
             container_port = 9933
