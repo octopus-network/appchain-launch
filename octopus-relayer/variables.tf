@@ -1,12 +1,13 @@
 variable "relays" {
   description = "Relay Configuration"
   type = map(object({
-    appchain_id         = string
-    appchain_endpoint   = string
-    anchor_contract_id  = string
-    relayer_private_key = string
-    relayer_image       = string
-    start_block_height  = number
+    appchain_id                = string
+    appchain_endpoint          = string
+    anchor_contract_id         = string
+    relayer_private_key        = string
+    relayer_image              = string
+    start_block_height         = number
+    update_state_min_interval  = number
   }))
 }
 

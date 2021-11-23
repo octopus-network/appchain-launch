@@ -20,15 +20,16 @@ provider "kubernetes" {
 module "relayer" {
   source = "./relayer"
 
-  for_each            = var.relays
-  appchain_id         = each.key
-  appchain_endpoint   = each.value.appchain_endpoint
-  anchor_contract_id  = each.value.anchor_contract_id
-  relayer_private_key = each.value.relayer_private_key
-  relayer_image       = each.value.relayer_image
-  start_block_height  = each.value.start_block_height
-  near_node_url       = var.near.node_url
-  near_wallet_url     = var.near.wallet_url
-  near_helper_url     = var.near.helper_url
-  namespace           = var.namespace
+  for_each                  = var.relays
+  appchain_id               = each.key
+  appchain_endpoint         = each.value.appchain_endpoint
+  anchor_contract_id        = each.value.anchor_contract_id
+  relayer_private_key       = each.value.relayer_private_key
+  relayer_image             = each.value.relayer_image
+  start_block_height        = each.value.start_block_height
+  update_state_min_interval = each.value.update_state_min_interval
+  near_node_url             = var.near.node_url
+  near_wallet_url           = var.near.wallet_url
+  near_helper_url           = var.near.helper_url
+  namespace                 = var.namespace
 }

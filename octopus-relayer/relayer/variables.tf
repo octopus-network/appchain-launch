@@ -28,6 +28,11 @@ variable "start_block_height" {
   type        = number
 }
 
+variable "update_state_min_interval" {
+  description = "description"
+  type        = number
+}
+
 variable "near_node_url" {
   description = "description"
   type        = string
