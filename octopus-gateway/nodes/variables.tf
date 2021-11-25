@@ -24,10 +24,11 @@ variable "namespace" {
 variable "chains" {
   description = "Chains Configuration"
   type = map(object({
-    image      = string
-    command    = string
-    chain_spec = string
-    replicas   = number
+    image         = string
+    command       = string
+    chain_spec    = string
+    replicas      = number
+    telemetry_url = string
   }))
 }
 

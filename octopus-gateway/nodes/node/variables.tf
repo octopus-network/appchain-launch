@@ -26,6 +26,11 @@ variable "replicas" {
   default     = 1
 }
 
+variable "telemetry_url" {
+  description = ""
+  type        = string
+}
+
 variable "cpu_requests" {
   description = ""
   type        = string
