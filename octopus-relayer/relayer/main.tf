@@ -4,8 +4,10 @@ resource "kubernetes_config_map" "default" {
     namespace = var.namespace
   }
   data = {
+    NODE_ENV                   = var.node_env
     APPCHAIN_ID                = var.appchain_id
     APPCHAIN_ENDPOINT          = var.appchain_endpoint
+    RELAYER_ID                 = var.relayer_id
     NEAR_NODE_URL              = var.near_node_url
     NEAR_WALLET_URL            = var.near_wallet_url
     NEAR_HELPER_URL            = var.near_helper_url

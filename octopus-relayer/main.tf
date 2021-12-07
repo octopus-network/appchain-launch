@@ -22,8 +22,10 @@ module "relayer" {
 
   for_each                  = var.relays
   appchain_id               = each.key
+  node_env                  = each.value.node_env
   appchain_endpoint         = each.value.appchain_endpoint
   anchor_contract_id        = each.value.anchor_contract_id
+  relayer_id                = each.value.relayer_id
   relayer_private_key       = each.value.relayer_private_key
   relayer_image             = each.value.relayer_image
   start_block_height        = each.value.start_block_height

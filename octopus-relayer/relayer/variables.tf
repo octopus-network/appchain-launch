@@ -3,6 +3,11 @@ variable "relayer_image" {
   description = "description"
 }
 
+variable "relayer_id" {
+  description = "description"
+  type        = string
+}
+
 variable "relayer_private_key" {
   description = "description"
   type        = string
@@ -31,6 +36,11 @@ variable "start_block_height" {
 variable "update_state_min_interval" {
   description = "description"
   type        = number
+}
+
+variable "node_env" {
+  description = "description"
+  type        = string
 }
 
 variable "near_node_url" {
