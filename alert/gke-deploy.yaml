@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: octopus-alert
+  labels:
+    app: octopus-alert
+spec:
+  selector:
+    matchLabels:
+      app: octopus-alert
+  template:
+    metadata:
+      labels:
+        app: octopus-alert
+    spec:
+      containers:
+      - name: alert
+        image: "us-central1-docker.pkg.dev/octopus-prod/octopus/octopus-alert@sha256:9d7da258dfb3ec0b3f8835ae69c6681f9868d54d806c79ee01086715f24101b0"
+        env:
+        - name: DISCORD_TOKEN
+          value: ""
+        - name: CHANNEL_ID
+          value: ""
+        - name: ANCHOR_CONTRACT_ID
+          value: "debionetwork.registry.test_oct.testnet"
+        - name: APPCHAIN_ENDPOINT
+          value: "wss://gateway.testnet.octopus.network/debionetwork/554976cbb180f676f188abe14d63ca24"
+        - name: UPDATE_STATE_MIN_INTERVAL
+          value: "60"
+        - name: BALANCE_MONITORING_LIST
+          value: "[{\"test-relayer.testnet\": 275}, {\"debionetwork.registry.test_oct.testnet\": 24}]"
+        - name: NEAR_NODE_URL
+          value: "https://rpc.testnet.near.org"
+        - name: NEAR_WALLET_URL
+          value: "https://wallet.testnet.near.org"
+        - name: NEAR_HELPER_URL
+          value: "https://helper.testnet.near.org"
