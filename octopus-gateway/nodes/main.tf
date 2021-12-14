@@ -25,6 +25,7 @@ module "fullnode" {
   chain_spec    = each.value.chain_spec
   base_image    = each.value.image
   start_cmd     = each.value.command
+  replicas      = each.value.replicas
   telemetry_url = each.value.telemetry_url
   namespace     = var.namespace
 }
