@@ -15,20 +15,20 @@ spec:
     spec:
       containers:
       - name: alert
-        image: "us-central1-docker.pkg.dev/octopus-prod/octopus/octopus-alert@sha256:9d7da258dfb3ec0b3f8835ae69c6681f9868d54d806c79ee01086715f24101b0"
+        image: "us-central1-docker.pkg.dev/octopus-prod/octopus/octopus-alert@sha256:77a9f14d0b7dd07bf903533a1d5bfa2eb8ae0710a913ebe1128e271c9cd7d102"
         env:
         - name: DISCORD_TOKEN
           value: ""
         - name: CHANNEL_ID
           value: ""
-        - name: ANCHOR_CONTRACT_ID
-          value: "debionetwork.registry.test_oct.testnet"
-        - name: APPCHAIN_ENDPOINT
-          value: "wss://gateway.testnet.octopus.network/debionetwork/554976cbb180f676f188abe14d63ca24"
-        - name: UPDATE_STATE_MIN_INTERVAL
-          value: "60"
+        - name: CHECK_INTERVAL
+          value: "120"
+        - name: APPCHAIN_SETTINGS
+          value: "[{\"appchainName\": \"testnet-debionetwork\", \"anchorContractId\": \"debionetwork.registry.test_oct.testnet\", \"appchainEndpoint\": \"wss://gateway.testnet.octopus.network/debionetwork/554976cbb180f676f188abe14d63ca24\", \"blockDifference\": 600}, {\"appchainName\": \"testnet-myriad\", \"anchorContractId\": \"myriad.registry.test_oct.testnet\", \"appchainEndpoint\": \"wss://gateway.testnet.octopus.network/myriad/8f543a1c219f14d83c0faedefdd5be6e\", \"blockDifference\": 600}]"
         - name: BALANCE_MONITORING_LIST
-          value: "[{\"test-relayer.testnet\": 275}, {\"debionetwork.registry.test_oct.testnet\": 24}]"
+          value: "[{\"test-relayer.testnet\": 275}, {\"registry.test_oct.testnet\": 25}, {\"debionetwork.registry.test_oct.testnet\": 5}, {\"myriad.registry.test_oct.testnet\": 5}]"
+        - name: NEAR_ENV
+          value: "testnet"
         - name: NEAR_NODE_URL
           value: "https://rpc.testnet.near.org"
         - name: NEAR_WALLET_URL
