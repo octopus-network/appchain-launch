@@ -74,6 +74,7 @@ resource "kubernetes_config_map" "default" {
 
     NETWORK_ID                   = var.contract.network_id
     REGISTRY_CONTRACT_ID         = var.contract.contract_id
+    TOKEN_CONTRACT_ID            = var.contract.token_contract_id
     ADMIN_ACCOUNT_ID             = var.contract.account_id
     COUNTING_INTERVAL_IN_SECONDS = var.contract.counting_interval
   }

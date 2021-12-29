@@ -46,6 +46,7 @@ variable "contract" {
   type = object({
     network_id        = string
     contract_id       = string
+    token_contract_id = string
     account_id        = string
     private_key       = string
     counting_interval = number
