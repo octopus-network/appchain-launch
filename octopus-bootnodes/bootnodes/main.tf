@@ -1,43 +1,41 @@
-
-provider "google" {
-  project = var.project
-  region  = var.region
-}
-
-data "google_client_config" "default" {
-}
-
-data "google_container_cluster" "default" {
-  name     = var.cluster
-  location = var.region
-}
-
 resource "google_compute_address" "default" {
-  count = var.bootnodes
+  count = var.replicas
   name  = "ip-${var.chain_name}-${count.index}"
+}
+
+data "google_dns_managed_zone" "default" {
+  name = var.dns_zone
+}
+
+resource "google_dns_record_set" "default" {
+  count        = var.replicas
+  name         = "node-${count.index}.${var.chain_name}.${data.google_dns_managed_zone.default.dns_name}"
+  managed_zone = data.google_dns_managed_zone.default.name
+  type         = "A"
+  ttl          = 300
+  rrdatas = [google_compute_address.default.*.address[count.index]]
 }
 
 locals {
   keys_octoup = [
-    for i in fileset(path.module, "${var.keys_octoup}/*/peer-id"): {
-      peer_id = chomp(file(i))
-      node_key = chomp(file(replace(i, "peer-id", "node-key")))
-      key_dir = dirname(abspath(i))
+    for i in range(var.replicas): {
+      peer_id = chomp(file("${var.keys_octoup}/${i}/peer-id"))
+      node_key = chomp(file("${var.keys_octoup}/${i}/node-key"))
     }
   ]
 
   bootnodes = [
     for idx, addr in google_compute_address.default.*.address:
-      "/ip4/${addr}/tcp/30333/p2p/${local.keys_octoup[idx]["peer_id"]}"
+      "/ip4/${addr}/tcp/30333/ws/p2p/${local.keys_octoup[idx]["peer_id"]}"
+  ]
+
+  bootnodes_dns = [
+    for idx, addr in google_compute_address.default.*.address:
+      "/ip4/node-${idx}.${var.chain_name}.${trimsuffix(data.google_dns_managed_zone.default.dns_name, ".")}/tcp/30333/ws/p2p/${local.keys_octoup[idx]["peer_id"]}"
   ]
 }
 
-provider "kubernetes" {
-  host                   = "https://${data.google_container_cluster.default.endpoint}"
-  token                  = data.google_client_config.default.access_token
-  cluster_ca_certificate = base64decode(data.google_container_cluster.default.master_auth[0].cluster_ca_certificate)
-}
-
+# k8s
 data "kubernetes_namespace" "default" {
   metadata {
     name = var.namespace
@@ -67,7 +65,7 @@ resource "kubernetes_stateful_set" "default" {
   spec {
     service_name           = "${var.chain_name}-bootnodes"
     pod_management_policy  = "Parallel"
-    replicas               = var.bootnodes
+    replicas               = var.replicas
     revision_history_limit = 5
     selector {
       match_labels = {
@@ -86,9 +84,9 @@ resource "kubernetes_stateful_set" "default" {
       }
       spec {
         init_container {
-          name              = "init-nodekey"
-          image             = "busybox"
-          command           = ["sh", "-c", "cp /tmp/node-key-$${HOSTNAME##*-} /substrate/.node-key"]
+          name    = "init-nodekey"
+          image   = "busybox"
+          command = ["sh", "-c", "cp /tmp/node-key-$${HOSTNAME##*-} /substrate/.node-key"]
           resources {
             limits = {
               cpu    = "100m"
@@ -109,8 +107,8 @@ resource "kubernetes_stateful_set" "default" {
           }
         }
         container {
-          name              = "bootnodes"
-          image             = var.base_image
+          name    = "bootnodes"
+          image   = var.base_image
           command = [var.start_cmd]
           args = concat([
             "--chain",
@@ -124,9 +122,8 @@ resource "kubernetes_stateful_set" "default" {
             "--rpc-external",
             "--rpc-cors",
             "all",
-            "--rpc-methods",
-            "Unsafe",
-            "--validator",
+            "--pruning",
+            "archive",
             "--prometheus-external",
             "--prometheus-port",
             "9615",
@@ -134,7 +131,7 @@ resource "kubernetes_stateful_set" "default" {
             "true",
             "--telemetry-url",
             "${var.telemetry_url}"
-          ], flatten([for i, x in local.bootnodes: ["--bootnodes", x]]))
+          ], flatten([for i, x in []: ["--bootnodes", x]]))
           port {
             container_port = 9933
           }
@@ -160,16 +157,16 @@ resource "kubernetes_stateful_set" "default" {
           }
           readiness_probe {
             http_get {
-              path = "/metrics"
-              port = 9615
+              path = "/health"
+              port = 9933
             }
             initial_delay_seconds = 10
             timeout_seconds       = 1
           }
           liveness_probe {
             http_get {
-              path   = "/metrics"
-              port   = 9615
+              path   = "/health"
+              port   = 9933
             }
             initial_delay_seconds = 10
             timeout_seconds       = 1
@@ -184,12 +181,40 @@ resource "kubernetes_stateful_set" "default" {
         security_context {
           fs_group = 1000
         }
+        # affinity {
+        #   pod_anti_affinity {
+        #     required_during_scheduling_ignored_during_execution {
+        #       label_selector {
+        #         match_expressions {
+        #           key      = "app"
+        #           operator = "In"
+        #           values   = ["bootnodes"]
+        #         }
+        #       }
+        #       topology_key = "kubernetes.io/hostname"
+        #     }
+        #     preferred_during_scheduling_ignored_during_execution {
+        #       weight = 100
+        #       pod_affinity_term {
+        #         label_selector {
+        #           match_expressions {
+        #             key      = "app"
+        #             operator = "In"
+        #             values   = ["bootnodes"]
+        #           }
+        #         }
+        #         topology_key = "topology.kubernetes.io/zone"
+        #       }
+        #     }
+        #   }
+        # }
         termination_grace_period_seconds = 300
       }
     }
     volume_claim_template {
       metadata {
-        name = "bootnodes-data-volume"
+        name      = "bootnodes-data-volume"
+        namespace = data.kubernetes_namespace.default.metadata.0.name
       }
       spec {
         access_modes       = ["ReadWriteOnce"]
@@ -205,7 +230,7 @@ resource "kubernetes_stateful_set" "default" {
 }
 
 resource "kubernetes_service" "default" {
-  count = var.bootnodes
+  count = var.replicas
   metadata {
     name      = "${var.chain_name}-bootnodes-${count.index}"
     namespace = data.kubernetes_namespace.default.metadata.0.name
@@ -237,41 +262,12 @@ resource "kubernetes_service" "default" {
   }
 }
 
-resource "kubernetes_service" "internal" {
-  count = var.bootnodes
-  metadata {
-    name      = "${var.chain_name}-bootnodes-${count.index}-internal"
-    namespace = data.kubernetes_namespace.default.metadata.0.name
-    labels = {
-      name  = "${var.chain_name}-bootnodes"
-      app   = "bootnodes"
-      chain = var.chain_name
-    }
-  }
-  spec {
-    selector = {
-      "statefulset.kubernetes.io/pod-name" = "${var.chain_name}-bootnodes-${count.index}"
-    }
-    port {
-      name        = "rpc"
-      port        = 9933
-      target_port = 9933
-    }
-    type = "ClusterIP"
-  }
-}
-
-module "add-keys" {
-  source            = "./add-keys"
-  chain_name        = var.chain_name
-  dirs              = [for i in local.keys_octoup: i["key_dir"]]
-  keys              = ["babe.json", "gran.json", "imon.json", "beef.json", "octo.json"]
-  module_depends_on = [kubernetes_stateful_set.default]
-  namespace         = data.kubernetes_namespace.default.metadata.0.name
-}
-
-
-output "bootnodes_output" {
+output "bootnodes" {
   description = ""
   value       = local.bootnodes
+}
+
+output "bootnodes_dns" {
+  description = ""
+  value       = local.bootnodes_dns
 }
