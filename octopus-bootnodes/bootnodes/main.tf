@@ -9,7 +9,7 @@ data "google_dns_managed_zone" "default" {
 
 resource "google_dns_record_set" "default" {
   count        = var.replicas
-  name         = "node-${count.index}.${var.chain_name}.${data.google_dns_managed_zone.default.dns_name}"
+  name         = "bootnode-${count.index}.${var.chain_name}.${data.google_dns_managed_zone.default.dns_name}"
   managed_zone = data.google_dns_managed_zone.default.name
   type         = "A"
   ttl          = 300
@@ -31,7 +31,7 @@ locals {
 
   bootnodes_dns = [
     for idx, addr in google_compute_address.default.*.address:
-      "/ip4/node-${idx}.${var.chain_name}.${trimsuffix(data.google_dns_managed_zone.default.dns_name, ".")}/tcp/30333/ws/p2p/${local.keys_octoup[idx]["peer_id"]}"
+      "/ip4/bootnode-${idx}.${var.chain_name}.${trimsuffix(data.google_dns_managed_zone.default.dns_name, ".")}/tcp/30333/ws/p2p/${local.keys_octoup[idx]["peer_id"]}"
   ]
 }
 
