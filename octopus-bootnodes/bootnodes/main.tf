@@ -31,7 +31,7 @@ locals {
 
   bootnodes_dns = [
     for idx, addr in google_compute_address.default.*.address:
-      "/ip4/bootnode-${idx}.${var.chain_name}.${trimsuffix(data.google_dns_managed_zone.default.dns_name, ".")}/tcp/30333/ws/p2p/${local.keys_octoup[idx]["peer_id"]}"
+      "/dns/bootnode-${idx}.${var.chain_name}.${trimsuffix(data.google_dns_managed_zone.default.dns_name, ".")}/tcp/30333/ws/p2p/${local.keys_octoup[idx]["peer_id"]}"
   ]
 }
 
