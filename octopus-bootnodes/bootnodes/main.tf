@@ -53,23 +53,24 @@ resource "kubernetes_config_map" "default" {
 }
 
 resource "kubernetes_stateful_set" "default" {
+  count = var.replicas
   metadata {
-    name      = "${var.chain_name}-bootnodes"
+    name      = "${var.chain_name}-bootnodes-${count.index}"
     namespace = data.kubernetes_namespace.default.metadata.0.name
     labels = {
-      name  = "${var.chain_name}-bootnodes"
+      name  = "${var.chain_name}-bootnodes-${count.index}"
       app   = "bootnodes"
       chain = var.chain_name
     }
   }
   spec {
-    service_name           = "${var.chain_name}-bootnodes"
+    service_name           = "${var.chain_name}-bootnodes-${count.index}"
     pod_management_policy  = "Parallel"
-    replicas               = var.replicas
+    replicas               = 1
     revision_history_limit = 5
     selector {
       match_labels = {
-        name  = "${var.chain_name}-bootnodes"
+        name  = "${var.chain_name}-bootnodes-${count.index}"
         app   = "bootnodes"
         chain = var.chain_name
       }
@@ -77,35 +78,12 @@ resource "kubernetes_stateful_set" "default" {
     template {
       metadata {
         labels = {
-          name  = "${var.chain_name}-bootnodes"
+          name  = "${var.chain_name}-bootnodes-${count.index}"
           app   = "bootnodes"
           chain = var.chain_name
         }
       }
       spec {
-        init_container {
-          name    = "init-nodekey"
-          image   = "busybox"
-          command = ["sh", "-c", "cp /tmp/node-key-$${HOSTNAME##*-} /substrate/.node-key"]
-          resources {
-            limits = {
-              cpu    = "100m"
-              memory = "100Mi"
-            }
-            requests = {
-              cpu    = "100m"
-              memory = "100Mi"
-            }
-          }
-          volume_mount {
-            name       = "bootnodes-data-volume"
-            mount_path = "/substrate"
-          }
-          volume_mount {
-            name       = "bootnodes-config-volume"
-            mount_path = "/tmp"
-          }
-        }
         container {
           name    = "bootnodes"
           image   = var.base_image
@@ -154,6 +132,11 @@ resource "kubernetes_stateful_set" "default" {
           volume_mount {
             name       = "bootnodes-data-volume"
             mount_path = "/substrate"
+          }
+          volume_mount {
+            name       = "bootnodes-config-volume"
+            mount_path = "/substrate/.node-key"
+            sub_path   = "node-key-${count.index}"
           }
           readiness_probe {
             http_get {
@@ -235,14 +218,14 @@ resource "kubernetes_service" "default" {
     name      = "${var.chain_name}-bootnodes-${count.index}"
     namespace = data.kubernetes_namespace.default.metadata.0.name
     labels = {
-      name  = "${var.chain_name}-bootnodes"
+      name  = "${var.chain_name}-bootnodes-${count.index}"
       app   = "bootnodes"
       chain = var.chain_name
     }
   }
   spec {
     selector = {
-      "statefulset.kubernetes.io/pod-name" = "${var.chain_name}-bootnodes-${count.index}"
+      name = "${var.chain_name}-bootnodes-${count.index}"
     }
     session_affinity = "ClientIP"
     port {
