@@ -6,31 +6,31 @@ data "kubernetes_namespace" "default" {
 
 resource "kubernetes_stateful_set" "default" {
   metadata {
-    name      = "${var.chain_name}-validators"
+    name      = "${var.chain_name}-validators-${var.deploy_version}"
     namespace = data.kubernetes_namespace.default.metadata.0.name
     labels = {
-      name  = "${var.chain_name}-validators"
-      app   = "validators"
+      name  = "${var.chain_name}-validators-${var.deploy_version}"
+      app   = "validators-${var.deploy_version}"
       chain = var.chain_name
     }
   }
   spec {
-    service_name           = "${var.chain_name}-validators"
+    service_name           = "${var.chain_name}-validators-${var.deploy_version}"
     pod_management_policy  = "Parallel"
     replicas               = var.replicas
     revision_history_limit = 5
     selector {
       match_labels = {
-        name  = "${var.chain_name}-validators"
-        app   = "validators"
+        name  = "${var.chain_name}-validators-${var.deploy_version}"
+        app   = "validators-${var.deploy_version}"
         chain = var.chain_name
       }
     }
     template {
       metadata {
         labels = {
-          name  = "${var.chain_name}-validators"
-          app   = "validators"
+          name  = "${var.chain_name}-validators-${var.deploy_version}"
+          app   = "validators-${var.deploy_version}"
           chain = var.chain_name
         }
       }
@@ -80,7 +80,7 @@ resource "kubernetes_stateful_set" "default" {
             }
           }
           volume_mount {
-            name       = "validators-data-volume"
+            name       = "validators-data-volume-${var.deploy_version}"
             mount_path = "/substrate"
           }
           readiness_probe {
@@ -135,7 +135,7 @@ resource "kubernetes_stateful_set" "default" {
     }
     volume_claim_template {
       metadata {
-        name      = "validators-data-volume"
+        name      = "validators-data-volume-${var.deploy_version}"
         namespace = data.kubernetes_namespace.default.metadata.0.name
       }
       spec {
@@ -154,17 +154,17 @@ resource "kubernetes_stateful_set" "default" {
 resource "kubernetes_service" "default" {
   count = var.replicas
   metadata {
-    name      = "${var.chain_name}-validators-${count.index}"
+    name      = "${var.chain_name}-validators-${var.deploy_version}-${count.index}"
     namespace = data.kubernetes_namespace.default.metadata.0.name
     labels = {
-      name  = "${var.chain_name}-validators"
-      app   = "validators"
+      name  = "${var.chain_name}-validators-${var.deploy_version}"
+      app   = "validators-${var.deploy_version}"
       chain = var.chain_name
     }
   }
   spec {
     selector = {
-      "statefulset.kubernetes.io/pod-name" = "${var.chain_name}-validators-${count.index}"
+      "statefulset.kubernetes.io/pod-name" = "${var.chain_name}-validators-${var.deploy_version}-${count.index}"
     }
     session_affinity = "ClientIP"
     port {
@@ -186,17 +186,17 @@ resource "kubernetes_service" "default" {
 resource "kubernetes_service" "internal" {
   count = var.replicas
   metadata {
-    name      = "${var.chain_name}-validators-${count.index}-internal"
+    name      = "${var.chain_name}-validators-${var.deploy_version}-${count.index}-internal"
     namespace = data.kubernetes_namespace.default.metadata.0.name
     labels = {
-      name  = "${var.chain_name}-validators"
-      app   = "validators"
+      name  = "${var.chain_name}-validators-${var.deploy_version}"
+      app   = "validators-${var.deploy_version}"
       chain = var.chain_name
     }
   }
   spec {
     selector = {
-      "statefulset.kubernetes.io/pod-name" = "${var.chain_name}-validators-${count.index}"
+      "statefulset.kubernetes.io/pod-name" = "${var.chain_name}-validators-${var.deploy_version}-${count.index}"
     }
     port {
       name        = "rpc"
@@ -214,4 +214,5 @@ module "add-keys" {
   keys              = ["babe.json", "gran.json", "imon.json", "beef.json", "octo.json"]
   module_depends_on = [kubernetes_stateful_set.default]
   namespace         = data.kubernetes_namespace.default.metadata.0.name
+  deploy_version    = var.deploy_version
 }

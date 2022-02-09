@@ -21,16 +21,18 @@ provider "kubernetes" {
 module "bootnodes" {
   source = "./bootnodes"
 
-  chain_name    = var.chain_name
-  chain_spec    = var.chain_spec
-  base_image    = var.base_image
-  start_cmd     = var.start_cmd
-  telemetry_url = var.telemetry_url
-  keys_octoup   = var.keys_octoup
-  dns_zone      = var.dns_zone
+  chain_name     = var.chain_name
+  chain_spec     = var.chain_spec
+  base_image     = var.base_image
+  start_cmd      = var.start_cmd
+  telemetry_url  = var.telemetry_url
+  bootnodes      = var.bootnodes
+  keys_octoup    = var.keys_octoup
+  deploy_version = var.deploy_version
+  dns_zone       = var.dns_zone
 
   namespace       = var.namespace
-  replicas        = var.bootnodes
+  replicas        = var.node_count
   cpu_requests    = var.cpu_requests
   cpu_limits      = var.cpu_limits
   memory_requests = var.memory_requests
@@ -43,15 +45,16 @@ module "bootnodes" {
 module "validators" {
   source = "./validators"
 
-  chain_name    = var.chain_name
-  chain_spec    = var.chain_spec
-  base_image    = var.base_image
-  start_cmd     = var.start_cmd
-  telemetry_url = var.telemetry_url
-  keys_octoup   = var.keys_octoup
+  chain_name     = var.chain_name
+  chain_spec     = var.chain_spec
+  base_image     = var.base_image
+  start_cmd      = var.start_cmd
+  telemetry_url  = var.telemetry_url
+  keys_octoup    = var.keys_octoup
+  deploy_version = var.deploy_version
 
   namespace       = var.namespace
-  replicas        = var.bootnodes
+  replicas        = var.node_count
   cpu_requests    = var.cpu_requests
   cpu_limits      = var.cpu_limits
   memory_requests = var.memory_requests

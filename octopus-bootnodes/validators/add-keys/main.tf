@@ -16,7 +16,7 @@ locals {
 
 resource "kubernetes_secret" "default" {
   metadata {
-    name      = "${var.chain_name}-validators-job-secret"
+    name      = "${var.chain_name}-validators-job-secret-${var.deploy_version}"
     namespace = var.namespace
   }
   data       = local.dir_key_map
@@ -25,7 +25,7 @@ resource "kubernetes_secret" "default" {
 
 resource "kubernetes_config_map" "default" {
   metadata {
-    name      = "${var.chain_name}-validators-job-config-map"
+    name      = "${var.chain_name}-validators-job-config-map-${var.deploy_version}"
     namespace = var.namespace
   }
   data = {
@@ -36,11 +36,11 @@ resource "kubernetes_config_map" "default" {
 
 resource "kubernetes_job" "default" {
   metadata {
-    name      = "${var.chain_name}-validators-add-keys"
+    name      = "${var.chain_name}-validators-add-keys-${var.deploy_version}"
     namespace = var.namespace
     labels = {
-      name  = "${var.chain_name}-validators-add-keys"
-      app   = "validators"
+      name  = "${var.chain_name}-validators-add-keys-${var.deploy_version}"
+      app   = "validators-${var.deploy_version}"
       chain = var.chain_name
     }
   }
@@ -48,16 +48,16 @@ resource "kubernetes_job" "default" {
     manual_selector = true
     selector {
       match_labels = {
-        name  = "${var.chain_name}-validators-add-keys"
-        app   = "validators"
+        name  = "${var.chain_name}-validators-add-keys-${var.deploy_version}"
+        app   = "validators-${var.deploy_version}"
         chain = var.chain_name
       }
     }
     template {
       metadata {
         labels = {
-          name  = "${var.chain_name}-validators-add-keys"
-          app   = "validators"
+          name  = "${var.chain_name}-validators-add-keys-${var.deploy_version}"
+          app   = "validators-${var.deploy_version}"
           chain = var.chain_name
         }
       }
@@ -65,7 +65,7 @@ resource "kubernetes_job" "default" {
         container {
           image   = "radial/busyboxplus:curl"
           name    = "add-keys"
-          command = ["/chain/run.sh", "${var.chain_name}-validators"]
+          command = ["/chain/run.sh", "${var.chain_name}-validators-${var.deploy_version}"]
           resources {
             limits = {
               cpu    = "100m"
@@ -77,12 +77,12 @@ resource "kubernetes_job" "default" {
             }
           }
           volume_mount {
-            name       = "validators-job-config-volume"
+            name       = "validators-job-config-volume-${var.deploy_version}"
             mount_path = "/chain/run.sh"
             sub_path = "run.sh"
           }
           volume_mount {
-            name       = "validators-job-secret-volume"
+            name       = "validators-job-secret-volume-${var.deploy_version}"
             mount_path = "/chain/keys"
           }
           security_context {
@@ -94,14 +94,14 @@ resource "kubernetes_job" "default" {
           }
         }
         volume {
-          name = "validators-job-config-volume"
+          name = "validators-job-config-volume-${var.deploy_version}"
           config_map {
             name = kubernetes_config_map.default.metadata.0.name
             default_mode = "0555"
           }
         }
         volume {
-          name = "validators-job-secret-volume"
+          name = "validators-job-secret-volume-${var.deploy_version}"
           secret {
             secret_name = kubernetes_secret.default.metadata.0.name
           }
@@ -122,13 +122,13 @@ resource "kubernetes_job" "default" {
 # Substrate nodes require a restart after inserting a GRANDPA key
 resource "kubernetes_role" "restart" {
   metadata {
-    name      = "${var.chain_name}-validators-restart-role"
+    name      = "${var.chain_name}-validators-restart-role-${var.deploy_version}"
     namespace = var.namespace
   }
   rule {
     api_groups     = ["apps"]
     resources      = ["statefulsets"]
-    resource_names = ["${var.chain_name}-validators"]
+    resource_names = ["${var.chain_name}-validators-${var.deploy_version}"]
     verbs          = ["get", "patch"]
   }
   depends_on = [var.module_depends_on]
@@ -136,7 +136,7 @@ resource "kubernetes_role" "restart" {
 
 resource "kubernetes_role_binding" "restart" {
   metadata {
-    name      = "${var.chain_name}-validators-restart-role-binding"
+    name      = "${var.chain_name}-validators-restart-role-binding-${var.deploy_version}"
     namespace = var.namespace
   }
   role_ref {
@@ -153,11 +153,11 @@ resource "kubernetes_role_binding" "restart" {
 
 resource "kubernetes_job" "restart" {
   metadata {
-    name      = "${var.chain_name}-validators-restart-nodes"
+    name      = "${var.chain_name}-validators-restart-nodes-${var.deploy_version}"
     namespace = var.namespace
     labels = {
-      name  = "${var.chain_name}-validators-restart-nodes"
-      app   = "validators"
+      name  = "${var.chain_name}-validators-restart-nodes-${var.deploy_version}"
+      app   = "validators-${var.deploy_version}"
       chain = var.chain_name
     }
   }
@@ -165,16 +165,16 @@ resource "kubernetes_job" "restart" {
     manual_selector = true
     selector {
       match_labels = {
-        name  = "${var.chain_name}-validators-restart-nodes"
-        app   = "validators"
+        name  = "${var.chain_name}-validators-restart-nodes-${var.deploy_version}"
+        app   = "validators-${var.deploy_version}"
         chain = var.chain_name
       }
     }
     template {
       metadata {
         labels = {
-          name  = "${var.chain_name}-validators-restart-nodes"
-          app   = "validators"
+          name  = "${var.chain_name}-validators-restart-nodes-${var.deploy_version}"
+          app   = "validators-${var.deploy_version}"
           chain = var.chain_name
         }
       }
@@ -182,7 +182,7 @@ resource "kubernetes_job" "restart" {
         container {
           image   = "bitnami/kubectl"
           name    = "restart-sts"
-          command = ["kubectl", "rollout", "restart", "statefulsets/${var.chain_name}-validators"]
+          command = ["kubectl", "rollout", "restart", "statefulsets/${var.chain_name}-validators-${var.deploy_version}"]
           # kubectl scale statefulset ${var.chain_name}-validators --replicas=0
           # kubectl scale statefulset ${var.chain_name}-validators --replicas=4
           resources {

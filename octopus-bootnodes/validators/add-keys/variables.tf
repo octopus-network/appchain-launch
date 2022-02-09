@@ -26,3 +26,8 @@ variable "namespace" {
   type        = string
   default     = "default" # devnet / testnet / mainnet
 }
+
+variable "deploy_version" {
+  description = "Deployment version"
+  type        = string
+}

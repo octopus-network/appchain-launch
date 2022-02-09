@@ -37,6 +37,11 @@ variable "keys_octoup" {
   default     = ""
 }
 
+variable "deploy_version" {
+  description = "Deployment version"
+  type        = string
+}
+
 # gke
 variable "namespace" {
   description = "Namespace"

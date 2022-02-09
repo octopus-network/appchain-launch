@@ -1,6 +1,6 @@
 resource "google_compute_address" "default" {
   count = var.replicas
-  name  = "ip-${var.chain_name}-${count.index}"
+  name  = "ip-${var.chain_name}-${var.deploy_version}-${count.index}"
 }
 
 data "google_dns_managed_zone" "default" {
@@ -9,7 +9,7 @@ data "google_dns_managed_zone" "default" {
 
 resource "google_dns_record_set" "default" {
   count        = var.replicas
-  name         = "bootnode-${count.index}.${var.chain_name}.${data.google_dns_managed_zone.default.dns_name}"
+  name         = "bootnode-${var.deploy_version}-${count.index}.${var.chain_name}.${data.google_dns_managed_zone.default.dns_name}"
   managed_zone = data.google_dns_managed_zone.default.name
   type         = "A"
   ttl          = 300
@@ -31,7 +31,7 @@ locals {
 
   bootnodes_dns = [
     for idx, addr in google_compute_address.default.*.address:
-      "/dns/bootnode-${idx}.${var.chain_name}.${trimsuffix(data.google_dns_managed_zone.default.dns_name, ".")}/tcp/30333/ws/p2p/${local.keys_octoup[idx]["peer_id"]}"
+      "/dns/bootnode-${var.deploy_version}-${idx}.${var.chain_name}.${trimsuffix(data.google_dns_managed_zone.default.dns_name, ".")}/tcp/30333/ws/p2p/${local.keys_octoup[idx]["peer_id"]}"
   ]
 }
 
@@ -44,7 +44,7 @@ data "kubernetes_namespace" "default" {
 
 resource "kubernetes_config_map" "default" {
   metadata {
-    name      = "${var.chain_name}-bootnodes-config-map"
+    name      = "${var.chain_name}-bootnodes-config-map-${var.deploy_version}"
     namespace = data.kubernetes_namespace.default.metadata.0.name
   }
   data = {
@@ -55,31 +55,31 @@ resource "kubernetes_config_map" "default" {
 resource "kubernetes_stateful_set" "default" {
   count = var.replicas
   metadata {
-    name      = "${var.chain_name}-bootnodes-${count.index}"
+    name      = "${var.chain_name}-bootnodes-${var.deploy_version}-${count.index}"
     namespace = data.kubernetes_namespace.default.metadata.0.name
     labels = {
-      name  = "${var.chain_name}-bootnodes-${count.index}"
-      app   = "bootnodes"
+      name  = "${var.chain_name}-bootnodes-${var.deploy_version}-${count.index}"
+      app   = "bootnodes-${var.deploy_version}"
       chain = var.chain_name
     }
   }
   spec {
-    service_name           = "${var.chain_name}-bootnodes-${count.index}"
+    service_name           = "${var.chain_name}-bootnodes-${var.deploy_version}-${count.index}"
     pod_management_policy  = "Parallel"
     replicas               = 1
     revision_history_limit = 5
     selector {
       match_labels = {
-        name  = "${var.chain_name}-bootnodes-${count.index}"
-        app   = "bootnodes"
+        name  = "${var.chain_name}-bootnodes-${var.deploy_version}-${count.index}"
+        app   = "bootnodes-${var.deploy_version}"
         chain = var.chain_name
       }
     }
     template {
       metadata {
         labels = {
-          name  = "${var.chain_name}-bootnodes-${count.index}"
-          app   = "bootnodes"
+          name  = "${var.chain_name}-bootnodes-${var.deploy_version}-${count.index}"
+          app   = "bootnodes-${var.deploy_version}"
           chain = var.chain_name
         }
       }
@@ -109,7 +109,7 @@ resource "kubernetes_stateful_set" "default" {
             "true",
             "--telemetry-url",
             "${var.telemetry_url}"
-          ], flatten([for i, x in []: ["--bootnodes", x]]))
+          ], flatten([for i, x in var.bootnodes: ["--bootnodes", x]]))
           port {
             container_port = 9933
           }
@@ -130,11 +130,11 @@ resource "kubernetes_stateful_set" "default" {
             }
           }
           volume_mount {
-            name       = "bootnodes-data-volume"
+            name       = "bootnodes-data-volume-${var.deploy_version}"
             mount_path = "/substrate"
           }
           volume_mount {
-            name       = "bootnodes-config-volume"
+            name       = "bootnodes-config-volume-${var.deploy_version}"
             mount_path = "/substrate/.node-key"
             sub_path   = "node-key-${count.index}"
           }
@@ -156,7 +156,7 @@ resource "kubernetes_stateful_set" "default" {
           }
         }
         volume {
-          name = "bootnodes-config-volume"
+          name = "bootnodes-config-volume-${var.deploy_version}"
           config_map {
             name = kubernetes_config_map.default.metadata.0.name
           }
@@ -196,7 +196,7 @@ resource "kubernetes_stateful_set" "default" {
     }
     volume_claim_template {
       metadata {
-        name      = "bootnodes-data-volume"
+        name      = "bootnodes-data-volume-${var.deploy_version}"
         namespace = data.kubernetes_namespace.default.metadata.0.name
       }
       spec {
@@ -215,17 +215,17 @@ resource "kubernetes_stateful_set" "default" {
 resource "kubernetes_service" "default" {
   count = var.replicas
   metadata {
-    name      = "${var.chain_name}-bootnodes-${count.index}"
+    name      = "${var.chain_name}-bootnodes-${var.deploy_version}-${count.index}"
     namespace = data.kubernetes_namespace.default.metadata.0.name
     labels = {
-      name  = "${var.chain_name}-bootnodes-${count.index}"
-      app   = "bootnodes"
+      name  = "${var.chain_name}-bootnodes-${var.deploy_version}-${count.index}"
+      app   = "bootnodes-${var.deploy_version}"
       chain = var.chain_name
     }
   }
   spec {
     selector = {
-      name = "${var.chain_name}-bootnodes-${count.index}"
+      name = "${var.chain_name}-bootnodes-${var.deploy_version}-${count.index}"
     }
     session_affinity = "ClientIP"
     port {
