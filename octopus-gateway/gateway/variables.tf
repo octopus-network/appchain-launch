@@ -20,36 +20,31 @@ variable "namespace" {
   default     = "default" # devnet / testnet / mainnet
 }
 
-# 
-variable "gateway" {
-  description = "Gateway Configuration"
-  type = object({
-    api_domains     = list(string)
-    api_image       = string
-    messenger_image = string
-    stat_image      = string
+# gateway
+variable "gateway_api" {
+  description = "Gateway API Configuration"
+  type        = object({
+    replicas       = number
+    api_image      = string
+    proxy_image    = string
+    proxy_instance = string
   })
 }
 
-# redis
-variable "redis" {
-  description = "Redis Configuration"
-  type = object({
-    create       = bool
-    name         = string
-    region       = string
-    tier         = string
-    version      = string
-    memory_size  = number
-    auth_enabled = bool
-    tls_enabled  = bool
+variable "gateway_router" {
+  description = "Gateway Router Configuration"
+  type        = object({
+    dns_zone      = string
+    replicas      = number
+    router_image  = string
+    fluentd_image = string
   })
 }
 
 # kafka
 variable "kafka" {
-  description = ""
-  type = object({
+  description = "KAFKA Configuration"
+  type        = object({
     hosts = string
     topic = string
     sasl = object({
@@ -60,8 +55,18 @@ variable "kafka" {
   })
 }
 
-# firestore
+# postgresql
+variable "postgresql" {
+  description = "PostgreSQL Configuration"
+  type        = object({
+    database = string
+    username = string
+    password = string
+  })
+}
+
+# gateway service account
 variable "service_account" {
-  description = "description"
+  description = "Google Service Account"
   type        = string
 }

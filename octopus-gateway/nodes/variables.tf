@@ -29,13 +29,13 @@ variable "chains" {
     chain_spec    = string
     replicas      = number
     telemetry_url = string
+    resources     = object({
+      cpu_requests    = string
+      cpu_limits      = string
+      memory_requests = string
+      memory_limits   = string
+      volume_type     = string
+      volume_size     = string
+    })
   }))
-}
-
-#
-variable "firestore" {
-  description = "Firestore Configuration"
-  type = object({
-    collection = string
-  })
 }

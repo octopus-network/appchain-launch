@@ -20,58 +20,18 @@ provider "kubernetes" {
 module "fullnode" {
   source = "./node"
 
-  for_each      = var.chains
-  chain_name    = each.key
-  chain_spec    = each.value.chain_spec
-  base_image    = each.value.image
-  start_cmd     = each.value.command
-  replicas      = each.value.replicas
-  telemetry_url = each.value.telemetry_url
+  for_each        = var.chains
+  chain_name      = each.key
+  chain_spec      = each.value.chain_spec
+  base_image      = each.value.image
+  start_cmd       = each.value.command
+  replicas        = each.value.replicas
+  telemetry_url   = each.value.telemetry_url
+  cpu_requests    = each.value.resources.cpu_requests
+  cpu_limits      = each.value.resources.cpu_limits
+  memory_requests = each.value.resources.memory_requests
+  memory_limits   = each.value.resources.memory_limits
+  volume_type     = each.value.resources.volume_type
+  volume_size     = each.value.resources.volume_size
   namespace     = var.namespace
 }
-
-locals {
-  api_config = jsonencode({
-    "messengers": {for k, v in module.fullnode : k => ["ws://gateway-messenger:7004"]}
-  })
-
-  stat_config = jsonencode({
-    "chain": {for k, v in module.fullnode : k => {}}
-  })
-
-  messenger_config = jsonencode({
-    "chain": {for k, v in module.fullnode : k => {
-      rpc = ["http://${v.service_name}:9933"]
-      ws = ["ws://${v.service_name}:9944"]
-      processors = ["node", "cache"]
-    }}
-  })
-
-  messenger_processor_config = file("${path.module}/template/processor.json")
-}
-
-# Interact with firestore
-resource "google_firestore_document" "api" {
-  project     = var.project
-  collection  = var.firestore.collection
-  document_id = "api"
-  fields      = jsonencode({"config.json": {"stringValue": local.api_config}})
-}
-
-resource "google_firestore_document" "messenger" {
-  project     = var.project
-  collection  = var.firestore.collection
-  document_id = "messenger"
-  fields      = jsonencode(merge(
-    {"config.json": {"stringValue": local.messenger_config}},
-    {for k, v in module.fullnode : k => {stringValue=local.messenger_processor_config}}
-  ))
-}
-
-resource "google_firestore_document" "stat" {
-  project     = var.project
-  collection  = var.firestore.collection
-  document_id = "stat"
-  fields      = jsonencode({"config.json": {"stringValue": local.stat_config}})
-}
-

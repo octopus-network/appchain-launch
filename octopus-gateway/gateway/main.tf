@@ -17,19 +17,6 @@ provider "kubernetes" {
   cluster_ca_certificate = base64decode(data.google_container_cluster.default.master_auth[0].cluster_ca_certificate)
 }
 
-module "redis" {
-  source = "./redis"
-
-  create        = var.redis.create
-  region        = var.redis.region
-  name          = var.redis.name
-  tier          = var.redis.tier
-  redis_version = var.redis.version
-  memory_size   = var.redis.memory_size
-  auth_enabled  = var.redis.auth_enabled
-  tls_enabled   = var.redis.tls_enabled
-}
-
 # service_account
 data "kubernetes_namespace" "default" {
   metadata {
@@ -39,7 +26,7 @@ data "kubernetes_namespace" "default" {
 
 resource "kubernetes_service_account" "default" {
   metadata {
-    name = "gateway-ksa"
+    name = "octopus-gateway-ksa"
     namespace = data.kubernetes_namespace.default.metadata.0.name
     annotations = {
       "iam.gke.io/gcp-service-account" = var.service_account
@@ -57,17 +44,21 @@ resource "google_service_account_iam_member" "default" {
   member             = "serviceAccount:${var.project}.svc.id.goog[${data.kubernetes_namespace.default.metadata.0.name}/${kubernetes_service_account.default.metadata.0.name}]"
 }
 
-module "gateway" {
-  source         = "./gateway"
+# gateway api
+module "gateway_api" {
+  source = "./api"
 
-  gateway = var.gateway
-  redis = {
-    host     = module.redis.host
-    port     = module.redis.port
-    password = module.redis.auth
-    tls_cert = module.redis.cert
-  }
-  kafka           = var.kafka
-  service_account = kubernetes_service_account.default.metadata.0.name
   namespace       = data.kubernetes_namespace.default.metadata.0.name
+  gateway_api     = var.gateway_api
+  postgresql      = var.postgresql
+  service_account = kubernetes_service_account.default.metadata.0.name
+}
+
+# gateway router
+module "gateway_router" {
+  source = "./router"
+
+  namespace      = data.kubernetes_namespace.default.metadata.0.name
+  gateway_router = var.gateway_router
+  kafka          = var.kafka
 }

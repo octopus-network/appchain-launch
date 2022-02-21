@@ -84,16 +84,16 @@ resource "kubernetes_stateful_set" "default" {
           }
           readiness_probe {
             http_get {
-              path = "/metrics"
-              port = 9615
+              path = "/health"
+              port = 9933
             }
             initial_delay_seconds = 10
             timeout_seconds       = 1
           }
           liveness_probe {
             http_get {
-              path   = "/metrics"
-              port   = 9615
+              path   = "/health"
+              port   = 9933
             }
             initial_delay_seconds = 10
             timeout_seconds       = 1

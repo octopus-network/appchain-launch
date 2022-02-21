@@ -1,0 +1,14 @@
+Api:
+    Host: 0.0.0.0
+    Port: 80
+    GracefulTimeout: 10s
+
+Database:
+    Driver: pgx
+    Host: 127.0.0.1
+    Port: 5432
+    Database: ${database}
+    User: ${username}
+    Password: ${password}
+    SslMode: disable
+    MaxConnectionPool: 10
