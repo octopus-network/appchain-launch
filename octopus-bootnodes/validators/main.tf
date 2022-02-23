@@ -210,8 +210,7 @@ resource "kubernetes_service" "internal" {
 module "add-keys" {
   source            = "./add-keys"
   chain_name        = var.chain_name
-  dirs              = [for i in range(var.replicas): "${var.keys_octoup}/${i}"]
-  keys              = ["babe.json", "gran.json", "imon.json", "beef.json", "octo.json"]
+  keys_octoup       = var.keys_octoup
   module_depends_on = [kubernetes_stateful_set.default]
   namespace         = data.kubernetes_namespace.default.metadata.0.name
   deploy_version    = var.deploy_version

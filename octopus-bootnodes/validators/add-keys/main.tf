@@ -1,17 +1,11 @@
 
 locals {
-  dir_key_list_map = flatten([
-    for i, d in var.dirs: [
-      for k in var.keys: {
-        key = "${i}-${k}"
-        val = file("${d}/${k}")
-      }
-    ]
-  ])
-
-  dir_key_map = {
-    for item in local.dir_key_list_map: item.key => item.val
-  }
+  keys_octoup = merge([
+    for idx, keys in var.keys_octoup: {
+      for k, v in keys:
+        "${idx}-${k}" => v
+    }
+  ]...)
 }
 
 resource "kubernetes_secret" "default" {
@@ -19,7 +13,7 @@ resource "kubernetes_secret" "default" {
     name      = "${var.chain_name}-validators-job-secret-${var.deploy_version}"
     namespace = var.namespace
   }
-  data       = local.dir_key_map
+  data       = local.keys_octoup
   depends_on = [var.module_depends_on]
 }
 

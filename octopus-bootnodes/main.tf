@@ -27,7 +27,7 @@ module "bootnodes" {
   start_cmd      = var.start_cmd
   telemetry_url  = var.telemetry_url
   bootnodes      = var.bootnodes
-  keys_octoup    = var.keys_octoup
+  keys_octoup    = var.keys_octoup_node
   deploy_version = var.deploy_version
   dns_zone       = var.dns_zone
 
@@ -50,7 +50,7 @@ module "validators" {
   base_image     = var.base_image
   start_cmd      = var.start_cmd
   telemetry_url  = var.telemetry_url
-  keys_octoup    = var.keys_octoup
+  keys_octoup    = var.keys_octoup_session
   deploy_version = var.deploy_version
 
   namespace       = var.namespace

@@ -17,21 +17,14 @@ resource "google_dns_record_set" "default" {
 }
 
 locals {
-  keys_octoup = [
-    for i in range(var.replicas): {
-      peer_id = chomp(file("${var.keys_octoup}/${i}/peer-id"))
-      node_key = chomp(file("${var.keys_octoup}/${i}/node-key"))
-    }
-  ]
-
   bootnodes = [
     for idx, addr in google_compute_address.default.*.address:
-      "/ip4/${addr}/tcp/30333/ws/p2p/${local.keys_octoup[idx]["peer_id"]}"
+      "/ip4/${addr}/tcp/30333/ws/p2p/${var.keys_octoup[idx]["peer-id"]}"
   ]
 
   bootnodes_dns = [
     for idx, addr in google_compute_address.default.*.address:
-      "/dns/bootnode-${var.deploy_version}-${idx}.${var.chain_name}.${trimsuffix(data.google_dns_managed_zone.default.dns_name, ".")}/tcp/30333/ws/p2p/${local.keys_octoup[idx]["peer_id"]}"
+      "/dns/bootnode-${var.deploy_version}-${idx}.${var.chain_name}.${trimsuffix(data.google_dns_managed_zone.default.dns_name, ".")}/tcp/30333/ws/p2p/${var.keys_octoup[idx]["peer-id"]}"
   ]
 }
 
@@ -48,7 +41,7 @@ resource "kubernetes_config_map" "default" {
     namespace = data.kubernetes_namespace.default.metadata.0.name
   }
   data = {
-    for i, v in local.keys_octoup: "node-key-${i}" => v["node_key"]
+    for i, v in var.keys_octoup: "node-key-${i}" => v["node-key"]
   }
 }
 
