@@ -14,19 +14,73 @@ spec:
         app: octopus-alert
     spec:
       containers:
-      - name: alert
-        image: "us-central1-docker.pkg.dev/octopus-prod/octopus/octopus-alert@sha256:77a9f14d0b7dd07bf903533a1d5bfa2eb8ae0710a913ebe1128e271c9cd7d102"
+      - name: balance-alert
+        image: "us-central1-docker.pkg.dev/octopus-prod/octopus/octopus-alert@sha256:68474dc4a69b99d81f258da32419346ab41053ea994ca10eab886382aa1cabee"
+        command: ["node"]
+        args: ["./dist/monitors/balance/index.js"]
         env:
-        - name: DISCORD_TOKEN
+        - name: PAGERDUTY_TOKEN
           value: ""
-        - name: CHANNEL_ID
+        - name: NEAR_ENV
+          value: "testnet"
+        - name: NEAR_NODE_URL
+          value: "https://rpc.testnet.near.org"
+        - name: NEAR_WALLET_URL
+          value: "https://wallet.testnet.near.org"
+        - name: NEAR_HELPER_URL
+          value: "https://helper.testnet.near.org"
+      - name: bridge-alert
+        image: "us-central1-docker.pkg.dev/octopus-prod/octopus/octopus-alert@sha256:68474dc4a69b99d81f258da32419346ab41053ea994ca10eab886382aa1cabee"
+        command: ["node"]
+        args: ["./dist/monitors/bridge/index.js"]
+        env:
+        - name: PAGERDUTY_TOKEN
           value: ""
-        - name: CHECK_INTERVAL
-          value: "120"
-        - name: APPCHAIN_SETTINGS
-          value: "[{\"appchainName\": \"testnet-debionetwork\", \"anchorContractId\": \"debionetwork.registry.test_oct.testnet\", \"appchainEndpoint\": \"wss://gateway.testnet.octopus.network/debionetwork/554976cbb180f676f188abe14d63ca24\", \"blockDifference\": 600}, {\"appchainName\": \"testnet-myriad\", \"anchorContractId\": \"myriad.registry.test_oct.testnet\", \"appchainEndpoint\": \"wss://gateway.testnet.octopus.network/myriad/8f543a1c219f14d83c0faedefdd5be6e\", \"blockDifference\": 600}]"
-        - name: BALANCE_MONITORING_LIST
-          value: "[{\"test-relayer.testnet\": 275}, {\"registry.test_oct.testnet\": 25}, {\"debionetwork.registry.test_oct.testnet\": 5}, {\"myriad.registry.test_oct.testnet\": 5}]"
+        - name: NEAR_ENV
+          value: "testnet"
+        - name: NEAR_NODE_URL
+          value: "https://rpc.testnet.near.org"
+        - name: NEAR_WALLET_URL
+          value: "https://wallet.testnet.near.org"
+        - name: NEAR_HELPER_URL
+          value: "https://helper.testnet.near.org"
+      - name: era-alert
+        image: "us-central1-docker.pkg.dev/octopus-prod/octopus/octopus-alert@sha256:68474dc4a69b99d81f258da32419346ab41053ea994ca10eab886382aa1cabee"
+        command: ["node"]
+        args: ["./dist/monitors/era/index.js"]
+        env:
+        - name: PAGERDUTY_TOKEN
+          value: ""
+        - name: NEAR_ENV
+          value: "testnet"
+        - name: NEAR_NODE_URL
+          value: "https://rpc.testnet.near.org"
+        - name: NEAR_WALLET_URL
+          value: "https://wallet.testnet.near.org"
+        - name: NEAR_HELPER_URL
+          value: "https://helper.testnet.near.org"
+      - name: lpos-alert
+        image: "us-central1-docker.pkg.dev/octopus-prod/octopus/octopus-alert@sha256:68474dc4a69b99d81f258da32419346ab41053ea994ca10eab886382aa1cabee"
+        command: ["node"]
+        args: ["./dist/monitors/lpos/index.js"]
+        env:
+        - name: PAGERDUTY_TOKEN
+          value: ""
+        - name: NEAR_ENV
+          value: "testnet"
+        - name: NEAR_NODE_URL
+          value: "https://rpc.testnet.near.org"
+        - name: NEAR_WALLET_URL
+          value: "https://wallet.testnet.near.org"
+        - name: NEAR_HELPER_URL
+          value: "https://helper.testnet.near.org"
+      - name: mmr-alert
+        image: "us-central1-docker.pkg.dev/octopus-prod/octopus/octopus-alert@sha256:68474dc4a69b99d81f258da32419346ab41053ea994ca10eab886382aa1cabee"
+        command: ["node"]
+        args: ["./dist/monitors/mmr/index.js"]
+        env:
+        - name: PAGERDUTY_TOKEN
+          value: ""
         - name: NEAR_ENV
           value: "testnet"
         - name: NEAR_NODE_URL
