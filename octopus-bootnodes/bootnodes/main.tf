@@ -102,8 +102,6 @@ resource "kubernetes_stateful_set" "default" {
             "Compiled",
             "--enable-offchain-indexing",
             "true",
-		"--sync",
-		"Warp",
             "--telemetry-url",
             "${var.telemetry_url}"
           ], flatten([for i, x in var.bootnodes: ["--bootnodes", x]]))
