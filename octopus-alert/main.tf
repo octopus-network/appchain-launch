@@ -23,10 +23,17 @@ resource "kubernetes_config_map" "default" {
     namespace = var.namespace
   }
   data = {
-    NEAR_ENV        = var.near.env
-    NEAR_NODE_URL   = var.near.node_url
-    NEAR_WALLET_URL = var.near.wallet_url
-    NEAR_HELPER_URL = var.near.helper_url
+    NEAR_ENV          = var.near.env
+    NEAR_NODE_URL     = var.near.node_url
+    NEAR_WALLET_URL   = var.near.wallet_url
+    NEAR_HELPER_URL   = var.near.helper_url
+    BALANCE_CONFIG    = jsonencode(var.balance_config)
+    LPOS_CONFIG       = jsonencode(var.lpos_config)
+    BRIDGE_CONFIG     = jsonencode(var.bridge_config)
+    ERA_CONFIG        = jsonencode(var.era_config)
+    MMR_CONFIG        = jsonencode(var.mmr_config)
+    NEAR_ERRORS       = jsonencode(var.near_errors)
+    APPCHAIN_SETTINGS = jsonencode(var.appchain_settings)
   }
 }
 
