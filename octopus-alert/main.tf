@@ -23,17 +23,18 @@ resource "kubernetes_config_map" "default" {
     namespace = var.namespace
   }
   data = {
-    NEAR_ENV          = var.near.env
-    NEAR_NODE_URL     = var.near.node_url
-    NEAR_WALLET_URL   = var.near.wallet_url
-    NEAR_HELPER_URL   = var.near.helper_url
-    BALANCE_CONFIG    = jsonencode(var.balance_config)
-    LPOS_CONFIG       = jsonencode(var.lpos_config)
-    BRIDGE_CONFIG     = jsonencode(var.bridge_config)
-    ERA_CONFIG        = jsonencode(var.era_config)
-    MMR_CONFIG        = jsonencode(var.mmr_config)
-    NEAR_ERRORS       = jsonencode(var.near_errors)
-    APPCHAIN_SETTINGS = jsonencode(var.appchain_settings)
+    NEAR_ENV          	= var.near.env
+    NEAR_NODE_URL     	= var.near.node_url
+    NEAR_WALLET_URL   	= var.near.wallet_url
+    NEAR_HELPER_URL   	= var.near.helper_url
+    BALANCE_CONFIG    	= jsonencode(var.balance_config)
+    LPOS_CONFIG       	= jsonencode(var.lpos_config)
+    BRIDGE_CONFIG     	= jsonencode(var.bridge_config)
+    ERA_CONFIG        	= jsonencode(var.era_config)
+    MMR_CONFIG        	= jsonencode(var.mmr_config)
+    UNWITHDRAWN_CONFIG	= jsonencode(var.unwithdrawn_config)
+    NEAR_ERRORS       	= jsonencode(var.near_errors)
+    APPCHAIN_SETTINGS 	= jsonencode(var.appchain_settings)
   }
 }
 
@@ -138,6 +139,38 @@ resource "kubernetes_deployment" "default" {
           image   = var.alert_image
           command = ["node"]
           args    = ["./dist/monitors/mmr/index.js"]
+          env_from {
+            config_map_ref {
+              name = kubernetes_config_map.default.metadata.0.name
+            }
+          }
+          env_from {
+            secret_ref {
+              name = kubernetes_secret.default.metadata.0.name
+            }
+          }
+        }
+        container {
+          name    = "near-errors-alert"
+          image   = var.alert_image
+          command = ["node"]
+          args    = ["./dist/monitors/near-errors/index.js"]
+          env_from {
+            config_map_ref {
+              name = kubernetes_config_map.default.metadata.0.name
+            }
+          }
+          env_from {
+            secret_ref {
+              name = kubernetes_secret.default.metadata.0.name
+            }
+          }
+        }
+        container {
+          name    = "unwithdrawn-alert"
+          image   = var.alert_image
+          command = ["node"]
+          args    = ["./dist/monitors/unwithdrawn/index.js"]
           env_from {
             config_map_ref {
               name = kubernetes_config_map.default.metadata.0.name

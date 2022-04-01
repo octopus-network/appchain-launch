@@ -91,6 +91,16 @@ variable "mmr_config" {
   }
 }
 
+variable "unwithdrawn_config" {
+  description = "UNWITHDRAWN_CONFIG"
+  type        = object({
+    cronSchedule = string
+  })
+  default     = {
+    cronSchedule = "0 */2 * * *"
+  }
+}
+
 variable "near_errors" {
   description = "NEAR_ERRORS"
   type        = object({
