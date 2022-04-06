@@ -60,5 +60,4 @@ module "gateway_router" {
 
   namespace      = data.kubernetes_namespace.default.metadata.0.name
   gateway_router = var.gateway_router
-  kafka          = var.kafka
 }

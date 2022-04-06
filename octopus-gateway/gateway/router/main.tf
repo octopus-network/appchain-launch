@@ -10,16 +10,6 @@ resource "kubernetes_config_map" "default" {
   }
 }
 
-resource "kubernetes_secret" "default" {
-  metadata {
-    name      = "octopus-gateway-router-secret"
-    namespace = var.namespace
-  }
-  data = {
-    "fluentd.conf" = templatefile("${path.module}/template/fluentd.conf.tftpl", var.kafka)
-  }
-}
-
 resource "kubernetes_deployment" "default" {
   metadata {
     name      = "octopus-gateway-router"
@@ -59,34 +49,6 @@ resource "kubernetes_deployment" "default" {
                 key  = "GATEWAY_API_ROUTE_URL"
               }
             }
-          }
-          volume_mount {
-            name       = "router-log-volume"
-            mount_path = "/octopus-gateway/logs"
-          }
-        }
-        # container {
-        #   name  = "fluentd"
-        #   image = var.gateway_router.fluentd_image
-        #   volume_mount {
-        #     name       = "router-log-volume"
-        #     mount_path = "/var/log/gateway"
-        #   }
-        #   volume_mount {
-        #     name       = "router-secret-volume"
-        #     mount_path = "/fluentd/etc/fluent.conf"
-        #     sub_path   = "fluentd.conf"
-        #   }
-        # }
-        volume {
-          name = "router-log-volume"
-          empty_dir {
-          }
-        }
-        volume {
-          name = "router-secret-volume"
-          secret {
-            secret_name = kubernetes_secret.default.metadata.0.name
           }
         }
       }
