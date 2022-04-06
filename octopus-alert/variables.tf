@@ -26,6 +26,22 @@ variable "alert_image" {
   type        = string
 }
 
+variable "resources" {
+  description = "Resources Configuration"
+  type = object({
+    cpu_requests    = string
+    cpu_limits      = string
+    memory_requests = string
+    memory_limits   = string
+  })
+  default = {
+    cpu_requests    = "100m"
+    cpu_limits      = "200m"
+    memory_requests = "512Mi"
+    memory_limits   = "1024Mi"
+  }
+}
+
 # near
 variable "near" {
   description = "Near Configuration"

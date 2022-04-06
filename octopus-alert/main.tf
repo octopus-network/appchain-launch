@@ -85,6 +85,16 @@ resource "kubernetes_deployment" "default" {
               name = kubernetes_secret.default.metadata.0.name
             }
           }
+          resources {
+            limits = {
+              cpu    = var.resources.cpu_limits
+              memory = var.resources.memory_limits
+            }
+            requests = {
+              cpu    = var.resources.cpu_requests
+              memory = var.resources.memory_requests
+            }
+          }
         }
         container {
           name    = "bridge-alert"
@@ -99,6 +109,16 @@ resource "kubernetes_deployment" "default" {
           env_from {
             secret_ref {
               name = kubernetes_secret.default.metadata.0.name
+            }
+          }
+          resources {
+            limits = {
+              cpu    = var.resources.cpu_limits
+              memory = var.resources.memory_limits
+            }
+            requests = {
+              cpu    = var.resources.cpu_requests
+              memory = var.resources.memory_requests
             }
           }
         }
@@ -117,6 +137,16 @@ resource "kubernetes_deployment" "default" {
               name = kubernetes_secret.default.metadata.0.name
             }
           }
+          resources {
+            limits = {
+              cpu    = var.resources.cpu_limits
+              memory = var.resources.memory_limits
+            }
+            requests = {
+              cpu    = var.resources.cpu_requests
+              memory = var.resources.memory_requests
+            }
+          }
         }
         container {
           name    = "lpos-alert"
@@ -131,6 +161,16 @@ resource "kubernetes_deployment" "default" {
           env_from {
             secret_ref {
               name = kubernetes_secret.default.metadata.0.name
+            }
+          }
+          resources {
+            limits = {
+              cpu    = var.resources.cpu_limits
+              memory = var.resources.memory_limits
+            }
+            requests = {
+              cpu    = var.resources.cpu_requests
+              memory = var.resources.memory_requests
             }
           }
         }
@@ -149,6 +189,16 @@ resource "kubernetes_deployment" "default" {
               name = kubernetes_secret.default.metadata.0.name
             }
           }
+          resources {
+            limits = {
+              cpu    = var.resources.cpu_limits
+              memory = var.resources.memory_limits
+            }
+            requests = {
+              cpu    = var.resources.cpu_requests
+              memory = var.resources.memory_requests
+            }
+          }
         }
         container {
           name    = "near-errors-alert"
@@ -165,6 +215,16 @@ resource "kubernetes_deployment" "default" {
               name = kubernetes_secret.default.metadata.0.name
             }
           }
+          resources {
+            limits = {
+              cpu    = var.resources.cpu_limits
+              memory = var.resources.memory_limits
+            }
+            requests = {
+              cpu    = var.resources.cpu_requests
+              memory = var.resources.memory_requests
+            }
+          }
         }
         container {
           name    = "unwithdrawn-alert"
@@ -179,6 +239,16 @@ resource "kubernetes_deployment" "default" {
           env_from {
             secret_ref {
               name = kubernetes_secret.default.metadata.0.name
+            }
+          }
+          resources {
+            limits = {
+              cpu    = var.resources.cpu_limits
+              memory = var.resources.memory_limits
+            }
+            requests = {
+              cpu    = var.resources.cpu_requests
+              memory = var.resources.memory_requests
             }
           }
         }
