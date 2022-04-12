@@ -54,6 +54,7 @@ resource "kubernetes_config_map" "default" {
     namespace = var.namespace
   }
   data = {
+    LISTENING_PORT    = var.listening_port
     NEAR_RPC_ENDPOINT = var.near_rpc_endpoint
     APPCHAIN_SETTINGS = jsonencode(var.appchain_settings)
   }
@@ -111,6 +112,105 @@ resource "kubernetes_deployment" "default" {
         }
         service_account_name = kubernetes_service_account.default.metadata.0.name
       }
+    }
+  }
+}
+
+resource "kubernetes_manifest" "default" {
+  manifest = {
+    apiVersion = "cloud.google.com/v1"
+    kind       = "BackendConfig"
+    metadata   = {
+      name      = "bridge-tx-fetcher-backendconfig"
+      namespace = var.namespace
+    }
+    spec = {
+      healthCheck = {
+        type        = "HTTP"
+        requestPath = "/health"
+        port        = var.listening_port
+      }
+    }
+  }
+}
+
+resource "kubernetes_service" "default" {
+  metadata {
+    name      = "bridge-tx-fetcher"
+    namespace = var.namespace
+    labels = {
+      app  = "bridge-tx-fetcher"
+    }
+    annotations = {
+      "cloud.google.com/neg" = "{\"ingress\": true}"
+      "cloud.google.com/backend-config" = "{\"default\": \"bridge-tx-fetcher-backendconfig\"}"
+    }
+  }
+  spec {
+    type = "NodePort"
+    selector = {
+      app  = "bridge-tx-fetcher"
+    }
+    port {
+      port        = var.listening_port
+      target_port = var.listening_port
+      protocol    = "TCP"
+    }
+  }
+}
+
+resource "google_compute_global_address" "default" {
+  name = "bridge-tx-fetcher-global-address"
+}
+
+data "google_dns_managed_zone" "default" {
+  name = var.dns_zone
+}
+
+resource "google_dns_record_set" "a" {
+  name         = "bridge-tx-fetcher.${data.google_dns_managed_zone.default.dns_name}"
+  managed_zone = data.google_dns_managed_zone.default.name
+  type         = "A"
+  ttl          = 300
+  rrdatas = [google_compute_global_address.default.address]
+}
+
+resource "google_dns_record_set" "caa" {
+  name         = "bridge-tx-fetcher.${data.google_dns_managed_zone.default.dns_name}"
+  managed_zone = data.google_dns_managed_zone.default.name
+  type         = "CAA"
+  ttl          = 300
+  rrdatas = ["0 issue \"pki.goog\""]
+}
+
+resource "kubernetes_manifest" "certificate" {
+  manifest = {
+    apiVersion = "networking.gke.io/v1"
+    kind       = "ManagedCertificate"
+    metadata   = {
+      name      = "bridge-tx-fetcher-managed-certificate"
+      namespace = var.namespace
+    }
+    spec = {
+      domains = [trimsuffix(google_dns_record_set.a.name, ".")]
+    }
+  }
+}
+
+resource "kubernetes_ingress" "default" {
+  metadata {
+    name        = "bridge-tx-fetcher-ingress"
+    namespace   = var.namespace
+    annotations = {
+      "kubernetes.io/ingress.global-static-ip-name" = google_compute_global_address.default.name
+      "networking.gke.io/managed-certificates"      = "bridge-tx-fetcher-managed-certificate"
+      "kubernetes.io/ingress.class"                 = "gce"
+    }
+  }
+  spec {
+    backend {
+      service_name = kubernetes_service.default.metadata.0.name
+      service_port = var.listening_port
     }
   }
 }

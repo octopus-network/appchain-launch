@@ -21,6 +21,11 @@ variable "namespace" {
   default     = "default" # devnet / testnet / mainnet
 }
 
+variable "dns_zone" {
+  description = "DNS Zone"
+  type        = string
+}
+
 # cloud sql proxy
 variable "gce_proxy_image" {
   description = "description"
@@ -41,6 +46,12 @@ variable "gcp_service_account" {
 variable "bridge_image" {
   description = "Bridge Image"
   type        = string
+}
+
+variable "listening_port" {
+  description = "LISTENING_PORT"
+  type        = number
+  default     = 3000
 }
 
 variable "near_rpc_endpoint" {
