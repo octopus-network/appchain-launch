@@ -127,7 +127,7 @@ resource "kubernetes_manifest" "default" {
     spec = {
       healthCheck = {
         type        = "HTTP"
-        requestPath = "/health"
+        requestPath = "/healthz"
         port        = var.listening_port
       }
     }
