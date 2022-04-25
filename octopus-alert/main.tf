@@ -45,10 +45,11 @@ resource "kubernetes_secret" "default" {
   }
   data = {
     PAGERDUTY_TOKEN = var.pagerduty_token
+    EMAIL_ENDPOINT  = var.email_endpoint
   }
 }
 
-resource "kubernetes_deployment" "default" {
+resource "kubernetes_stateful_set" "default" {
   metadata {
     name = "octopus-alert"
     labels = {
@@ -57,7 +58,8 @@ resource "kubernetes_deployment" "default" {
     namespace = var.namespace
   }
   spec {
-    replicas = 1
+    service_name = "octopus-alert"
+    replicas     = 1
     selector {
       match_labels = {
         app = "octopus-alert"
@@ -250,6 +252,25 @@ resource "kubernetes_deployment" "default" {
               cpu    = var.resources.cpu_requests
               memory = var.resources.memory_requests
             }
+          }
+          volume_mount {
+            name       = "octopus-alert-volume"
+            mount_path = "/usr/src/app/email-service.db"
+            sub_path   = "email-service.db"
+          }
+        }
+      }
+    }
+    volume_claim_template {
+      metadata {
+        name = "octopus-alert-volume"
+      }
+      spec {
+        access_modes       = ["ReadWriteOnce"]
+        storage_class_name = var.resources.volume_type
+        resources {
+          requests = {
+            storage = var.resources.volume_size
           }
         }
       }

@@ -33,12 +33,16 @@ variable "resources" {
     cpu_limits      = string
     memory_requests = string
     memory_limits   = string
+    volume_type     = string
+    volume_size     = string
   })
   default = {
     cpu_requests    = "100m"
     cpu_limits      = "200m"
-    memory_requests = "512Mi"
-    memory_limits   = "1024Mi"
+    memory_requests = "300Mi"
+    memory_limits   = "600Mi"
+    volume_type     = "standard-rwo"
+    volume_size     = "1Gi"
   }
 }
 
@@ -55,6 +59,11 @@ variable "near" {
 
 variable "pagerduty_token" {
   description = "Pagerduty Token"
+  type        = string
+}
+
+variable "email_endpoint" {
+  description = "EMAIL_ENDPOINT"
   type        = string
 }
 
