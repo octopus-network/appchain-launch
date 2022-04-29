@@ -259,11 +259,31 @@ resource "kubernetes_stateful_set" "default" {
             sub_path   = "email-service.db"
           }
         }
+        init_container {
+          name              = "init-db"
+          image             = "busybox"
+          command           = ["touch", "/tmp/email-service.db"]
+          resources {
+            limits = {
+              cpu    = "100m"
+              memory = "100Mi"
+            }
+            requests = {
+              cpu    = "100m"
+              memory = "100Mi"
+            }
+          }
+          volume_mount {
+            name       = "octopus-alert-volume"
+            mount_path = "/tmp"
+          }
+        }
       }
     }
     volume_claim_template {
       metadata {
-        name = "octopus-alert-volume"
+        name      = "octopus-alert-volume"
+        namespace = var.namespace
       }
       spec {
         access_modes       = ["ReadWriteOnce"]
