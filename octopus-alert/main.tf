@@ -28,6 +28,8 @@ resource "kubernetes_config_map" "default" {
     NEAR_WALLET_URL   	= var.near.wallet_url
     NEAR_HELPER_URL   	= var.near.helper_url
     BALANCE_CONFIG    	= jsonencode(var.balance_config)
+    REGISTRY_ADDRESS   	= jsonencode(var.registry_address)
+    OCT_TOKEN_ADDRESS  	= jsonencode(var.oct_token_address)
     LPOS_CONFIG       	= jsonencode(var.lpos_config)
     BRIDGE_CONFIG     	= jsonencode(var.bridge_config)
     ERA_CONFIG        	= jsonencode(var.era_config)

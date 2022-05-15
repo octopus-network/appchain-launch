@@ -67,6 +67,16 @@ variable "email_endpoint" {
   type        = string
 }
 
+variable "registry_address" {
+  description = "REGISTRY_ADDRESS"
+  type        = string
+}
+
+variable "oct_token_address" {
+  description = "OCT_TOKEN_ADDRESS"
+  type        = string
+}
+
 # alert env
 variable "balance_config" {
   description = "BALANCE_CONFIG"
@@ -139,6 +149,7 @@ variable "near_errors" {
       username = string
       password = string
     })
+    largeAmount = number
   })
 }
 
