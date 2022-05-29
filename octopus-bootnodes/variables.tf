@@ -63,6 +63,11 @@ variable "region" {
   type        = string
 }
 
+variable "region_2nd" {
+  description = "Second Region"
+  type        = string
+}
+
 variable "dns_zone" {
   description = "DNS zone"
   type        = string
@@ -70,6 +75,11 @@ variable "dns_zone" {
 
 variable "cluster" {
   description = "Cluster"
+  type        = string
+}
+
+variable "cluster_2nd" {
+  description = "Second Cluster"
   type        = string
 }
 

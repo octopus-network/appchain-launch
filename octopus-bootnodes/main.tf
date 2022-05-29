@@ -3,12 +3,27 @@ provider "google" {
   region  = var.region
 }
 
+provider "google" {
+  project = var.project
+  region  = var.region_2nd
+  alias   = "gcp-2nd"
+}
+
 data "google_client_config" "default" {
+}
+
+data "google_client_config" "region_2nd" {
+  provider = google.gcp-2nd
 }
 
 data "google_container_cluster" "default" {
   name     = var.cluster
   location = var.region
+}
+
+data "google_container_cluster" "region_2nd" {
+  name     = var.cluster_2nd
+  location = var.region_2nd
 }
 
 provider "kubernetes" {
@@ -17,9 +32,20 @@ provider "kubernetes" {
   cluster_ca_certificate = base64decode(data.google_container_cluster.default.master_auth[0].cluster_ca_certificate)
 }
 
+provider "kubernetes" {
+  host                   = "https://${data.google_container_cluster.region_2nd.endpoint}"
+  token                  = data.google_client_config.region_2nd.access_token
+  cluster_ca_certificate = base64decode(data.google_container_cluster.region_2nd.master_auth[0].cluster_ca_certificate)
+  alias                  = "gke-2nd"
+}
+
 # bootnodes
 module "bootnodes" {
-  source = "./bootnodes"
+  source    = "./bootnodes"
+  providers = {
+    google.gcp-2nd     = google.gcp-2nd
+    kubernetes.gke-2nd = kubernetes.gke-2nd
+  }
 
   chain_name     = var.chain_name
   chain_spec     = var.chain_spec
