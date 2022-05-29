@@ -87,9 +87,13 @@ resource "kubernetes_deployment" "default" {
           image   = var.gce_proxy_image
           command = ["/cloud_sql_proxy", "-instances=${var.gce_proxy_instances}"]
           resources {
+            limits = {
+              cpu    = var.gce_proxy_resources.cpu_limits
+              memory = var.gce_proxy_resources.memory_limits
+            }
             requests = {
-              cpu    = "1"
-              memory = "2Gi"
+              cpu    = var.gce_proxy_resources.cpu_requests
+              memory = var.gce_proxy_resources.memory_requests
             }
           }
           security_context {
@@ -107,6 +111,16 @@ resource "kubernetes_deployment" "default" {
           env_from {
             config_map_ref {
               name = kubernetes_config_map.default.metadata.0.name
+            }
+          }
+          resources {
+            limits = {
+              cpu    = var.bridge_resources.cpu_limits
+              memory = var.bridge_resources.memory_limits
+            }
+            requests = {
+              cpu    = var.bridge_resources.cpu_requests
+              memory = var.bridge_resources.memory_requests
             }
           }
         }

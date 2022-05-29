@@ -28,24 +28,56 @@ variable "dns_zone" {
 
 # cloud sql proxy
 variable "gce_proxy_image" {
-  description = "description"
+  description = "GCE Proxy Image"
   type        = string
 }
 
 variable "gce_proxy_instances" {
-  description = "description"
+  description = "GCE Proxy Instances"
   type        = string
 }
 
 variable "gcp_service_account" {
-  description = "description"
+  description = "GCP Service Account"
   type        = string
+}
+
+variable "gce_proxy_resources" {
+  description = "GCE Proxy Resources Configuration"
+  type = object({
+    cpu_requests    = string
+    cpu_limits      = string
+    memory_requests = string
+    memory_limits   = string
+  })
+  default = {
+    cpu_requests    = "100m"
+    cpu_limits      = "500m"
+    memory_requests = "200Mi"
+    memory_limits   = "800Mi"
+  }
 }
 
 # bridge tx fetcher
 variable "bridge_image" {
   description = "Bridge Image"
   type        = string
+}
+
+variable "bridge_resources" {
+  description = "Bridge Resources Configuration"
+  type = object({
+    cpu_requests    = string
+    cpu_limits      = string
+    memory_requests = string
+    memory_limits   = string
+  })
+  default = {
+    cpu_requests    = "100m"
+    cpu_limits      = "500m"
+    memory_requests = "200Mi"
+    memory_limits   = "800Mi"
+  }
 }
 
 variable "listening_port" {
