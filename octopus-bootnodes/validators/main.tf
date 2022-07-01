@@ -39,10 +39,6 @@ resource "kubernetes_stateful_set" "default" {
           name    = "validators"
           image   = var.base_image
           command = [var.start_cmd]
-          env {
-            name = "RUST_LOG"
-            value = "beefy"
-          }
           args = concat([
             "--chain",
             var.chain_spec,
