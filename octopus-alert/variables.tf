@@ -62,6 +62,11 @@ variable "pagerduty_token" {
   type        = string
 }
 
+variable "pagerduty_service" {
+  description = "Pagerduty Service"
+  type        = string
+}
+
 variable "email_endpoint" {
   description = "EMAIL_ENDPOINT"
   type        = string

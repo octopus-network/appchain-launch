@@ -46,8 +46,9 @@ resource "kubernetes_secret" "default" {
     namespace = var.namespace
   }
   data = {
-    PAGERDUTY_TOKEN = var.pagerduty_token
-    EMAIL_ENDPOINT  = var.email_endpoint
+    PAGERDUTY_TOKEN	= var.pagerduty_token
+    PAGERDUTY_SERVICE	= var.pagerduty_service
+    EMAIL_ENDPOINT	= var.email_endpoint
   }
 }
 
