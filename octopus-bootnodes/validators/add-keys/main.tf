@@ -62,12 +62,12 @@ resource "kubernetes_job" "default" {
           command = ["/chain/run.sh", "${var.chain_name}-validators-${var.deploy_version}"]
           resources {
             limits = {
-              cpu    = "100m"
-              memory = "100Mi"
+              cpu    = "250m"
+              memory = "512Mi"
             }
             requests = {
-              cpu    = "100m"
-              memory = "100Mi"
+              cpu    = "250m"
+              memory = "512Mi"
             }
           }
           volume_mount {
@@ -181,12 +181,12 @@ resource "kubernetes_job" "restart" {
           # kubectl scale statefulset ${var.chain_name}-validators --replicas=4
           resources {
             limits = {
-              cpu    = "100m"
-              memory = "100Mi"
+              cpu    = "250m"
+              memory = "512Mi"
             }
             requests = {
-              cpu    = "100m"
-              memory = "100Mi"
+              cpu    = "250m"
+              memory = "512Mi"
             }
           }
           security_context {

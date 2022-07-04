@@ -79,28 +79,34 @@ variable "namespace" {
   default     = "default" # devnet / testnet / mainnet
 }
 
+variable "rust_log" {
+  description = "RUST_LOG"
+  type        = string
+  default     = ""
+}
+
 variable "cpu_requests" {
   description = ""
   type        = string
-  default     = "500m"
+  default     = "250m"
 }
 
 variable "cpu_limits" {
   description = ""
   type        = string
-  default     = "500m"
+  default     = "250m"
 }
 
 variable "memory_requests" {
   description = ""
   type        = string
-  default     = "1000Mi"
+  default     = "512Mi"
 }
 
 variable "memory_limits" {
   description = ""
   type        = string
-  default     = "1000Mi"
+  default     = "512Mi"
 }
 
 variable "volume_type" {

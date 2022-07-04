@@ -33,6 +33,7 @@ module "bootnodes" {
 
   namespace       = var.namespace
   replicas        = var.node_count
+  rust_log        = var.rust_log
   cpu_requests    = var.cpu_requests
   cpu_limits      = var.cpu_limits
   memory_requests = var.memory_requests
@@ -55,6 +56,7 @@ module "validators" {
 
   namespace       = var.namespace
   replicas        = var.node_count
+  rust_log        = var.rust_log
   cpu_requests    = var.cpu_requests
   cpu_limits      = var.cpu_limits
   memory_requests = var.memory_requests
