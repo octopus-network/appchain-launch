@@ -45,6 +45,12 @@ resource "kubernetes_deployment" "default" {
             sub_path   = "config.yaml"
             read_only  = true
           }
+          resources {
+            requests = {
+              cpu    = var.gateway_api.resources.api_cpu_requests
+              memory = var.gateway_api.resources.api_memory_requests
+            }
+          }
         }
         container {
           name  = "proxy"
@@ -52,6 +58,12 @@ resource "kubernetes_deployment" "default" {
           command = ["/cloud_sql_proxy", "-instances=${var.gateway_api.proxy_instance}"]
           security_context {
             run_as_non_root = true
+          }
+          resources {
+            requests = {
+              cpu    = var.gateway_api.resources.proxy_cpu_requests
+              memory = var.gateway_api.resources.proxy_memory_requests
+            }
           }
         }
         volume {

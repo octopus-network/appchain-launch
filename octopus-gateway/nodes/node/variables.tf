@@ -31,6 +31,11 @@ variable "telemetry_url" {
   type        = string
 }
 
+variable "rust_log" {
+  description = ""
+  type        = string
+}
+
 variable "cpu_requests" {
   description = ""
   type        = string

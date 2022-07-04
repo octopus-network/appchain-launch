@@ -27,6 +27,7 @@ module "fullnode" {
   start_cmd       = each.value.command
   replicas        = each.value.replicas
   telemetry_url   = each.value.telemetry_url
+  rust_log        = each.value.rust_log
   cpu_requests    = each.value.resources.cpu_requests
   cpu_limits      = each.value.resources.cpu_limits
   memory_requests = each.value.resources.memory_requests

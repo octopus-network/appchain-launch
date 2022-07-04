@@ -10,6 +10,12 @@ variable "gateway_api" {
     api_image      = string
     proxy_image    = string
     proxy_instance = string
+    resources      = object({
+      api_cpu_requests      = string
+      api_memory_requests   = string
+      proxy_cpu_requests    = string
+      proxy_memory_requests = string
+    })
   })
 }
 

@@ -29,6 +29,7 @@ variable "chains" {
     chain_spec    = string
     replicas      = number
     telemetry_url = string
+    rust_log      = string
     resources     = object({
       cpu_requests    = string
       cpu_limits      = string

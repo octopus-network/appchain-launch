@@ -70,6 +70,13 @@ resource "kubernetes_stateful_set" "default" {
           port {
             container_port = 30333
           }
+          dynamic "env" {
+            for_each = var.rust_log == "" ? []: [1]
+            content {
+              name = "RUST_LOG"
+              value = var.rust_log
+            }
+          }
           resources {
             limits = {
               cpu    = var.cpu_limits

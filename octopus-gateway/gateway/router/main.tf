@@ -50,6 +50,12 @@ resource "kubernetes_deployment" "default" {
               }
             }
           }
+          resources {
+            requests = {
+              cpu    = var.gateway_router.resources.cpu_requests
+              memory = var.gateway_router.resources.memory_requests
+            }
+          }
         }
       }
     }
