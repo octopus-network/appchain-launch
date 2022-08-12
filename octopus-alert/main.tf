@@ -299,4 +299,15 @@ resource "kubernetes_stateful_set" "default" {
       }
     }
   }
+  lifecycle {
+    ignore_changes = [
+      spec[0].template[0].spec[0].container[0].resources,
+      spec[0].template[0].spec[0].container[1].resources,
+      spec[0].template[0].spec[0].container[2].resources,
+      spec[0].template[0].spec[0].container[3].resources,
+      spec[0].template[0].spec[0].container[4].resources,
+      spec[0].template[0].spec[0].container[5].resources,
+      spec[0].template[0].spec[0].container[6].resources
+    ]
+  }
 }

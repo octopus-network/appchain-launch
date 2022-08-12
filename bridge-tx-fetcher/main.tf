@@ -128,6 +128,12 @@ resource "kubernetes_deployment" "default" {
       }
     }
   }
+  lifecycle {
+    ignore_changes = [
+      spec[0].template[0].spec[0].container[0].resources,
+      spec[0].template[0].spec[0].container[1].resources
+    ]
+  }
 }
 
 resource "kubernetes_manifest" "default" {

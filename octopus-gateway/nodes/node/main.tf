@@ -129,6 +129,11 @@ resource "kubernetes_stateful_set" "default" {
       }
     }
   }
+  lifecycle {
+    ignore_changes = [
+      spec[0].template[0].spec[0].container[0].resources
+    ]
+  }
 }
 
 resource "kubernetes_service" "default" {
