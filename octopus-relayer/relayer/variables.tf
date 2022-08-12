@@ -67,25 +67,25 @@ variable "replicas" {
 variable "cpu_requests" {
   description = ""
   type        = string
-  default     = "500m"
+  default     = "250m"
 }
 
 variable "cpu_limits" {
   description = ""
   type        = string
-  default     = "500m"
+  default     = "250m"
 }
 
 variable "memory_requests" {
   description = ""
   type        = string
-  default     = "1000Mi"
+  default     = "512Mi"
 }
 
 variable "memory_limits" {
   description = ""
   type        = string
-  default     = "1000Mi"
+  default     = "512Mi"
 }
 
 variable "volume_type" {
@@ -97,7 +97,7 @@ variable "volume_type" {
 variable "volume_size" {
   description = ""
   type        = string
-  default     = "10Gi"
+  default     = "20Gi"
 }
 
 variable "namespace" {

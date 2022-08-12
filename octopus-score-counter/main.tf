@@ -117,8 +117,8 @@ resource "kubernetes_deployment" "default" {
           }
           resources {
             requests = {
-              cpu    = "1000m"
-              memory = "2048Mi"
+              cpu    = var.gce_proxy_resources.cpu_requests
+              memory = var.gce_proxy_resources.memory_requests
             }
           }
           security_context {
@@ -140,17 +140,19 @@ resource "kubernetes_deployment" "default" {
           }
           resources {
             requests = {
-              cpu    = "200m"
-              memory = "256Mi"
-            }
-            limits = {
-              cpu    = "1000m"
-              memory = "1024Mi"
+              cpu    = var.score_counter_resources.cpu_requests
+              memory = var.score_counter_resources.memory_requests
             }
           }
         }
         service_account_name = kubernetes_service_account.default.metadata.0.name
       }
     }
+  }
+  lifecycle {
+    ignore_changes = [
+      spec[0].template[0].spec[0].container[0].resources,
+      spec[0].template[0].spec[0].container[1].resources
+    ]
   }
 }

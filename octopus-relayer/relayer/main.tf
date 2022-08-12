@@ -62,16 +62,6 @@ resource "kubernetes_stateful_set" "default" {
           name              = "init-db"
           image             = "busybox"
           command           = ["touch", "/tmp/relayer.db"]
-          resources {
-            limits = {
-              cpu    = "100m"
-              memory = "100Mi"
-            }
-            requests = {
-              cpu    = "100m"
-              memory = "100Mi"
-            }
-          }
           volume_mount {
             name       = "relayer-data-volume"
             mount_path = "/tmp"
@@ -122,5 +112,10 @@ resource "kubernetes_stateful_set" "default" {
         }
       }
     }
+  }
+  lifecycle {
+    ignore_changes = [
+      spec[0].template[0].spec[0].container[0].resources
+    ]
   }
 }

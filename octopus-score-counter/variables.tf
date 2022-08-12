@@ -3,6 +3,18 @@ variable "score_counter_image" {
   type        = string
 }
 
+variable "score_counter_resources" {
+  description = "Octopus Score Counter Resources"
+  type        = object({
+    cpu_requests      = string
+    memory_requests   = string
+  })
+  default = {
+    cpu_requests    = "150m"
+    memory_requests = "256Mi"
+  }
+}
+
 # postgresql
 variable "database" {
   description = "DB Configuration"
@@ -23,6 +35,18 @@ variable "gce_proxy_image" {
 variable "gce_proxy_instances" {
   description = "GCE Proxy Instances"
   type        = string
+}
+
+variable "gce_proxy_resources" {
+  description = "Octopus GCE Proxy Resources"
+  type        = object({
+    cpu_requests      = string
+    memory_requests   = string
+  })
+  default = {
+    cpu_requests    = "100m"
+    memory_requests = "256Mi"
+  }
 }
 
 variable "service_account" {
