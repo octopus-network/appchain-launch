@@ -97,7 +97,7 @@ variable "volume_type" {
 variable "volume_size" {
   description = ""
   type        = string
-  default     = "20Gi"
+  default     = "1Gi"
 }
 
 variable "namespace" {
