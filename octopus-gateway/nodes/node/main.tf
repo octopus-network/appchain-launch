@@ -40,7 +40,7 @@ resource "kubernetes_stateful_set" "default" {
             "/substrate/data",
             "--ws-external",
             "--ws-max-connections",
-            "1000",
+            "2000",
             "--rpc-external",
             "--rpc-cors",
             "all",
