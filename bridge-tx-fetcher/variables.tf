@@ -86,6 +86,11 @@ variable "listening_port" {
   default     = 3000
 }
 
+variable "near_env" {
+  description = "NEAR_ENV"
+  type        = string
+}
+
 variable "near_rpc_endpoint" {
   description = "NEAR_RPC_ENDPOINT"
   type        = string
@@ -119,5 +124,6 @@ variable "appchain_settings" {
       appchainName     = string
       anchorContractId = string
       subqlEndpoint    = string
+      httpRpcEndpoint  = string
   })) 
 }
