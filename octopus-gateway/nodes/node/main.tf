@@ -49,8 +49,6 @@ resource "kubernetes_stateful_set" "default" {
             "--prometheus-external",
             "--prometheus-port",
             "9615",
-            "--wasm-execution",
-            "Compiled",
             "--enable-offchain-indexing",
             "true",
             "--pruning",
