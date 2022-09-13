@@ -122,6 +122,7 @@ variable "appchain_settings" {
   description = "APPCHAIN_SETTINGS"
   type        = list(object({
       appchainName     = string
+      appchainId       = string
       anchorContractId = string
       subqlEndpoint    = string
       httpRpcEndpoint  = string
