@@ -74,13 +74,13 @@ variable "cpu_limits" {
 variable "memory_requests" {
   description = ""
   type        = string
-  default     = "512Mi"
+  default     = "1000Mi"
 }
 
 variable "memory_limits" {
   description = ""
   type        = string
-  default     = "512Mi"
+  default     = "1000Mi"
 }
 
 variable "volume_type" {
