@@ -81,8 +81,10 @@ spec:
       serviceAccountName: subql-ksa
       containers:
       - name: strapi
-        image: strapi/strapi:3.6.8
+        image: naskio/strapi
         env:
+        - name: NODE_ENV
+          value: "production"
         - name: DATABASE_CLIENT
           value: "postgres"
         - name: DATABASE_HOST
