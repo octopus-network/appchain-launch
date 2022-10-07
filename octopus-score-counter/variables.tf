@@ -74,6 +74,7 @@ variable "contract" {
     account_id        = string
     private_key       = string
     counting_interval = number
+    dao_contract_id   = string
   })
   sensitive = true
 }

@@ -77,6 +77,7 @@ resource "kubernetes_config_map" "default" {
     TOKEN_CONTRACT_ID            = var.contract.token_contract_id
     ADMIN_ACCOUNT_ID             = var.contract.account_id
     COUNTING_INTERVAL_IN_SECONDS = var.contract.counting_interval
+    DAO_CONTRACT_ID              = var.contract.dao_contract_id
   }
 }
 
