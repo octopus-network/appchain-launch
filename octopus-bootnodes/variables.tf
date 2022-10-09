@@ -118,5 +118,5 @@ variable "volume_type" {
 variable "volume_size" {
   description = ""
   type        = string
-  default     = "10Gi"
+  default     = "20Gi"
 }
