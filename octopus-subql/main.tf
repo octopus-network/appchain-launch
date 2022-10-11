@@ -71,7 +71,7 @@ resource "google_compute_managed_ssl_certificate" "default" {
   }
 }
 
-resource "kubernetes_ingress" "default" {
+resource "kubernetes_ingress_v1" "default" {
   metadata {
     name        = "subql-ingress"
     namespace   = data.kubernetes_namespace.default.metadata.0.name
@@ -89,8 +89,12 @@ resource "kubernetes_ingress" "default" {
           for_each = module.subql
           content {
             backend {
-              service_name = path.value.service_name
-              service_port = path.value.service_port
+              service {
+                name = path.value.service_name
+                port {
+                  number = path.value.service_port
+                }
+              }
             }
             path = "/${path.key}"
           }

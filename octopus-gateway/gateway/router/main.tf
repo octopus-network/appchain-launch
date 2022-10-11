@@ -154,7 +154,7 @@ resource "kubernetes_manifest" "certificate" {
   }
 }
 
-resource "kubernetes_ingress" "default" {
+resource "kubernetes_ingress_v1" "default" {
   metadata {
     name        = "octopus-gateway-ingress"
     namespace   = var.namespace
@@ -165,9 +165,13 @@ resource "kubernetes_ingress" "default" {
     }
   }
   spec {
-    backend {
-      service_name = kubernetes_service.default.metadata.0.name
-      service_port = 80
+    default_backend {
+      service {
+        name = kubernetes_service.default.metadata.0.name
+        port {
+          number = 80
+        }
+      }
     }
   }
 }
