@@ -102,7 +102,7 @@ resource "kubernetes_stateful_set" "default" {
             "true",
             "--telemetry-url",
             "${var.telemetry_url}"
-          ], flatten([for i, x in var.bootnodes: ["--bootnodes", x]]))
+          ], (var.pruning != null ? ["--pruning", var.pruning] : []), flatten([for i, x in var.bootnodes: ["--bootnodes", x]]))
           port {
             container_port = 9933
           }

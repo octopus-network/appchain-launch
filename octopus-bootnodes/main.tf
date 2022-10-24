@@ -25,6 +25,7 @@ module "bootnodes" {
   chain_spec     = var.chain_spec
   base_image     = var.base_image
   start_cmd      = var.start_cmd
+  pruning        = var.pruning
   telemetry_url  = var.telemetry_url
   bootnodes      = var.bootnodes
   keys_octoup    = var.keys_octoup_node

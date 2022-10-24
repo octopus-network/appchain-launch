@@ -25,6 +25,12 @@ variable "telemetry_url" {
   type        = string
 }
 
+variable "pruning" {
+  description = "Pruning flag"
+  type        = string
+  default     = null
+}
+
 variable "bootnodes" {
   description = "Bootnodes"
   type        = list(string)
