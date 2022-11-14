@@ -80,6 +80,9 @@ variable "contract" {
     private_key       = string
     counting_interval = number
     dao_contract_id   = string
+    # update-prices service
+    price_needed_appchains       = string
+    appchain_price_setter_phrase = string
   })
   sensitive = true
 }

@@ -55,6 +55,8 @@ resource "kubernetes_secret" "default" {
     PGDATABASE = var.database.database
 
     ADMIN_PRIVATE_KEY = var.contract.private_key
+
+    APPCHAIN_PRICE_SETTER_PHRASE = var.appchain_price_setter_phrase
   }
 }
 
@@ -80,6 +82,8 @@ resource "kubernetes_config_map" "default" {
     ADMIN_ACCOUNT_ID             = var.contract.account_id
     COUNTING_INTERVAL_IN_SECONDS = var.contract.counting_interval
     DAO_CONTRACT_ID              = var.contract.dao_contract_id
+
+    PRICE_NEEDED_APPCHAINS = var.price_needed_appchains
   }
 }
 
