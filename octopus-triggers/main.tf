@@ -56,7 +56,7 @@ resource "kubernetes_secret" "default" {
 
     ADMIN_PRIVATE_KEY = var.contract.private_key
 
-    APPCHAIN_PRICE_SETTER_PHRASE = var.appchain_price_setter_phrase
+    APPCHAIN_PRICE_SETTER_PHRASE = var.contract.appchain_price_setter_phrase
   }
 }
 
@@ -83,7 +83,7 @@ resource "kubernetes_config_map" "default" {
     COUNTING_INTERVAL_IN_SECONDS = var.contract.counting_interval
     DAO_CONTRACT_ID              = var.contract.dao_contract_id
 
-    PRICE_NEEDED_APPCHAINS = var.price_needed_appchains
+    PRICE_NEEDED_APPCHAINS = var.contract.price_needed_appchains
   }
 }
 
