@@ -34,4 +34,8 @@ module "relayer" {
   near_wallet_url           = var.near.wallet_url
   near_helper_url           = var.near.helper_url
   namespace                 = var.namespace
+  APPCHAIN_SETTINGS         = var.APPCHAIN_SETTINGS
+  CONTRACTS                 = var.CONTRACTS
+  NEAR_SETTINGS             = var.NEAR_SETTINGS
+  RELAYER_NEAR_ACCOUNT      = var.RELAYER_NEAR_ACCOUNT
 }

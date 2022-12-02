@@ -105,3 +105,24 @@ variable "namespace" {
   type        = string
   default     = "default" # devnet / testnet / mainnet
 }
+
+# public variable set
+variable "APPCHAIN_SETTINGS" {
+  description = "APPCHAIN_SETTINGS"
+  type        = string
+}
+
+variable "CONTRACTS" {
+  description = "CONTRACTS"
+  type        = string
+}
+
+variable "NEAR_SETTINGS" {
+  description = "NEAR_SETTINGS"
+  type        = string
+}
+
+variable "RELAYER_NEAR_ACCOUNT" {
+  description = "RELAYER_NEAR_ACCOUNT"
+  type        = string
+}
