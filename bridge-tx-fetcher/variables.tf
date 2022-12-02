@@ -86,16 +86,6 @@ variable "listening_port" {
   default     = 3000
 }
 
-variable "near_env" {
-  description = "NEAR_ENV"
-  type        = string
-}
-
-variable "near_rpc_endpoint" {
-  description = "NEAR_RPC_ENDPOINT"
-  type        = string
-}
-
 variable "near_indexer_db_config" {
   description = "NEAR_INDEXER_DB_CONFIG"
   type        = object({
@@ -118,13 +108,23 @@ variable "data_db_config" {
   })
 }
 
-variable "appchain_settings" {
+# public variable set
+variable "APPCHAIN_SETTINGS" {
   description = "APPCHAIN_SETTINGS"
-  type        = list(object({
-      appchainName     = string
-      appchainId       = string
-      anchorContractId = string
-      subqlEndpoint    = string
-      httpRpcEndpoint  = string
-  })) 
+  type        = string
+}
+
+variable "APPCHAIN_IDS" {
+  description = "APPCHAIN_IDS"
+  type        = string
+}
+
+variable "CONTRACTS" {
+  description = "CONTRACTS"
+  type        = string
+}
+
+variable "NEAR_SETTINGS" {
+  description = "APPCHAIN_IDS"
+  type        = string
 }

@@ -55,9 +55,10 @@ resource "kubernetes_config_map" "default" {
   }
   data = {
     LISTENING_PORT    = var.listening_port
-    NEAR_ENV = var.near_env
-    NEAR_RPC_ENDPOINT = var.near_rpc_endpoint
-    APPCHAIN_SETTINGS = jsonencode(var.appchain_settings)
+    APPCHAIN_SETTINGS = var.APPCHAIN_SETTINGS
+    APPCHAIN_IDS      = var.APPCHAIN_IDS
+    NEAR_SETTINGS     = var.NEAR_SETTINGS
+    CONTRACTS         = var.CONTRACTS
   }
 }
 
