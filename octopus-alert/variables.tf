@@ -158,19 +158,23 @@ variable "near_errors" {
   })
 }
 
-variable "appchain_settings" {
-  description = "APPCHAIN_SETTINGS"
-  type        = list(object({
-      appchainName               = string
-      anchorContractId           = string
-      appchainEndpoint           = string
-      mmrExpireBlocks            = number
-      syncHistoryBlocks          = number
-      appchain2NearExpireBlocks  = number
-      near2AppchainExpireMinutes = number
+# public variable set
+variable "APPCHAIN_IDS" {
+  description = "APPCHAIN_IDS"
+  type        = string
+}
 
-      eraSwitchExpireMinutes          = number
-      eraPayoutExpireMinutes          = number
-      eraActionCompleteExpiredMinutes = number
-  })) 
+variable "GLOBAL_SETTINGS" {
+  description = "GLOBAL_SETTINGS"
+  type        = string
+}
+
+variable "APPCHAIN_SETTINGS" {
+  description = "APPCHAIN_SETTINGS"
+  type        = string
+}
+
+variable "CONTRACTS" {
+  description = "CONTRACTS"
+  type        = string
 }

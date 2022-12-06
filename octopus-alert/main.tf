@@ -36,7 +36,10 @@ resource "kubernetes_config_map" "default" {
     MMR_CONFIG        	= jsonencode(var.mmr_config)
     UNWITHDRAWN_CONFIG	= jsonencode(var.unwithdrawn_config)
     NEAR_ERRORS       	= jsonencode(var.near_errors)
-    APPCHAIN_SETTINGS 	= jsonencode(var.appchain_settings)
+    APPCHAIN_SETTINGS 	= var.APPCHAIN_SETTINGS
+    CONTRACTS         	= var.CONTRACTS
+    APPCHAIN_IDS      	= var.APPCHAIN_IDS
+    GLOBAL_SETTINGS   	= var.GLOBAL_SETTINGS
   }
 }
 

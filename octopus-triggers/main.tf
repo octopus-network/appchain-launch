@@ -54,9 +54,7 @@ resource "kubernetes_secret" "default" {
     PGPASSWORD = var.database.password
     PGDATABASE = var.database.database
 
-    ADMIN_PRIVATE_KEY = var.contract.private_key
-
-    APPCHAIN_PRICE_SETTER_PHRASE = var.contract.appchain_price_setter_phrase
+    REGISTRY_ADMIN_NEAR_ACCOUNT = var.REGISTRY_ADMIN_NEAR_ACCOUNT
   }
 }
 
@@ -72,18 +70,13 @@ resource "kubernetes_config_map" "default" {
     PGHOST              = var.database.host
     PGPORT              = var.database.port
 
-    NEAR_NODE_URL   = var.near.node_url
-    NEAR_WALLET_URL = var.near.wallet_url
-    NEAR_HELPER_URL = var.near.helper_url
+    APPCHAIN_SETTINGS          = var.APPCHAIN_SETTINGS
+    CONTRACTS                  = var.CONTRACTS
+    NEAR_SETTINGS              = var.NEAR_SETTINGS
 
     NETWORK_ID                   = var.contract.network_id
-    REGISTRY_CONTRACT_ID         = var.contract.contract_id
-    TOKEN_CONTRACT_ID            = var.contract.token_contract_id
-    ADMIN_ACCOUNT_ID             = var.contract.account_id
     COUNTING_INTERVAL_IN_SECONDS = var.contract.counting_interval
-    DAO_CONTRACT_ID              = var.contract.dao_contract_id
-
-    PRICE_NEEDED_APPCHAINS = var.contract.price_needed_appchains
+    PRICE_NEEDED_APPCHAIN_IDS    = var.contract.price_needed_appchain_ids
   }
 }
 
