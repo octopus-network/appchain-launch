@@ -46,17 +46,6 @@ variable "resources" {
   }
 }
 
-# near
-variable "near" {
-  description = "Near Configuration"
-  type = object({
-    env        = string
-    node_url   = string
-    wallet_url = string
-    helper_url = string
-  })
-}
-
 variable "pagerduty_token" {
   description = "Pagerduty Token"
   type        = string
@@ -176,5 +165,10 @@ variable "APPCHAIN_SETTINGS" {
 
 variable "CONTRACTS" {
   description = "CONTRACTS"
+  type        = string
+}
+
+variable "NEAR_SETTINGS" {
+  description = "NEAR_SETTINGS"
   type        = string
 }

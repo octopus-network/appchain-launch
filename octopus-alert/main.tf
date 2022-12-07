@@ -23,23 +23,20 @@ resource "kubernetes_config_map" "default" {
     namespace = var.namespace
   }
   data = {
-    NEAR_ENV          	= var.near.env
-    NEAR_NODE_URL     	= var.near.node_url
-    NEAR_WALLET_URL   	= var.near.wallet_url
-    NEAR_HELPER_URL   	= var.near.helper_url
-    BALANCE_CONFIG    	= jsonencode(var.balance_config)
-    REGISTRY_ADDRESS   	= jsonencode(var.registry_address)
-    OCT_TOKEN_ADDRESS  	= jsonencode(var.oct_token_address)
-    LPOS_CONFIG       	= jsonencode(var.lpos_config)
-    BRIDGE_CONFIG     	= jsonencode(var.bridge_config)
-    ERA_CONFIG        	= jsonencode(var.era_config)
-    MMR_CONFIG        	= jsonencode(var.mmr_config)
-    UNWITHDRAWN_CONFIG	= jsonencode(var.unwithdrawn_config)
-    NEAR_ERRORS       	= jsonencode(var.near_errors)
-    APPCHAIN_SETTINGS 	= var.APPCHAIN_SETTINGS
-    CONTRACTS         	= var.CONTRACTS
-    APPCHAIN_IDS      	= var.APPCHAIN_IDS
-    GLOBAL_SETTINGS   	= var.GLOBAL_SETTINGS
+    BALANCE_CONFIG     = jsonencode(var.balance_config)
+    REGISTRY_ADDRESS   = jsonencode(var.registry_address)
+    OCT_TOKEN_ADDRESS  = jsonencode(var.oct_token_address)
+    LPOS_CONFIG        = jsonencode(var.lpos_config)
+    BRIDGE_CONFIG      = jsonencode(var.bridge_config)
+    ERA_CONFIG         = jsonencode(var.era_config)
+    MMR_CONFIG         = jsonencode(var.mmr_config)
+    UNWITHDRAWN_CONFIG = jsonencode(var.unwithdrawn_config)
+    NEAR_ERRORS        = jsonencode(var.near_errors)
+    APPCHAIN_SETTINGS  = var.APPCHAIN_SETTINGS
+    CONTRACTS          = var.CONTRACTS
+    NEAR_SETTINGS      = var.NEAR_SETTINGS
+    APPCHAIN_IDS       = var.APPCHAIN_IDS
+    GLOBAL_SETTINGS    = var.GLOBAL_SETTINGS
   }
 }
 
