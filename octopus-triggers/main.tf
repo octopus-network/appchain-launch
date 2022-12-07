@@ -54,6 +54,7 @@ resource "kubernetes_secret" "default" {
     PGPASSWORD = var.database.password
     PGDATABASE = var.database.database
 
+    APPCHAIN_ORACLE_PHRASE      = var.APPCHAIN_ORACLE_PHRASE
     REGISTRY_ADMIN_NEAR_ACCOUNT = var.REGISTRY_ADMIN_NEAR_ACCOUNT
   }
 }
@@ -70,9 +71,9 @@ resource "kubernetes_config_map" "default" {
     PGHOST              = var.database.host
     PGPORT              = var.database.port
 
-    APPCHAIN_SETTINGS          = var.APPCHAIN_SETTINGS
-    CONTRACTS                  = var.CONTRACTS
-    NEAR_SETTINGS              = var.NEAR_SETTINGS
+    APPCHAIN_SETTINGS = var.APPCHAIN_SETTINGS
+    CONTRACTS         = var.CONTRACTS
+    NEAR_SETTINGS     = var.NEAR_SETTINGS
 
     NETWORK_ID                   = var.contract.network_id
     COUNTING_INTERVAL_IN_SECONDS = var.contract.counting_interval

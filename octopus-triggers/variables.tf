@@ -113,6 +113,11 @@ variable "NEAR_SETTINGS" {
   type        = string
 }
 
+variable "APPCHAIN_ORACLE_PHRASE" {
+  description = "APPCHAIN_ORACLE_PHRASE"
+  type        = string
+}
+
 variable "REGISTRY_ADMIN_NEAR_ACCOUNT" {
   description = "REGISTRY_ADMIN_NEAR_ACCOUNT"
   type        = string
