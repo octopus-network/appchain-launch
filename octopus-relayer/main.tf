@@ -21,7 +21,7 @@ module "relayer" {
   source = "./relayer"
 
   for_each                  = var.relays
-  appchain_id               = each.key
+  appchain_id               = each.value.appchain_id
   node_env                  = each.value.node_env
   appchain_endpoint         = each.value.appchain_endpoint
   anchor_contract_id        = each.value.anchor_contract_id
