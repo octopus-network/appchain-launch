@@ -23,6 +23,11 @@ variable "appchain_id" {
   type        = string
 }
 
+variable "appchain_id_env" {
+  description = "description"
+  type        = string
+}
+
 variable "appchain_endpoint" {
   description = "description"
   type        = string

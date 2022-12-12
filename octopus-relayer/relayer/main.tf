@@ -5,7 +5,7 @@ resource "kubernetes_config_map" "default" {
   }
   data = {
     NODE_ENV                   = var.node_env
-    APPCHAIN_ID                = var.appchain_id
+    APPCHAIN_ID                = var.appchain_id_env
     APPCHAIN_ENDPOINT          = var.appchain_endpoint
     RELAYER_ID                 = var.relayer_id
     NEAR_NODE_URL              = var.near_node_url
