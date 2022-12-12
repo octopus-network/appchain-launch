@@ -111,20 +111,34 @@ variable "data_db_config" {
 # public variable set
 variable "APPCHAIN_SETTINGS" {
   description = "APPCHAIN_SETTINGS"
-  type        = string
+  type = map(object({
+    appchainId    = string
+    subqlEndpoint = string
+    wsRpcEndpoint = string
+  }))
 }
 
 variable "APPCHAIN_IDS" {
   description = "APPCHAIN_IDS"
-  type        = string
+  type        = list(string)
 }
 
 variable "CONTRACTS" {
   description = "CONTRACTS"
-  type        = string
+  type = object({
+    registryContract   = string
+    daoContractId      = string
+    octTokenContractId = string
+  })
 }
 
 variable "NEAR_SETTINGS" {
-  description = "APPCHAIN_IDS"
-  type        = string
+  description = "NEAR_SETTINGS"
+  type = object({
+    nearEnv             = string
+    nearNodeUrl         = string
+    archivalNearNodeUrl = string
+    walletUrl           = string
+    helperUrl           = string
+  })
 }

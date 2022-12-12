@@ -109,20 +109,37 @@ variable "namespace" {
 # public variable set
 variable "APPCHAIN_SETTINGS" {
   description = "APPCHAIN_SETTINGS"
-  type        = string
+  type = map(object({
+    appchainId    = string
+    subqlEndpoint = string
+    wsRpcEndpoint = string
+  }))
 }
 
 variable "CONTRACTS" {
   description = "CONTRACTS"
-  type        = string
+  type = object({
+    registryContract   = string
+    daoContractId      = string
+    octTokenContractId = string
+  })
 }
 
 variable "NEAR_SETTINGS" {
   description = "NEAR_SETTINGS"
-  type        = string
+  type = object({
+    nearEnv             = string
+    nearNodeUrl         = string
+    archivalNearNodeUrl = string
+    walletUrl           = string
+    helperUrl           = string
+  })
 }
 
 variable "RELAYER_NEAR_ACCOUNT" {
   description = "RELAYER_NEAR_ACCOUNT"
-  type        = string
+  type = object({
+    id         = string
+    privateKey = string
+  })
 }

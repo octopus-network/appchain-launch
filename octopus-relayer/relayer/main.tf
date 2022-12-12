@@ -14,9 +14,9 @@ resource "kubernetes_config_map" "default" {
     ANCHOR_CONTRACT_ID         = var.anchor_contract_id
     START_BLOCK_HEIGHT         = var.start_block_height
     UPDATE_STATE_MIN_INTERVAL  = var.update_state_min_interval
-    APPCHAIN_SETTINGS          = var.APPCHAIN_SETTINGS
-    CONTRACTS                  = var.CONTRACTS
-    NEAR_SETTINGS              = var.NEAR_SETTINGS
+    APPCHAIN_SETTINGS          = jsonencode(var.APPCHAIN_SETTINGS)
+    CONTRACTS                  = jsonencode(var.CONTRACTS)
+    NEAR_SETTINGS              = jsonencode(var.NEAR_SETTINGS)
   }
 }
 
@@ -27,7 +27,7 @@ resource "kubernetes_secret" "default" {
   }
   data = {
     RELAYER_PRIVATE_KEY  = var.relayer_private_key
-    RELAYER_NEAR_ACCOUNT = var.RELAYER_NEAR_ACCOUNT
+    RELAYER_NEAR_ACCOUNT = jsonencode(var.RELAYER_NEAR_ACCOUNT)
   }
 }
 

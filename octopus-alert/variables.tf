@@ -150,25 +150,45 @@ variable "near_errors" {
 # public variable set
 variable "APPCHAIN_IDS" {
   description = "APPCHAIN_IDS"
-  type        = string
+  type        = list(string)
 }
 
 variable "GLOBAL_SETTINGS" {
   description = "GLOBAL_SETTINGS"
-  type        = string
+  type = object({
+    mmrExpireBlocks                 = number
+    syncHistoryBlocks               = number
+    appchain2NearExpireBlocks       = number
+    near2AppchainExpireMinutes      = number
+    eraSwitchExpireMinutes          = number
+    eraActionCompleteExpiredMinutes = number
+  })
 }
 
 variable "APPCHAIN_SETTINGS" {
   description = "APPCHAIN_SETTINGS"
-  type        = string
+  type = map(object({
+    appchainId    = string
+    subqlEndpoint = string
+    wsRpcEndpoint = string
+  }))
 }
-
 variable "CONTRACTS" {
   description = "CONTRACTS"
-  type        = string
+  type = object({
+    registryContract   = string
+    daoContractId      = string
+    octTokenContractId = string
+  })
 }
 
 variable "NEAR_SETTINGS" {
   description = "NEAR_SETTINGS"
-  type        = string
+  type = object({
+    nearEnv             = string
+    nearNodeUrl         = string
+    archivalNearNodeUrl = string
+    walletUrl           = string
+    helperUrl           = string
+  })
 }
