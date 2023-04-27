@@ -1,3 +1,14 @@
+resource "kubernetes_secret" "default" {
+  metadata {
+    name      = "${var.chain_name}-fullnode-secret"
+    namespace = var.namespace
+  }
+  data = {
+    secret_phrase	= var.secret_phrase
+  }
+  count = var.enable_broker ? 1 : 0
+}
+
 resource "kubernetes_stateful_set" "default" {
   metadata {
     name      = "${var.chain_name}-fullnode"
@@ -30,10 +41,10 @@ resource "kubernetes_stateful_set" "default" {
       }
       spec {
         container {
-          name              = "fullnode"
-          image             = var.base_image
+          name    = "fullnode"
+          image   = var.base_image
           command = [var.start_cmd]
-          args = [
+          args = concat([
             "--chain",
             var.chain_spec,
             "--base-path",
@@ -44,8 +55,6 @@ resource "kubernetes_stateful_set" "default" {
             "--rpc-external",
             "--rpc-cors",
             "all",
-            "--rpc-methods",
-            "Unsafe",
             "--prometheus-external",
             "--prometheus-port",
             "9615",
@@ -57,7 +66,7 @@ resource "kubernetes_stateful_set" "default" {
             "archive",
             "--telemetry-url",
             "${var.telemetry_url}"
-          ]
+          ], (var.enable_broker ? ["--relayer", "--rpc-methods", "Safe"] : ["--rpc-methods", "Unsafe"]))
           port {
             container_port = 9933
           }
@@ -106,6 +115,47 @@ resource "kubernetes_stateful_set" "default" {
             }
             initial_delay_seconds = 10
             timeout_seconds       = 1
+          }
+        }
+        dynamic init_container{
+          for_each = var.enable_broker ? [1] : []
+          content {
+            name    = "insert-key"
+            image   = var.base_image
+            command = [var.start_cmd]
+            args = [
+              "key",
+              "insert",
+              "--chain",
+              var.chain_spec,
+              "--base-path",
+              "/substrate/data",
+              "--key-type",
+              "rely",
+              "--scheme",
+              "sr25519",
+              "--suri",
+              "/tmp/secret_phrase"
+            ]
+            volume_mount {
+              name       = "fullnode-data-volume"
+              mount_path = "/substrate"
+            }
+            volume_mount {
+              name       = "fullnode-secret-volume"
+              mount_path = "/tmp/secret_phrase"
+              sub_path   = "secret_phrase"
+              read_only  = true
+            }
+          }
+        }
+        dynamic volume {
+          for_each = var.enable_broker ? [1] : []
+          content {
+            name = "fullnode-secret-volume"
+            secret {
+              secret_name = kubernetes_secret.default[0].metadata.0.name
+            }
           }
         }
         security_context {

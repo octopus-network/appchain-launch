@@ -28,6 +28,8 @@ module "fullnode" {
   replicas        = each.value.replicas
   telemetry_url   = each.value.telemetry_url
   rust_log        = each.value.rust_log
+  enable_broker   = try(var.chains_broker[each.key].enable_broker, false)
+  secret_phrase   = try(var.chains_broker[each.key].secret_phrase, null)
   cpu_requests    = each.value.resources.cpu_requests
   cpu_limits      = each.value.resources.cpu_limits
   memory_requests = each.value.resources.memory_requests

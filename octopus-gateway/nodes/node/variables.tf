@@ -36,6 +36,17 @@ variable "rust_log" {
   type        = string
 }
 
+variable "enable_broker" {
+  description = ""
+  type        = bool
+}
+
+variable "secret_phrase" {
+  description = ""
+  type        = string
+  sensitive   = true
+}
+
 variable "cpu_requests" {
   description = ""
   type        = string
