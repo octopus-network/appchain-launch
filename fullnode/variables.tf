@@ -23,6 +23,7 @@ variable "nodes" {
 
     moniker = string
     genesis = string
+    peers   = list(string)
 
     resources = object({
       cpu_requests    = string

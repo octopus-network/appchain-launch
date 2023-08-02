@@ -1,3 +1,32 @@
+resource "google_compute_address" "default" {
+  count = var.nodes.replicas
+  name  = "ip-${var.chain_name}-validator-${count.index}"
+}
+
+# data "google_dns_managed_zone" "default" {
+#   name = var.dns_zone
+# }
+
+# resource "google_dns_record_set" "default" {
+#   count        = var.replicas
+#   name         = "validator-${count.index}.${var.chain_name}.${data.google_dns_managed_zone.default.dns_name}"
+#   managed_zone = data.google_dns_managed_zone.default.name
+#   type         = "A"
+#   ttl          = 300
+#   rrdatas = [google_compute_address.default.*.address[count.index]]
+# }
+
+locals {
+  persistent_peers = [
+    for idx, addr in google_compute_address.default.*.address :
+      "${var.keys[idx]["node_id"]}@${addr}:26656"
+  ]
+
+  # persistent_peers_dns = [
+  #   for idx, addr in google_compute_address.default.*.address:
+  #     "${var.keys[idx]["node_id"]}@validator-${idx}.${var.chain_name}.${trimsuffix(data.google_dns_managed_zone.default.dns_name, ".")}:26656"
+  # ]
+}
 
 resource "kubernetes_config_map" "default" {
   metadata {
@@ -184,8 +213,8 @@ resource "kubernetes_service" "default" {
     name      = "${var.chain_name}-validator-${count.index}"
     namespace = var.namespace
     labels = {
-      name  = "${var.chain_name}-validator"
-      app   = "validators"
+      name  = "${var.chain_name}-validator-${count.index}"
+      app   = "validator"
       chain = var.chain_name
     }
   }
@@ -201,6 +230,7 @@ resource "kubernetes_service" "default" {
       target_port = 26656
     }
     type                    = "LoadBalancer"
+    load_balancer_ip        = google_compute_address.default[count.index].address
     external_traffic_policy = "Local"
   }
 }

@@ -1,6 +1,6 @@
 resource "google_compute_address" "default" {
   count = var.nodes.replicas
-  name  = "ip-${var.chain_name}-${count.index}"
+  name  = "ip-${var.chain_name}-fullnode-${count.index}"
 }
 
 # data "google_dns_managed_zone" "default" {
@@ -21,11 +21,6 @@ locals {
     for idx, addr in google_compute_address.default.*.address:
       "${var.keys[idx]["node_id"]}@${addr}:26656"
   ]
-
-  # persistent_peers = [
-  #   "${var.keys[0]["node_id"]}@0.0.0.0:26656",
-  #   "${var.keys[1]["node_id"]}@1.1.1.1:26656"
-  # ]
 
   # persistent_peers_dns = [
   #   for idx, addr in google_compute_address.default.*.address:
@@ -143,8 +138,8 @@ resource "kubernetes_stateful_set" "default" {
           }
           liveness_probe {
             http_get {
-              path   = "/health"
-              port   = 26657
+              path = "/health"
+              port = 26657
             }
             initial_delay_seconds = 10
             timeout_seconds       = 1
@@ -153,7 +148,14 @@ resource "kubernetes_stateful_set" "default" {
         init_container {
           name    = "init-configuration"
           image   = var.nodes.image
-          command = ["/init.sh", var.nodes.command, var.nodes.moniker, var.chain_id, "/data", join(",", local.persistent_peers)]
+          command = [
+            "/init.sh", 
+            var.nodes.command, 
+            var.nodes.moniker, 
+            var.chain_id, 
+            "/data", 
+            join(",", concat(local.persistent_peers, var.nodes.peers))
+          ]
           volume_mount {
             name       = "fullnode-data-volume"
             mount_path = "/data"
@@ -161,7 +163,7 @@ resource "kubernetes_stateful_set" "default" {
           volume_mount {
             name       = "fullnode-config-volume"
             mount_path = "/init.sh"
-            sub_path = "init.sh"
+            sub_path   = "init.sh"
           }
           volume_mount {
             name       = "fullnode-secret-volume"
@@ -169,8 +171,8 @@ resource "kubernetes_stateful_set" "default" {
           }
         }
         init_container {
-          name    = "download-genesis"
-          image   = "curlimages/curl"
+          name  = "download-genesis"
+          image = "curlimages/curl"
           args = [
             "-L",
             "-o",
@@ -188,7 +190,7 @@ resource "kubernetes_stateful_set" "default" {
         volume {
           name = "fullnode-config-volume"
           config_map {
-            name = kubernetes_config_map.default.metadata.0.name
+            name         = kubernetes_config_map.default.metadata.0.name
             default_mode = "0555"
           }
         }
