@@ -46,9 +46,5 @@ variable "keys" {
     node_id            = string
     node_key           = string
   }))
-  # sensitive = true
-  # validation {
-  #   condition     = length(var.validator_keys) == var.validator.replicas
-  #   error_message = "The keys list must have the same length as replicas."
-  # }
+  sensitive = true
 }

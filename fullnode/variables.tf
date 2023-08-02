@@ -41,4 +41,5 @@ variable "keys" {
     node_id  = string
     node_key = string
   }))
+  sensitive = true
 }
