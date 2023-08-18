@@ -136,14 +136,14 @@ resource "kubernetes_stateful_set" "default" {
             initial_delay_seconds = 10
             timeout_seconds       = 1
           }
-          liveness_probe {
-            http_get {
-              path = "/health"
-              port = 26657
-            }
-            initial_delay_seconds = 10
-            timeout_seconds       = 1
-          }
+          # liveness_probe {
+          #   http_get {
+          #     path = "/health"
+          #     port = 26657
+          #   }
+          #   initial_delay_seconds = 10
+          #   timeout_seconds       = 1
+          # }
         }
         init_container {
           name    = "init-configuration"
