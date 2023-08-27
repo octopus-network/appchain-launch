@@ -91,7 +91,9 @@ resource "kubernetes_stateful_set" "default" {
             "--rpc.laddr",
             "tcp://0.0.0.0:26657",
             "--home",
-            "/data"
+            "/data",
+            "--chain-id",
+            "${var.chain_id}"
           ]
           port {
             container_port = 9090
