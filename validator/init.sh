@@ -7,6 +7,7 @@ CHAINID=$3
 DATA_DIR=$4
 KEYNAME=$5
 KEYRING=$6
+PEERS=$7
 
 MNEMONIC="/keys/${HOSTNAME##*-}-mnemonic"
 PRIV_VALIDATOR_KEY="/keys/${HOSTNAME##*-}-priv_validator_key"
@@ -18,6 +19,9 @@ if [ ! -f "$DATA_DIR/config/config.toml" ]; then
     
     # Derive a new private key and encrypt to disk.
     cat $MNEMONIC | $COMMAND keys add $KEYNAME --home $DATA_DIR --keyring-backend $KEYRING --no-backup --recover
+
+    # Modify the persistent_peers field of config.toml
+    sed -i.bak "s/persistent_peers = \"\"/persistent_peers = \"${PEERS}\"/" $DATA_DIR/config/config.toml
 
     # Copy priv_validator_key.json
     cp $PRIV_VALIDATOR_KEY $DATA_DIR/config/priv_validator_key.json

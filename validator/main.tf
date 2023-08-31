@@ -18,7 +18,7 @@ resource "google_compute_address" "default" {
 
 locals {
   persistent_peers = [
-    for idx, addr in google_compute_address.default.*.address :
+    for idx, addr in google_compute_address.default.*.address:
       "${var.keys[idx]["node_id"]}@${addr}:26656"
   ]
 
@@ -136,7 +136,16 @@ resource "kubernetes_stateful_set" "default" {
         init_container {
           name    = "init-configuration"
           image   = var.nodes.image
-          command = ["/init.sh", var.nodes.command, var.nodes.moniker, var.chain_id, "/data", var.nodes.keyname, var.nodes.keyring]
+          command = [
+            "/init.sh",
+            var.nodes.command,
+            var.nodes.moniker,
+            var.chain_id,
+            "/data",
+            var.nodes.keyname,
+            var.nodes.keyring,
+            join(",", concat(local.persistent_peers, var.nodes.peers))
+          ]
           volume_mount {
             name       = "validator-data-volume"
             mount_path = "/data"
