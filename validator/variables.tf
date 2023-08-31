@@ -26,8 +26,7 @@ variable "nodes" {
     genesis = string
     keyname = string
     keyring = string
-    peers   = list(string)
-    
+
     resources = object({
       cpu_requests    = string
       cpu_limits      = string

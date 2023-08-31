@@ -144,7 +144,7 @@ resource "kubernetes_stateful_set" "default" {
             "/data",
             var.nodes.keyname,
             var.nodes.keyring,
-            join(",", concat(local.persistent_peers, var.nodes.peers))
+            local.persistent_peers
           ]
           volume_mount {
             name       = "validator-data-volume"
