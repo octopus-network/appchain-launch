@@ -23,7 +23,7 @@ module "validator" {
   namespace  = var.namespace
   chain_id   = var.chain_id
   chain_name = replace(var.chain_id, "_", "-")
-  nodes      = var.validator
+  nodes      = merge(var.validator, {peers=module.fullnode.persistent_peers})
   keys       = var.validator_keys
 }
 
