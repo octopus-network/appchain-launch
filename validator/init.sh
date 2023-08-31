@@ -17,7 +17,7 @@ if [ ! -f "$DATA_DIR/config/config.toml" ]; then
     $COMMAND init $MONIKER --chain-id $CHAINID --home $DATA_DIR
     
     # Derive a new private key and encrypt to disk.
-    cat $MNEMONIC | $COMMAND keys add $KEYNAME --chain-id $CHAINID --home $DATA_DIR --keyring-backend $KEYRING --no-backup --recover
+    cat $MNEMONIC | $COMMAND keys add $KEYNAME --home $DATA_DIR --keyring-backend $KEYRING --no-backup --recover
 
     # Copy priv_validator_key.json
     cp $PRIV_VALIDATOR_KEY $DATA_DIR/config/priv_validator_key.json
