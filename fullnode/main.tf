@@ -88,18 +88,10 @@ resource "kubernetes_stateful_set" "default" {
           command = [var.nodes.command]
           args = [
             "start",
-            "--json-rpc.address",
-            "0.0.0.0:8545",
-            "--json-rpc.ws-address",
-            "0.0.0.0:8546",
-            "--json-rpc.api",
-            "eth,web3,net,txpool",
             "--rpc.laddr",
             "tcp://0.0.0.0:26657",
             "--home",
-            "/data",
-            "--chain-id",
-            "${var.chain_id}"
+            "/data"
           ]
           port {
             container_port = 8545
@@ -241,13 +233,8 @@ resource "kubernetes_service" "gateway" {
   spec {
     port {
       name        = "rpc"
-      port        = 8545
-      target_port = 8545
-    }
-    port {
-      name        = "ws"
-      port        = 8546
-      target_port = 8546
+      port        = 26657
+      target_port = 26657
     }
     port {
       name        = "grpc"
