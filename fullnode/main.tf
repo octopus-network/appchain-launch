@@ -94,12 +94,6 @@ resource "kubernetes_stateful_set" "default" {
             "/data"
           ]
           port {
-            container_port = 8545
-          }
-          port {
-            container_port = 8546
-          }
-          port {
             container_port = 9090
           }
           port {

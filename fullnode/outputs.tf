@@ -11,8 +11,7 @@ output "persistent_peers" {
 output "gateway_service" {
   description = "Fullnode Service"
   value = {
-    rpc  = "http://${var.chain_name}-fullnode.${var.namespace}:8545"
-    ws   = "ws://${var.chain_name}-fullnode.${var.namespace}:8546"
+    rpc  = "http://${var.chain_name}-fullnode.${var.namespace}:26657"
     grpc = "${var.chain_name}-fullnode.${var.namespace}:9090"
   }
 }
