@@ -88,6 +88,8 @@ resource "kubernetes_stateful_set" "default" {
           command = [var.nodes.command]
           args = [
             "start",
+            "--grpc.address",
+            "0.0.0.0:9090",
             "--rpc.laddr",
             "tcp://0.0.0.0:26657",
             "--home",
