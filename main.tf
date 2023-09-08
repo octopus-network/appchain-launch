@@ -38,3 +38,15 @@ module "fullnode" {
 
   depends_on = [module.validator]
 }
+
+module "hermes" {
+  source = "./hermes"
+
+  namespace     = var.namespace
+  nodes         = var.hermes_relayer
+  ic_credential = var.hermes_ic_credential
+  chain_id_1    = var.hermes_chain_id_1
+  credential_1  = var.hermes_credential_1
+  chain_id_2    = var.hermes_chain_id_2
+  credential_2  = var.hermes_credential_2
+}
