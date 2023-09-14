@@ -2,7 +2,7 @@
     "project": "octopus-dev-309403",
     "region": "asia-east1",
     "cluster": "autopilot-cluster-1",
-    "namespace": "testnet",
+    "namespace": "dev",
     "rust_log": "info",
     "resources": {
         "cpu_requests": "250m",

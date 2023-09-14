@@ -20,7 +20,7 @@ provider "kubernetes" {
 module "hermes" {
   source = "./hermes"
 
-  for_each      = var.relays
+  for_each      = var.relayers
   image         = each.value.image
   ic_credential = each.value.ic_credential
   chain_id_1    = each.value.chain_id_1
