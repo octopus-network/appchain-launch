@@ -57,24 +57,24 @@ resource "kubernetes_stateful_set" "default" {
       spec {
         container {
           name    = "hermes"
-          image   = var.nodes.image
+          image   = var.image
           # command = ["hermes"]
           args    = ["start"]
           dynamic "env" {
-            for_each = var.nodes.rust_log == "" ? []: [1]
+            for_each = var.rust_log == "" ? []: [1]
             content {
               name = "RUST_LOG"
-              value = var.nodes.rust_log
+              value = var.rust_log
             }
           }
           resources {
             limits = {
-              cpu    = var.nodes.resources.cpu_limits
-              memory = var.nodes.resources.memory_limits
+              cpu    = var.cpu_limits
+              memory = var.memory_limits
             }
             requests = {
-              cpu    = var.nodes.resources.cpu_requests
-              memory = var.nodes.resources.memory_requests
+              cpu    = var.cpu_requests
+              memory = var.memory_requests
             }
           }
           volume_mount {
@@ -89,7 +89,7 @@ resource "kubernetes_stateful_set" "default" {
         }
         init_container {
           name    = "init"
-          image   = var.nodes.image
+          image   = var.image
           command = [
             "/init.sh", 
             var.chain_id_1, 
@@ -137,10 +137,10 @@ resource "kubernetes_stateful_set" "default" {
       }
       spec {
         access_modes       = ["ReadWriteOnce"]
-        storage_class_name = var.nodes.resources.volume_type
+        storage_class_name = var.volume_type
         resources {
           requests = {
-            storage = var.nodes.resources.volume_size
+            storage = var.volume_size
           }
         }
       }
