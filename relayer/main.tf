@@ -22,10 +22,10 @@ module "hermes" {
 
   for_each      = var.relayers
   image         = each.value.image
-  ic_credential = each.value.ic_credential
   chain_id_1    = each.value.chain_id_1
-  credential_1  = each.value.credential_1
   chain_id_2    = each.value.chain_id_2
-  credential_2  = each.value.credential_2
+  ic_credential = relayer_keys[each.key].ic_credential
+  credential_1  = relayer_keys[each.key].credential_1
+  credential_2  = relayer_keys[each.key].credential_2
   namespace     = var.namespace
 }

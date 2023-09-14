@@ -64,13 +64,20 @@ variable "volume_size" {
 
 # hermes relayers
 variable "relayers" {
-  description = "Hermes Relayer Configuration"
+  description = "Hermes image"
   type = map(object({
     image         = string
-    ic_credential = string
     chain_id_1    = string
-    credential_1  = string
     chain_id_2    = string
+  }))
+}
+
+variable "relayer_keys" {
+  description = "Hermes used keys"
+  type = map(object({
+    ic_credential = string
+    credential_1  = string
     credential_2  = string
   }))
+  sensitive = true
 }

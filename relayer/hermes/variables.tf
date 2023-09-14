@@ -54,6 +54,7 @@ variable "image" {
 variable "ic_credential" {
   description = "IC Credential"
   type        = string
+  sensitive   = true
 }
 
 variable "chain_id_1" {
@@ -64,6 +65,7 @@ variable "chain_id_1" {
 variable "credential_1" {
   description = "Credential 1"
   type        = string
+  sensitive   = true
 }
 
 variable "chain_id_2" {
@@ -74,4 +76,5 @@ variable "chain_id_2" {
 variable "credential_2" {
   description = "Credential 2"
   type        = string
+  sensitive   = true
 }
