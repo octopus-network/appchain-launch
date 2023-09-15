@@ -24,8 +24,8 @@ module "hermes" {
   image         = each.value.image
   chain_id_1    = each.value.chain_id_1
   chain_id_2    = each.value.chain_id_2
-  ic_credential = relayer_keys[each.key].ic_credential
-  credential_1  = relayer_keys[each.key].credential_1
-  credential_2  = relayer_keys[each.key].credential_2
+  ic_credential = var.relayer_keys[each.key].ic_credential
+  credential_1  = var.relayer_keys[each.key].credential_1
+  credential_2  = var.relayer_keys[each.key].credential_2
   namespace     = var.namespace
 }
