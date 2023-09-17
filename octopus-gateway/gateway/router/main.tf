@@ -7,6 +7,7 @@ resource "kubernetes_config_map" "default" {
   }
   data = {
     GATEWAY_API_ROUTE_URL = "http://octopus-gateway-api/route"
+    HITCH_ENTRYPOINT = file("${path.module}/hitch_entrypoint")
   }
 }
 
@@ -41,6 +42,9 @@ resource "kubernetes_deployment" "default" {
           port {
             container_port = 80
           }
+          port {
+            container_port = 81
+          }
           env {
             name = "GATEWAY_API_ROUTE_URL"
             value_from {
@@ -55,6 +59,55 @@ resource "kubernetes_deployment" "default" {
               cpu    = var.gateway_router.resources.cpu_requests
               memory = var.gateway_router.resources.memory_requests
             }
+          }
+        }
+        container {
+          name  = "hitch"
+          image = "hitch:1.8.0"
+          args = [
+            "--backend=[127.0.0.1]:81",
+            "--log-level=2",
+            "--write-proxy-v2=off"
+            # --tls-protos="TLSv1.2"
+          ]
+          port {
+            container_port = 443
+          }
+          env {
+            name = "POD_IP"
+            value_from {
+              field_ref {
+                field_path = "status.podIP"
+              }
+            }
+          }
+          env {
+            name = "POD_NAME"
+            value_from {
+              field_ref {
+                field_path = "metadata.name"
+              }
+            }
+          }
+          env {
+            name = "POD_NAMESPACE"
+            value_from {
+              field_ref {
+                field_path = "metadata.namespace"
+              }
+            }
+          }
+          volume_mount {
+            name       = "octopus-gateway-router-config-volume"
+            mount_path = "/usr/local/bin/docker-hitch-entrypoint"
+            sub_path   = "HITCH_ENTRYPOINT"
+          }
+        }
+        volume {
+          name = "octopus-gateway-router-config-volume"
+          config_map {
+            name         = kubernetes_config_map.default.metadata.0.name
+            default_mode = "0555"
           }
         }
       }
@@ -98,6 +151,7 @@ resource "kubernetes_service" "default" {
       app  = "octopus-gateway"
     }
     annotations = {
+      "cloud.google.com/app-protocols": "{\"http2\": \"HTTP2\", \"http\": \"HTTP\"}"
       "cloud.google.com/neg" = "{\"ingress\": true}"
       "cloud.google.com/backend-config" = "{\"default\": \"octopus-gateway-router-backendconfig\"}"
     }
@@ -112,6 +166,13 @@ resource "kubernetes_service" "default" {
       port        = 80
       target_port = 80
       protocol    = "TCP"
+      name        = "http"
+    }
+    port {
+      port        = 443
+      target_port = 443
+      protocol    = "TCP"
+      name        = "http2"
     }
   }
 }
@@ -162,6 +223,7 @@ resource "kubernetes_ingress_v1" "default" {
       "kubernetes.io/ingress.global-static-ip-name" = google_compute_global_address.default.name
       "networking.gke.io/managed-certificates"      = "octopus-gateway-managed-certificate"
       "kubernetes.io/ingress.class"                 = "gce"
+      "kubernetes.io/ingress.allow-http"            = "false"
     }
   }
   spec {
@@ -170,6 +232,24 @@ resource "kubernetes_ingress_v1" "default" {
         name = kubernetes_service.default.metadata.0.name
         port {
           number = 80
+        }
+      }
+    }
+    rule {
+      http {
+        dynamic "path" {
+          for_each = var.gateway_router_gprc
+          content {
+            backend {
+              service {
+                name = kubernetes_service.default.metadata.0.name
+                port {
+                  number = 443
+                }
+              }
+            }
+            path = "/${path.value}/*"
+          }
         }
       }
     }

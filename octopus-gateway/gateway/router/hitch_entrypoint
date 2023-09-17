@@ -1,0 +1,17 @@
+#!/bin/bash
+set -e
+
+SAN="IP:$POD_IP,DNS:${POD_IP//./-}.$POD_NAMESPACE.pod.cluster.local"
+# cd /etc/hitch
+openssl req -newkey rsa:2048 -nodes -sha256 -x509 -days 3650 \
+    -keyout pod.key -out pod.crt \
+    -subj "/CN=$POD_IP" \
+    -addext "subjectAltName=$SAN"
+cat pod.key pod.crt > testcert.pem
+
+
+if [ "$#" -eq 0 ] || [ "${1#-}" != "$1" ]; then
+    set -- hitch "--config=${HITCH_CONFIG_FILE:-/etc/hitch/hitch.conf}" "$@"
+fi
+
+exec "$@"
