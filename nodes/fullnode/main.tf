@@ -88,6 +88,9 @@ resource "kubernetes_stateful_set" "default" {
           command = [var.nodes.command]
           args = [
             "start",
+            "--api.enable true",
+            "--api.address",
+            "0.0.0.0:1317",
             "--grpc.address",
             "0.0.0.0:9090",
             "--rpc.laddr",
@@ -95,6 +98,9 @@ resource "kubernetes_stateful_set" "default" {
             "--home",
             "/data"
           ]
+          port {
+            container_port = 1317
+          }          
           port {
             container_port = 9090
           }
@@ -236,6 +242,11 @@ resource "kubernetes_service" "gateway" {
       name        = "grpc"
       port        = 9090
       target_port = 9090
+    }
+    port {
+      name        = "rest"
+      port        = 1317
+      target_port = 1317
     }
     cluster_ip = "None"
     selector = {
