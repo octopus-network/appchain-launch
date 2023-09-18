@@ -88,7 +88,8 @@ resource "kubernetes_stateful_set" "default" {
           command = [var.nodes.command]
           args = [
             "start",
-            "--api.enable true",
+            "--api.enable",
+            "true",
             "--api.address",
             "tcp://0.0.0.0:1317",
             "--grpc.address",
