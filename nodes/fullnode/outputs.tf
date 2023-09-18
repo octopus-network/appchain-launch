@@ -13,5 +13,6 @@ output "gateway_service" {
   value = {
     rpc  = "http://${var.chain_name}-fullnode.${var.namespace}:26657"
     grpc = "${var.chain_name}-fullnode.${var.namespace}:9090"
+    rest = "http://${var.chain_name}-fullnode.${var.namespace}:1317"
   }
 }
