@@ -90,7 +90,7 @@ resource "kubernetes_stateful_set" "default" {
             "start",
             "--api.enable true",
             "--api.address",
-            "0.0.0.0:1317",
+            "tcp://0.0.0.0:1317",
             "--grpc.address",
             "0.0.0.0:9090",
             "--rpc.laddr",
