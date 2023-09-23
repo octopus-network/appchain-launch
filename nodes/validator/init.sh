@@ -18,7 +18,7 @@ if [ ! -f "$DATA_DIR/config/config.toml" ]; then
     $COMMAND init $MONIKER --chain-id $CHAINID --home $DATA_DIR
     
     # Derive a new private key and encrypt to disk.
-    cat $MNEMONIC | $COMMAND keys add $KEYNAME --home $DATA_DIR --keyring-backend $KEYRING --no-backup --recover
+    cat $MNEMONIC | $COMMAND keys add $KEYNAME --chain-id $CHAINID --home $DATA_DIR --keyring-backend $KEYRING --no-backup --recover
 
     # Modify the persistent_peers field of config.toml
     sed -i.bak "s/persistent_peers = \"\"/persistent_peers = \"${PEERS}\"/" $DATA_DIR/config/config.toml

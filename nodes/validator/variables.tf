@@ -26,6 +26,11 @@ variable "nodes" {
     genesis = string
     keyname = string
     keyring = string
+    endpoints = map(object({
+      options = list(string)
+      ports   = list(number)
+      expose  = bool
+    }))
 
     resources = object({
       cpu_requests    = string

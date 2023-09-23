@@ -24,6 +24,11 @@ variable "nodes" {
     moniker = string
     genesis = string
     peers   = list(string)
+    endpoints = map(object({
+      options = list(string)
+      ports   = list(number)
+      expose  = bool
+    }))
 
     resources = object({
       cpu_requests    = string

@@ -18,14 +18,25 @@ resource "google_compute_address" "default" {
 
 locals {
   persistent_peers = [
-    for idx, addr in google_compute_address.default.*.address:
-      "${var.keys[idx]["node_id"]}@${addr}:26656"
+    for idx, addr in google_compute_address.default.*.address :
+    "${var.keys[idx]["node_id"]}@${addr}:26656"
   ]
 
   # persistent_peers_dns = [
   #   for idx, addr in google_compute_address.default.*.address:
   #     "${var.keys[idx]["node_id"]}@validator-${idx}.${var.chain_name}.${trimsuffix(data.google_dns_managed_zone.default.dns_name, ".")}:26656"
   # ]
+
+  endpoints_options         = flatten([for srv, cfg in var.nodes.endpoints : cfg.options])
+  endpoints_container_ports = flatten([for srv, cfg in var.nodes.endpoints : cfg.ports])
+  endpoints_service_ports = merge([
+    for srv, cfg in var.nodes.endpoints :
+    cfg.expose == true && srv != "p2p" ? {
+      for idx, port in cfg.ports :
+      length(cfg.ports) > 1 ? "${srv}_${idx}" : srv => port
+      # "${srv}_${idx}" => port
+    } : {}
+  ]...)
 }
 
 resource "kubernetes_config_map" "default" {
@@ -34,7 +45,7 @@ resource "kubernetes_config_map" "default" {
     namespace = var.namespace
   }
   data = {
-    "init.sh"     = file("${path.module}/init.sh")
+    "init.sh" = file("${path.module}/init.sh")
   }
 }
 
@@ -86,21 +97,18 @@ resource "kubernetes_stateful_set" "default" {
           name    = "validator"
           image   = var.nodes.image
           command = [var.nodes.command]
-          args = [
+          args = concat([
             "start",
-            "--rpc.laddr",
-            "tcp://0.0.0.0:26657",
             "--home",
-            "/data"
-          ]
-          port {
-            container_port = 9090
-          }
-          port {
-            container_port = 26656
-          }
-          port {
-            container_port = 26657
+            "/data",
+            "--chain-id",
+            "${var.chain_id}"
+          ], local.endpoints_options)
+          dynamic "port" {
+            for_each = local.endpoints_container_ports
+            content {
+              container_port = port.value
+            }
           }
           resources {
             limits = {
@@ -116,14 +124,14 @@ resource "kubernetes_stateful_set" "default" {
             name       = "validator-data-volume"
             mount_path = "/data"
           }
-          readiness_probe {
-            http_get {
-              path = "/health"
-              port = 26657
-            }
-            initial_delay_seconds = 10
-            timeout_seconds       = 1
-          }
+          # readiness_probe {
+          #   http_get {
+          #     path = "/health"
+          #     port = 26657
+          #   }
+          #   initial_delay_seconds = 10
+          #   timeout_seconds       = 1
+          # }
           # liveness_probe {
           #   http_get {
           #     path = "/health"
@@ -134,8 +142,8 @@ resource "kubernetes_stateful_set" "default" {
           # }
         }
         init_container {
-          name    = "init-configuration"
-          image   = var.nodes.image
+          name  = "init-configuration"
+          image = var.nodes.image
           command = [
             "/init.sh",
             var.nodes.command,
@@ -161,8 +169,8 @@ resource "kubernetes_stateful_set" "default" {
           }
         }
         init_container {
-          name    = "download-genesis"
-          image   = "curlimages/curl"
+          name  = "download-genesis"
+          image = "curlimages/curl"
           args = [
             "-L",
             "-o",
@@ -235,8 +243,8 @@ resource "kubernetes_service" "default" {
     port {
       name        = "p2p"
       protocol    = "TCP"
-      port        = 26656
-      target_port = 26656
+      port        = var.nodes.endpoints["p2p"].ports[0]
+      target_port = var.nodes.endpoints["p2p"].ports[0]
     }
     type                    = "LoadBalancer"
     load_balancer_ip        = google_compute_address.default[count.index].address

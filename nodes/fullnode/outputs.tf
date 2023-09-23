@@ -11,8 +11,7 @@ output "persistent_peers" {
 output "gateway_service" {
   description = "Fullnode Service"
   value = {
-    rpc  = "http://${var.chain_name}-fullnode.${var.namespace}:26657"
-    grpc = "${var.chain_name}-fullnode.${var.namespace}:9090"
-    rest = "http://${var.chain_name}-fullnode.${var.namespace}:1317"
+    for name, port in local.endpoints_service_ports :
+    name => "${var.chain_name}-fullnode.${var.namespace}:${port}"
   }
 }

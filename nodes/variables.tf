@@ -37,6 +37,11 @@ variable "validator" {
     genesis = string
     keyname = string
     keyring = string
+    endpoints = map(object({
+      options = list(string)
+      ports   = list(number)
+      expose  = bool
+    }))
 
     resources = object({
       cpu_requests    = string
@@ -73,6 +78,11 @@ variable "fullnode" {
 
     moniker = string
     genesis = string
+    endpoints = map(object({
+      options = list(string)
+      ports   = list(number)
+      expose  = bool
+    }))
 
     resources = object({
       cpu_requests    = string
