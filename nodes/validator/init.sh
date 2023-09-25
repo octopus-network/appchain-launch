@@ -15,7 +15,7 @@ NODE_KEY="/keys/${HOSTNAME##*-}-node_key"
 
 if [ ! -f "$DATA_DIR/config/config.toml" ]; then
     # Initialize validators's and node's configuration files.
-    $COMMAND init $MONIKER --home $DATA_DIR
+    $COMMAND init $MONIKER --chain-id $CHAINID --home $DATA_DIR
     
     # Derive a new private key and encrypt to disk.
     cat $MNEMONIC | $COMMAND keys add $KEYNAME --home $DATA_DIR --keyring-backend $KEYRING --no-backup --recover
