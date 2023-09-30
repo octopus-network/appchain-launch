@@ -33,7 +33,7 @@ locals {
     for srv, cfg in var.nodes.endpoints :
     cfg.expose == true && srv != "p2p" ? {
       for idx, port in cfg.ports :
-      length(cfg.ports) > 1 ? "${srv}_${idx}" : srv => port
+      length(cfg.ports) > 1 ? "${srv}-${idx}" : srv => port
       # "${srv}_${idx}" => port
     } : {}
   ]...)
