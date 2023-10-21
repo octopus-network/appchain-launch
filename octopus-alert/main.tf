@@ -23,20 +23,22 @@ resource "kubernetes_config_map" "default" {
     namespace = var.namespace
   }
   data = {
-    BALANCE_CONFIG     = jsonencode(var.balance_config)
-    REGISTRY_ADDRESS   = jsonencode(var.registry_address)
-    OCT_TOKEN_ADDRESS  = jsonencode(var.oct_token_address)
-    LPOS_CONFIG        = jsonencode(var.lpos_config)
-    BRIDGE_CONFIG      = jsonencode(var.bridge_config)
-    ERA_CONFIG         = jsonencode(var.era_config)
-    MMR_CONFIG         = jsonencode(var.mmr_config)
-    UNWITHDRAWN_CONFIG = jsonencode(var.unwithdrawn_config)
-    NEAR_ERRORS        = jsonencode(var.near_errors)
-    APPCHAIN_SETTINGS  = jsonencode(var.APPCHAIN_SETTINGS)
-    CONTRACTS          = jsonencode(var.CONTRACTS)
-    NEAR_SETTINGS      = jsonencode(var.NEAR_SETTINGS)
-    APPCHAIN_IDS       = jsonencode(var.APPCHAIN_IDS)
-    GLOBAL_SETTINGS    = jsonencode(var.GLOBAL_SETTINGS)
+    BALANCE_CONFIG         = jsonencode(var.balance_config)
+    COSMOS_BALANCE_CONFIG  = jsonencode(var.cosmos_balance_config)
+    DFINITY_BALANCE_CONFIG = jsonencode(var.dfinity_balance_config)
+    REGISTRY_ADDRESS       = jsonencode(var.registry_address)
+    OCT_TOKEN_ADDRESS      = jsonencode(var.oct_token_address)
+    LPOS_CONFIG            = jsonencode(var.lpos_config)
+    BRIDGE_CONFIG          = jsonencode(var.bridge_config)
+    ERA_CONFIG             = jsonencode(var.era_config)
+    MMR_CONFIG             = jsonencode(var.mmr_config)
+    UNWITHDRAWN_CONFIG     = jsonencode(var.unwithdrawn_config)
+    NEAR_ERRORS            = jsonencode(var.near_errors)
+    APPCHAIN_SETTINGS      = jsonencode(var.APPCHAIN_SETTINGS)
+    CONTRACTS              = jsonencode(var.CONTRACTS)
+    NEAR_SETTINGS          = jsonencode(var.NEAR_SETTINGS)
+    APPCHAIN_IDS           = jsonencode(var.APPCHAIN_IDS)
+    GLOBAL_SETTINGS        = jsonencode(var.GLOBAL_SETTINGS)
   }
 }
 
@@ -78,8 +80,8 @@ resource "kubernetes_stateful_set" "default" {
         container {
           name    = "balance-alert"
           image   = var.alert_image
-          command = ["node"]
-          args    = ["./dist/monitors/balance/index.js"]
+          command = ["yarn"]
+          args    = ["balance-alert"]
           env_from {
             config_map_ref {
               name = kubernetes_config_map.default.metadata.0.name
@@ -104,8 +106,8 @@ resource "kubernetes_stateful_set" "default" {
         container {
           name    = "bridge-alert"
           image   = var.alert_image
-          command = ["node"]
-          args    = ["./dist/monitors/bridge/index.js"]
+          command = ["yarn"]
+          args    = ["bridge-alert"]
           env_from {
             config_map_ref {
               name = kubernetes_config_map.default.metadata.0.name
@@ -130,8 +132,8 @@ resource "kubernetes_stateful_set" "default" {
         container {
           name    = "era-alert"
           image   = var.alert_image
-          command = ["node"]
-          args    = ["./dist/monitors/era/index.js"]
+          command = ["yarn"]
+          args    = ["era-alert"]
           env_from {
             config_map_ref {
               name = kubernetes_config_map.default.metadata.0.name
@@ -156,8 +158,8 @@ resource "kubernetes_stateful_set" "default" {
         container {
           name    = "lpos-alert"
           image   = var.alert_image
-          command = ["node"]
-          args    = ["./dist/monitors/lpos/index.js"]
+          command = ["yarn"]
+          args    = ["lpos-alert"]
           env_from {
             config_map_ref {
               name = kubernetes_config_map.default.metadata.0.name
@@ -182,8 +184,8 @@ resource "kubernetes_stateful_set" "default" {
         container {
           name    = "mmr-alert"
           image   = var.alert_image
-          command = ["node"]
-          args    = ["./dist/monitors/mmr/index.js"]
+          command = ["yarn"]
+          args    = ["mmr-alert"]
           env_from {
             config_map_ref {
               name = kubernetes_config_map.default.metadata.0.name
@@ -208,8 +210,8 @@ resource "kubernetes_stateful_set" "default" {
         container {
           name    = "near-errors-alert"
           image   = var.alert_image
-          command = ["node"]
-          args    = ["./dist/monitors/near-errors/index.js"]
+          command = ["yarn"]
+          args    = ["near-errors-alert"]
           env_from {
             config_map_ref {
               name = kubernetes_config_map.default.metadata.0.name
@@ -234,8 +236,8 @@ resource "kubernetes_stateful_set" "default" {
         container {
           name    = "unwithdrawn-alert"
           image   = var.alert_image
-          command = ["node"]
-          args    = ["./dist/monitors/unwithdrawn/index.js"]
+          command = ["yarn"]
+          args    = ["unwithdrawn-alert"]
           env_from {
             config_map_ref {
               name = kubernetes_config_map.default.metadata.0.name

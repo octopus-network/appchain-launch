@@ -80,6 +80,26 @@ variable "balance_config" {
   })
 }
 
+variable "cosmos_balance_config" {
+  description = "COSMOS_BALANCE_CONFIG"
+  type        = object({
+    cronSchedule = string
+    rpc          = string
+    denom        = string
+    watchList    = list(map(number))
+  })
+}
+
+variable "dfinity_balance_config" {
+  description = "DFINITY_BALANCE_CONFIG"
+  type        = object({
+    cronSchedule = string
+    host         = string
+    canisterId   = string
+    watchList    = list(map(number))
+  })
+}
+
 variable "lpos_config" {
   description = "LPOS_CONFIG"
   type        = object({
