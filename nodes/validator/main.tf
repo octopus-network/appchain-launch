@@ -96,8 +96,9 @@ resource "kubernetes_stateful_set" "default" {
         container {
           name    = "validator"
           image   = var.nodes.image
-          command = ["cosmovisor run"]
+          command = ["cosmovisor"]
           args = concat([
+            "run",
             "start",
             "--home",
             "/data"
