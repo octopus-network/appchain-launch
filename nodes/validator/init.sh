@@ -28,4 +28,7 @@ if [ ! -f "$DATA_DIR/config/config.toml" ]; then
 
     # Copy node_key.json
     cp $NODE_KEY $DATA_DIR/config/node_key.json
+
+    # Copy cosmovisor folder to data directory
+    cp -R /root/cosmovisor $DATA_DIR/
 fi
