@@ -21,6 +21,7 @@ module "validator" {
   source = "./validator"
 
   namespace  = var.namespace
+  dns_zone   = var.dns_zone
   chain_id   = var.chain_id
   chain_name = replace(var.chain_id, "_", "-")
   nodes      = var.validator
@@ -31,9 +32,10 @@ module "fullnode" {
   source = "./fullnode"
 
   namespace  = var.namespace
+  dns_zone   = var.dns_zone
   chain_id   = var.chain_id
   chain_name = replace(var.chain_id, "_", "-")
-  nodes      = merge(var.fullnode, {peers=module.validator.persistent_peers})
+  nodes      = merge(var.fullnode, {peers=module.validator.persistent_peers_dns})
   keys       = var.fullnode_keys
 
   depends_on = [module.validator]

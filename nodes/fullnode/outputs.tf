@@ -3,10 +3,10 @@ output "persistent_peers" {
   value       = [for peer in local.persistent_peers : nonsensitive(peer)]
 }
 
-# output "persistent_peers_dns" {
-#   description = "Fullnode Persistent Peers"
-#   value       = local.persistent_peers_dns
-# }
+output "persistent_peers_dns" {
+  description = "Fullnode Persistent Peers"
+  value       = [for peer in local.persistent_peers_dns : nonsensitive(peer)]
+}
 
 output "gateway_service" {
   description = "Fullnode Service"

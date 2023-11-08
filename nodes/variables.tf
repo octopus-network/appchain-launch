@@ -20,6 +20,11 @@ variable "namespace" {
   default     = "default" # devnet / testnet / mainnet
 }
 
+variable "dns_zone" {
+  description = "DNS zone"
+  type        = string
+}
+
 # chain
 variable "chain_id" {
   description = "Chain ID"

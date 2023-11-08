@@ -3,18 +3,18 @@ resource "google_compute_address" "default" {
   name  = "ip-${var.chain_name}-validator-${count.index}"
 }
 
-# data "google_dns_managed_zone" "default" {
-#   name = var.dns_zone
-# }
+data "google_dns_managed_zone" "default" {
+  name = var.dns_zone
+}
 
-# resource "google_dns_record_set" "default" {
-#   count        = var.replicas
-#   name         = "validator-${count.index}.${var.chain_name}.${data.google_dns_managed_zone.default.dns_name}"
-#   managed_zone = data.google_dns_managed_zone.default.name
-#   type         = "A"
-#   ttl          = 300
-#   rrdatas = [google_compute_address.default.*.address[count.index]]
-# }
+resource "google_dns_record_set" "default" {
+  count        = var.nodes.replicas
+  name         = "validator-${count.index}.${var.chain_name}.${data.google_dns_managed_zone.default.dns_name}"
+  managed_zone = data.google_dns_managed_zone.default.name
+  type         = "A"
+  ttl          = 300
+  rrdatas = [google_compute_address.default.*.address[count.index]]
+}
 
 locals {
   persistent_peers = [
@@ -22,10 +22,10 @@ locals {
     "${var.keys[idx]["node_id"]}@${addr}:26656"
   ]
 
-  # persistent_peers_dns = [
-  #   for idx, addr in google_compute_address.default.*.address:
-  #     "${var.keys[idx]["node_id"]}@validator-${idx}.${var.chain_name}.${trimsuffix(data.google_dns_managed_zone.default.dns_name, ".")}:26656"
-  # ]
+  persistent_peers_dns = [
+    for idx, addr in google_compute_address.default.*.address:
+    "${var.keys[idx]["node_id"]}@validator-${idx}.${var.chain_name}.${trimsuffix(data.google_dns_managed_zone.default.dns_name, ".")}:26656"
+  ]
 
   endpoints_options         = flatten([for srv, cfg in var.nodes.endpoints : cfg.options])
   endpoints_container_ports = flatten([for srv, cfg in var.nodes.endpoints : cfg.ports])
@@ -150,7 +150,7 @@ resource "kubernetes_stateful_set" "default" {
             "/data",
             var.nodes.keyname,
             var.nodes.keyring,
-            join(",", local.persistent_peers)
+            join(",", local.persistent_peers_dns)
           ]
           volume_mount {
             name       = "validator-data-volume"

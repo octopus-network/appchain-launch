@@ -4,6 +4,11 @@ variable "namespace" {
   default     = "default" # devnet / testnet / mainnet
 }
 
+variable "dns_zone" {
+  description = "DNS zone"
+  type        = string
+}
+
 variable "chain_id" {
   description = "Chain ID"
   type        = string
