@@ -20,11 +20,12 @@ provider "kubernetes" {
 module "validator" {
   source = "./validator"
 
-  namespace  = var.namespace
-  chain_id   = var.chain_id
-  chain_name = replace(var.chain_id, "_", "-")
-  nodes      = var.validator
-  keys       = var.validator_keys
+  namespace       = var.namespace
+  chain_id        = var.chain_id
+  ibc_token_denom = var.ibc_token_denom
+  chain_name      = replace(var.chain_id, "_", "-")
+  nodes           = var.validator
+  keys            = var.validator_keys
 }
 
 module "fullnode" {

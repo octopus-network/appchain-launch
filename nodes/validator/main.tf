@@ -150,7 +150,8 @@ resource "kubernetes_stateful_set" "default" {
             "/data",
             var.nodes.keyname,
             var.nodes.keyring,
-            join(",", local.persistent_peers)
+            join(",", local.persistent_peers),
+            var.ibc_token_denom
           ]
           volume_mount {
             name       = "validator-data-volume"

@@ -26,6 +26,11 @@ variable "chain_id" {
   type        = string
 }
 
+variable "ibc_token_denom" {
+  description = "IBC token denom"
+  type        = string
+}
+
 variable "validator" {
   description = "Validator Configuration"
   type = object({
