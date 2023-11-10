@@ -35,7 +35,7 @@ if [ ! -f "$DATA_DIR/config/config.toml" ]; then
 
     # Copy node_key.json
     cp $NODE_KEY $DATA_DIR/config/node_key.json
+else
+    # Modify the minimum-gas-price field of app.toml
+    sed -i.bak "s/minimum-gas-prices = \"0${IBC_TOKEN_DENOM}\"/minimum-gas-prices = \"20000000000${IBC_TOKEN_DENOM}\"/" $DATA_DIR/config/app.toml
 fi
-
-# Modify the minimum-gas-price field of app.toml
-sed -i.bak "s/minimum-gas-prices = \"0aotto\"/minimum-gas-prices = \"20000000000${IBC_TOKEN_DENOM}\"/" $DATA_DIR/config/app.toml
