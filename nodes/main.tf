@@ -23,6 +23,7 @@ module "validator" {
   namespace       = var.namespace
   chain_id        = var.chain_id
   ibc_token_denom = var.ibc_token_denom
+  enable_gas      = var.enable_gas
   chain_name      = replace(var.chain_id, "_", "-")
   nodes           = var.validator
   keys            = var.validator_keys

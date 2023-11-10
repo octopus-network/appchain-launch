@@ -15,6 +15,11 @@ variable "ibc_token_denom" {
   type        = string
 }
 
+variable "enable_gas" {
+  description = "Enable minimum-gas-price"
+  type        = bool
+}
+
 variable "chain_name" {
   description = "Chain Name(terraform regex [a-z]([-a-z0-9]*[a-z0-9])?)"
   type        = string

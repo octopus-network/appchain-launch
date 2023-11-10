@@ -31,6 +31,11 @@ variable "ibc_token_denom" {
   type        = string
 }
 
+variable "enable_gas" {
+  description = "Enable minimum-gas-price"
+  type        = bool
+}
+
 variable "validator" {
   description = "Validator Configuration"
   type = object({
