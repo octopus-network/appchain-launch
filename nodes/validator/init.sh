@@ -29,7 +29,7 @@ if [ ! -f "$DATA_DIR/config/config.toml" ]; then
     sed -i.bak "s/persistent_peers = \"\"/persistent_peers = \"${PEERS}\"/" $DATA_DIR/config/config.toml
 
     # Modify the minimum-gas-price field of app.toml
-    sed -i.bak "s#minimum-gas-prices = \"0aotto\"#minimum-gas-prices = \"0${IBC_TOKEN_DENOM}\"/" $DATA_DIR/config/app.toml
+    sed -i.bak "s#minimum-gas-prices = \"0aotto\"#minimum-gas-prices = \"0${IBC_TOKEN_DENOM}\"#" $DATA_DIR/config/app.toml
 
     # Copy priv_validator_key.json
     cp $PRIV_VALIDATOR_KEY $DATA_DIR/config/priv_validator_key.json
@@ -40,5 +40,5 @@ fi
 
 if $ENABLE_GAS; then
     # Modify the minimum-gas-price field of app.toml
-    sed -i.bak "s#minimum-gas-prices = \"0${IBC_TOKEN_DENOM}\"#minimum-gas-prices = \"20000000000${IBC_TOKEN_DENOM}\"/" $DATA_DIR/config/app.toml
+    sed -i.bak "s#minimum-gas-prices = \"0${IBC_TOKEN_DENOM}\"#minimum-gas-prices = \"20000000000${IBC_TOKEN_DENOM}\"#" $DATA_DIR/config/app.toml
 fi
