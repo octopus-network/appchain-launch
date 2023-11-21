@@ -9,7 +9,7 @@ PEERS=$5
 NODE_KEY="/keys/${HOSTNAME##*-}-node_key"
 
 if [ ! -f "$DATA_DIR/config/config.toml" ]; then
-    # Initialize validators's and node's configuration files.
+    # Initialize node's configuration files
     $COMMAND init $MONIKER --chain-id $CHAINID --home $DATA_DIR
 
     # Modify the pruning field of app.toml

@@ -4,7 +4,6 @@
 
 - genesis.conf
 - validator
-  - mnemonic
   - priv_validator_key.json
   - node_id
   - node_key.json

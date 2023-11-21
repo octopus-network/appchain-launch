@@ -101,7 +101,9 @@ resource "kubernetes_stateful_set" "default" {
             "run",
             "start",
             "--home",
-            "/data"
+            "/data",
+            "--log_format",
+            "json"
           ], local.endpoints_options)
           dynamic "port" {
             for_each = local.endpoints_container_ports
@@ -149,9 +151,9 @@ resource "kubernetes_stateful_set" "default" {
             var.nodes.moniker,
             var.chain_id,
             "/data",
-            var.nodes.keyname,
-            var.nodes.keyring,
-            join(",", local.persistent_peers)
+            join(",", local.persistent_peers),
+            var.ibc_token_denom,
+            var.enable_gas
           ]
           volume_mount {
             name       = "validator-data-volume"
@@ -164,7 +166,7 @@ resource "kubernetes_stateful_set" "default" {
           }
           volume_mount {
             name       = "validator-secret-volume"
-            mount_path = "/keys" # 0-mnemonic 0-node_key ...
+            mount_path = "/keys" # 0-node_key ...
           }
         }
         init_container {

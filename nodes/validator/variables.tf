@@ -10,6 +10,16 @@ variable "chain_id" {
   type        = string
 }
 
+variable "ibc_token_denom" {
+  description = "IBC token denom"
+  type        = string
+}
+
+variable "enable_gas" {
+  description = "Enable minimum-gas-price"
+  type        = bool
+}
+
 variable "chain_name" {
   description = "Chain Name(terraform regex [a-z]([-a-z0-9]*[a-z0-9])?)"
   type        = string
@@ -24,8 +34,6 @@ variable "nodes" {
 
     moniker = string
     genesis = string
-    keyname = string
-    keyring = string
     endpoints = map(object({
       options = list(string)
       ports   = list(number)
@@ -46,7 +54,6 @@ variable "nodes" {
 variable "keys" {
   description = "Validator Key"
   type = list(object({
-    mnemonic           = string
     priv_validator_key = string
     node_id            = string
     node_key           = string
