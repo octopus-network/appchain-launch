@@ -25,7 +25,7 @@ if [ ! -f "$DATA_DIR/config/config.toml" ]; then
     cp -R /root/cosmovisor $DATA_DIR/
 
     # Create a symbolic link for the current version
-    ln -s $DATA_DIR/cosmovisor/genesis $DATA_DIR/cosmovisor/current    
+    ln -s $DATA_DIR/cosmovisor/genesis $DATA_DIR/cosmovisor/current
 fi
 
 # Copy cosmovisor folder to data directory
