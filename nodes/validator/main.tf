@@ -100,7 +100,9 @@ resource "kubernetes_stateful_set" "default" {
           args = concat([
             "start",
             "--home",
-            "/data"
+            "/data",
+            "--log_format",
+            "json"
           ], local.endpoints_options)
           dynamic "port" {
             for_each = local.endpoints_container_ports
