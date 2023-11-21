@@ -45,8 +45,6 @@ variable "validator" {
 
     moniker = string
     genesis = string
-    keyname = string
-    keyring = string
     endpoints = map(object({
       options = list(string)
       ports   = list(number)
@@ -67,7 +65,6 @@ variable "validator" {
 variable "validator_keys" {
   description = "Validator Private Key"
   type = list(object({
-    mnemonic           = string
     priv_validator_key = string
     node_id            = string
     node_key           = string

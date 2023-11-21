@@ -151,8 +151,6 @@ resource "kubernetes_stateful_set" "default" {
             var.nodes.moniker,
             var.chain_id,
             "/data",
-            var.nodes.keyname,
-            var.nodes.keyring,
             join(",", local.persistent_peers),
             var.ibc_token_denom,
             var.enable_gas
@@ -168,7 +166,7 @@ resource "kubernetes_stateful_set" "default" {
           }
           volume_mount {
             name       = "validator-secret-volume"
-            mount_path = "/keys" # 0-mnemonic 0-node_key ...
+            mount_path = "/keys" # 0-node_key ...
           }
         }
         init_container {
