@@ -7,7 +7,7 @@ resource "kubernetes_config_map" "default" {
   }
   data = {
     GATEWAY_API_ROUTE_URL = "http://octopus-gateway-api/route"
-    HITCH_ENTRYPOINT = file("${path.module}/hitch_entrypoint")
+    HITCH_ENTRYPOINT      = file("${path.module}/hitch_entrypoint")
   }
 }
 
@@ -124,7 +124,7 @@ resource "kubernetes_manifest" "default" {
   manifest = {
     apiVersion = "cloud.google.com/v1"
     kind       = "BackendConfig"
-    metadata   = {
+    metadata = {
       name      = "octopus-gateway-router-backendconfig"
       namespace = var.namespace
     }
@@ -137,6 +137,11 @@ resource "kubernetes_manifest" "default" {
       timeoutSec = 3600
       connectionDraining = {
         drainingTimeoutSec = 3600
+      }
+      customRequestHeaders = {
+        headers = [
+          "x-tls-sni-hostname:{tls_sni_hostname}"
+        ]
       }
     }
   }
@@ -151,8 +156,8 @@ resource "kubernetes_service" "default" {
       app  = "octopus-gateway"
     }
     annotations = {
-      "cloud.google.com/app-protocols": "{\"http2\": \"HTTP2\", \"http\": \"HTTP\"}"
-      "cloud.google.com/neg" = "{\"ingress\": true}"
+      "cloud.google.com/app-protocols"  = "{\"http2\": \"HTTP2\", \"http\": \"HTTP\"}"
+      "cloud.google.com/neg"            = "{\"ingress\": true}"
       "cloud.google.com/backend-config" = "{\"default\": \"octopus-gateway-router-backendconfig\"}"
     }
   }
@@ -190,7 +195,7 @@ resource "google_dns_record_set" "a" {
   managed_zone = data.google_dns_managed_zone.default.name
   type         = "A"
   ttl          = 300
-  rrdatas = [google_compute_global_address.default.address]
+  rrdatas      = [google_compute_global_address.default.address]
 }
 
 resource "google_dns_record_set" "caa" {
@@ -198,14 +203,14 @@ resource "google_dns_record_set" "caa" {
   managed_zone = data.google_dns_managed_zone.default.name
   type         = "CAA"
   ttl          = 300
-  rrdatas = ["0 issue \"pki.goog\""]
+  rrdatas      = ["0 issue \"pki.goog\""]
 }
 
 resource "kubernetes_manifest" "certificate" {
   manifest = {
     apiVersion = "networking.gke.io/v1"
     kind       = "ManagedCertificate"
-    metadata   = {
+    metadata = {
       name      = "octopus-gateway-managed-certificate"
       namespace = var.namespace
     }
@@ -217,29 +222,37 @@ resource "kubernetes_manifest" "certificate" {
 
 resource "kubernetes_ingress_v1" "default" {
   metadata {
-    name        = "octopus-gateway-ingress"
-    namespace   = var.namespace
+    name      = "octopus-gateway-ingress"
+    namespace = var.namespace
     annotations = {
       "kubernetes.io/ingress.global-static-ip-name" = google_compute_global_address.default.name
-      "networking.gke.io/managed-certificates"      = "octopus-gateway-managed-certificate"
+      "networking.gke.io/managed-certificates"      = local.all_certificates
       "kubernetes.io/ingress.class"                 = "gce"
       "kubernetes.io/ingress.allow-http"            = "false"
     }
   }
   spec {
-    default_backend {
-      service {
-        name = kubernetes_service.default.metadata.0.name
-        port {
-          number = 80
+    rule {
+      host = trimsuffix(google_dns_record_set.a.name, ".")
+      http {
+        path {
+          backend {
+            service {
+              name = kubernetes_service.default.metadata.0.name
+              port {
+                number = 80
+              }
+            }
+          }
         }
       }
     }
-    rule {
-      http {
-        dynamic "path" {
-          for_each = var.gateway_router_gprc
-          content {
+    dynamic "rule" {
+      for_each = var.gateway_router_gprc_hosts
+      content {
+        host = trimsuffix("${rule.value}.${data.google_dns_managed_zone.default.dns_name}", ".")
+        http {
+          path {
             backend {
               service {
                 name = kubernetes_service.default.metadata.0.name
@@ -248,10 +261,50 @@ resource "kubernetes_ingress_v1" "default" {
                 }
               }
             }
-            path = "/${path.value}/*"
           }
         }
       }
     }
   }
 }
+
+# domain names at most 63 characters, does not support wildcard domains
+# r9hrncc8qp...92x8aqy.otto.testnet.octopus.network
+resource "google_dns_record_set" "grpc_a" {
+  count        = length(var.gateway_router_gprc_hosts)
+  name         = "${var.gateway_router_gprc_hosts[count.index]}.${data.google_dns_managed_zone.default.dns_name}"
+  managed_zone = data.google_dns_managed_zone.default.name
+  type         = "A"
+  ttl          = 300
+  rrdatas      = [google_compute_global_address.default.address]
+}
+
+resource "google_dns_record_set" "grpc_caa" {
+  count        = length(var.gateway_router_gprc_hosts)
+  name         = "${var.gateway_router_gprc_hosts[count.index]}.${data.google_dns_managed_zone.default.dns_name}"
+  managed_zone = data.google_dns_managed_zone.default.name
+  type         = "CAA"
+  ttl          = 300
+  rrdatas      = ["0 issue \"pki.goog\""]
+}
+
+locals {
+  grpc_certificates = [for idx, _ in var.gateway_router_gprc_hosts : "octopus-gateway-managed-certificate-grpc-${idx}"]
+  all_certificates  = var.gateway_router_gprc_hosts == [] ? "octopus-gateway-managed-certificate" : "octopus-gateway-managed-certificate,${join(",", local.grpc_certificates)}"
+}
+
+resource "kubernetes_manifest" "grpc_certificate" {
+  count = length(var.gateway_router_gprc_hosts)
+  manifest = {
+    apiVersion = "networking.gke.io/v1"
+    kind       = "ManagedCertificate"
+    metadata = {
+      name      = local.grpc_certificates[count.index]
+      namespace = var.namespace
+    }
+    spec = {
+      domains = [trimsuffix(google_dns_record_set.grpc_a[count.index].name, ".")]
+    }
+  }
+}
+
