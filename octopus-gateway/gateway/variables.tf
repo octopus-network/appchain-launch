@@ -50,6 +50,16 @@ variable "gateway_router" {
   })
 }
 
+variable "gateway_router_gprc_hosts" {
+  description = "Gateway Router gRPC Hosts"
+  type        = list(string)
+  default     = []
+  validation {
+    condition     = alltrue([for n in var.gateway_router_gprc_hosts : length(n) <= 30])
+    error_message = "Each gRPC host must less than or equal to 30 chars"
+  }
+}
+
 # postgresql
 variable "postgresql" {
   description = "PostgreSQL Configuration"

@@ -250,7 +250,7 @@ resource "kubernetes_ingress_v1" "default" {
     dynamic "rule" {
       for_each = var.gateway_router_gprc_hosts
       content {
-        host = trimsuffix("${rule.value}.${data.google_dns_managed_zone.default.dns_name}", ".")
+        host = trimsuffix("${rule.value}.gateway.${data.google_dns_managed_zone.default.dns_name}", ".")
         http {
           path {
             backend {
@@ -269,10 +269,10 @@ resource "kubernetes_ingress_v1" "default" {
 }
 
 # domain names at most 63 characters, does not support wildcard domains
-# r9hrncc8qp...92x8aqy.otto.testnet.octopus.network
+# r9hrn...x8aqy.otto.gateway.testnet.octopus.network
 resource "google_dns_record_set" "grpc_a" {
   count        = length(var.gateway_router_gprc_hosts)
-  name         = "${var.gateway_router_gprc_hosts[count.index]}.${data.google_dns_managed_zone.default.dns_name}"
+  name         = "${var.gateway_router_gprc_hosts[count.index]}.gateway.${data.google_dns_managed_zone.default.dns_name}"
   managed_zone = data.google_dns_managed_zone.default.name
   type         = "A"
   ttl          = 300
@@ -281,7 +281,7 @@ resource "google_dns_record_set" "grpc_a" {
 
 resource "google_dns_record_set" "grpc_caa" {
   count        = length(var.gateway_router_gprc_hosts)
-  name         = "${var.gateway_router_gprc_hosts[count.index]}.${data.google_dns_managed_zone.default.dns_name}"
+  name         = "${var.gateway_router_gprc_hosts[count.index]}.gateway.${data.google_dns_managed_zone.default.dns_name}"
   managed_zone = data.google_dns_managed_zone.default.name
   type         = "CAA"
   ttl          = 300

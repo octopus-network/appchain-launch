@@ -19,7 +19,5 @@ variable "gateway_router" {
 variable "gateway_router_gprc_hosts" {
   description = "Gateway Router gRPC Hosts"
   type        = list(string)
-  default     = [
-    "r9hrncc8qpjl9h79p1oryv3rz92x8aqy.otto",
-  ]
+  default     = []
 }

@@ -58,6 +58,7 @@ module "gateway_api" {
 module "gateway_router" {
   source = "./router"
 
-  namespace      = data.kubernetes_namespace.default.metadata.0.name
-  gateway_router = var.gateway_router
+  namespace                 = data.kubernetes_namespace.default.metadata.0.name
+  gateway_router            = var.gateway_router
+  gateway_router_gprc_hosts = var.gateway_router_gprc_hosts
 }
