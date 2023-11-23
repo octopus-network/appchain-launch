@@ -1,5 +1,5 @@
 locals {
-  name = "${var.chain_id_1}-${var.chain_id_2}"
+  name = replace("${var.chain_id_1}-${var.chain_id_2}", "_", "-")
 }
 
 resource "kubernetes_config_map" "default" {
