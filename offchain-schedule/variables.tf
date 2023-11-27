@@ -93,3 +93,11 @@ variable "ACTIVE_IBC_ANCHOR_ID_LIST" {
   description = "ACTIVE_IBC_ANCHOR_ID_LIST"
   type        = list(string)
 }
+
+variable "CANISTER_INFO_LIST" {
+  description = "CANISTER_INFO_LIST"
+  type = list(object({
+    identity_pem = string
+    canister_id   = string
+  }))
+}

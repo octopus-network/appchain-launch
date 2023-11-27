@@ -48,6 +48,7 @@ resource "kubernetes_config_map" "default" {
     DST_CHAIN_TRANSFER_RECEIVER     = var.DST_CHAIN_TRANSFER_RECEIVER
     CROSS_CHAIN_TRANSFER_INFO_LIST  = jsonencode(var.CROSS_CHAIN_TRANSFER_INFO_LIST)
     ACTIVE_IBC_ANCHOR_ID_LIST       = jsonencode(var.ACTIVE_IBC_ANCHOR_ID_LIST)
+    CANISTER_INFO_LIST              = jsonencode(var.CANISTER_INFO_LIST)
   }
 }
 
