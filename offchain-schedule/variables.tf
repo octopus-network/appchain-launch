@@ -101,3 +101,8 @@ variable "CANISTER_INFO_LIST" {
     canister_id   = string
   }))
 }
+
+variable "NEAR_ACCOUNT_ID_LIST" {
+  description = "NEAR_ACCOUNT_ID_LIST"
+  type        = list(string)
+}
