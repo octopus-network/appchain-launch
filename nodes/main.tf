@@ -20,23 +20,27 @@ provider "kubernetes" {
 module "validator" {
   source = "./validator"
 
-  namespace  = var.namespace
-  dns_zone   = var.dns_zone
-  chain_id   = var.chain_id
-  chain_name = replace(var.chain_id, "_", "-")
-  nodes      = var.validator
-  keys       = var.validator_keys
+  namespace       = var.namespace
+  dns_zone        = var.dns_zone
+  chain_id        = var.chain_id
+  ibc_token_denom = var.ibc_token_denom
+  enable_gas      = var.enable_gas
+  chain_name      = replace(var.chain_id, "_", "-")
+  nodes           = var.validator
+  keys            = var.validator_keys
 }
 
 module "fullnode" {
   source = "./fullnode"
 
-  namespace  = var.namespace
-  dns_zone   = var.dns_zone
-  chain_id   = var.chain_id
-  chain_name = replace(var.chain_id, "_", "-")
-  nodes      = merge(var.fullnode, {peers=module.validator.persistent_peers_dns})
-  keys       = var.fullnode_keys
+  namespace       = var.namespace
+  dns_zone        = var.dns_zone
+  chain_id        = var.chain_id
+  ibc_token_denom = var.ibc_token_denom
+  enable_gas      = var.enable_gas
+  chain_name      = replace(var.chain_id, "_", "-")
+  nodes           = merge(var.fullnode, {peers=module.validator.persistent_peers_dns})
+  keys            = var.fullnode_keys
 
   depends_on = [module.validator]
 }

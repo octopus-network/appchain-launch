@@ -96,11 +96,14 @@ resource "kubernetes_stateful_set" "default" {
         container {
           name    = "validator"
           image   = var.nodes.image
-          command = [var.nodes.command]
+          command = ["cosmovisor"]
           args = concat([
+            "run",
             "start",
             "--home",
-            "/data"
+            "/data",
+            "--log_format",
+            "json"
           ], local.endpoints_options)
           dynamic "port" {
             for_each = local.endpoints_container_ports
@@ -150,7 +153,9 @@ resource "kubernetes_stateful_set" "default" {
             "/data",
             var.nodes.keyname,
             var.nodes.keyring,
-            join(",", local.persistent_peers_dns)
+            join(",", local.persistent_peers_dns),
+            var.ibc_token_denom,
+            var.enable_gas
           ]
           volume_mount {
             name       = "validator-data-volume"

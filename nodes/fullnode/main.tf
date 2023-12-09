@@ -96,11 +96,14 @@ resource "kubernetes_stateful_set" "default" {
         container {
           name    = "fullnode"
           image   = var.nodes.image
-          command = [var.nodes.command]
+          command = ["cosmovisor"]
           args = concat([
+            "run",
             "start",
             "--home",
-            "/data"
+            "/data",
+            "--log_format",
+            "json"
           ], local.endpoints_options)
           dynamic "port" {
             for_each = local.endpoints_container_ports
@@ -148,7 +151,9 @@ resource "kubernetes_stateful_set" "default" {
             var.nodes.moniker,
             var.chain_id,
             "/data",
-            join(",", concat(local.persistent_peers_dns, var.nodes.peers))
+            join(",", concat(local.persistent_peers_dns, var.nodes.peers)),
+            var.ibc_token_denom,
+            var.enable_gas
           ]
           volume_mount {
             name       = "fullnode-data-volume"
