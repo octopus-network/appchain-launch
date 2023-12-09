@@ -151,7 +151,9 @@ resource "kubernetes_stateful_set" "default" {
             var.nodes.moniker,
             var.chain_id,
             "/data",
-            join(",", concat(local.persistent_peers, var.nodes.peers))
+            join(",", concat(local.persistent_peers, var.nodes.peers)),
+            var.ibc_token_denom,
+            var.enable_gas
           ]
           volume_mount {
             name       = "fullnode-data-volume"

@@ -32,11 +32,13 @@ module "validator" {
 module "fullnode" {
   source = "./fullnode"
 
-  namespace  = var.namespace
-  chain_id   = var.chain_id
-  chain_name = replace(var.chain_id, "_", "-")
-  nodes      = merge(var.fullnode, {peers=module.validator.persistent_peers})
-  keys       = var.fullnode_keys
+  namespace       = var.namespace
+  chain_id        = var.chain_id
+  ibc_token_denom = var.ibc_token_denom
+  enable_gas      = var.enable_gas
+  chain_name      = replace(var.chain_id, "_", "-")
+  nodes           = merge(var.fullnode, {peers=module.validator.persistent_peers})
+  keys            = var.fullnode_keys
 
   depends_on = [module.validator]
 }
