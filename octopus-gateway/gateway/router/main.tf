@@ -37,11 +37,34 @@ resource "kubernetes_deployment" "default" {
       }
       spec {
         container {
-          name  = "router"
+          name  = "http"
           image = var.gateway_router.router_image
           port {
             container_port = 80
           }
+          env {
+            name = "GATEWAY_API_ROUTE_URL"
+            value_from {
+              config_map_key_ref {
+                name = kubernetes_config_map.default.metadata.0.name
+                key  = "GATEWAY_API_ROUTE_URL"
+              }
+            }
+          }
+          env {
+            name  = "GATEWAY_API_ROUTE_SERVICE"
+            value = "http"
+          }
+          resources {
+            requests = {
+              cpu    = var.gateway_router.resources.cpu_requests
+              memory = var.gateway_router.resources.memory_requests
+            }
+          }
+        }
+        container {
+          name  = "grpc"
+          image = var.gateway_router.router_image
           port {
             container_port = 81
           }
@@ -53,6 +76,10 @@ resource "kubernetes_deployment" "default" {
                 key  = "GATEWAY_API_ROUTE_URL"
               }
             }
+          }
+          env {
+            name  = "GATEWAY_API_ROUTE_SERVICE"
+            value = "grpc"
           }
           resources {
             requests = {
