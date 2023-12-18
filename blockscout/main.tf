@@ -77,6 +77,14 @@ resource "kubernetes_config_map" "backend" {
   data = var.chains[count.index].backend.envs
 }
 
+resource "kubernetes_config_map" "verifier" {
+  metadata {
+    name      = "blockscout-verifier-config-map"
+    namespace = var.namespace
+  }
+  data = var.verifier.envs
+}
+
 resource "kubernetes_deployment" "frontend" {
   count = length(var.chains)
   metadata {
@@ -237,6 +245,61 @@ resource "kubernetes_deployment" "backend" {
   }
 }
 
+resource "kubernetes_deployment" "verifier" {
+  metadata {
+    name = "blockscout-verifier"
+    labels = {
+      app = "blockscout-verifier"
+    }
+    namespace = var.namespace
+  }
+  spec {
+    replicas = var.verifier.replicas
+    selector {
+      match_labels = {
+        app = "blockscout-verifier"
+      }
+    }
+    template {
+      metadata {
+        labels = {
+          app = "blockscout-verifier"
+        }
+      }
+      spec {
+        container {
+          name    = "verifier"
+          image   = var.verifier.image
+          port {
+            container_port = 8050
+          }
+          env_from {
+            config_map_ref {
+              name = kubernetes_config_map.verifier.metadata.0.name
+            }
+          }
+          resources {
+            limits = {
+              cpu    = var.verifier.resources.cpu_limits
+              memory = var.verifier.resources.memory_limits
+            }
+            requests = {
+              cpu    = var.verifier.resources.cpu_requests
+              memory = var.verifier.resources.memory_requests
+            }
+          }
+        }
+        termination_grace_period_seconds = 300
+      }
+    }
+  }
+  lifecycle {
+    ignore_changes = [
+      spec[0].template[0].spec[0].container[0].resources
+    ]
+  }
+}
+
 resource "kubernetes_manifest" "frontend" {
   manifest = {
     apiVersion = "cloud.google.com/v1"
@@ -321,6 +384,28 @@ resource "kubernetes_service" "backend" {
     port {
       port        = 4000
       target_port = 4000
+      protocol    = "TCP"
+      name        = "http"
+    }
+  }
+}
+
+resource "kubernetes_service" "verifier" {
+  metadata {
+    name      = "blockscout-verifier"
+    namespace = var.namespace
+    labels = {
+      app  = "blockscout-verifier"
+    }
+  }
+  spec {
+    type = "ClusterIP"
+    selector = {
+      app  = "blockscout-verifier"
+    }
+    port {
+      port        = 8050
+      target_port = 8050
       protocol    = "TCP"
       name        = "http"
     }
@@ -432,3 +517,4 @@ resource "kubernetes_ingress_v1" "default" {
     }
   }
 }
+

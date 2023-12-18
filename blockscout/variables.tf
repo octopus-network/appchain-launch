@@ -55,3 +55,17 @@ variable "chains" {
   }))
 }
 
+variable "verifier" {
+  description = "Blockscout Configuration"
+  type = object({
+    image    = string
+    replicas = number
+    envs     = map(string)
+    resources = object({
+      cpu_requests    = string
+      cpu_limits      = string
+      memory_requests = string
+      memory_limits   = string
+    })
+  })
+}
