@@ -67,6 +67,22 @@ resource "kubernetes_stateful_set" "default" {
               value = var.rust_log
             }
           }
+          env {
+            name  = "VIEWSTATE_NEAR_ENDPOINT"
+            value = var.viewstate_near_endpoint
+          }
+          env {
+            name  = "IC_ENDPOINT"
+            value = var.ic_endpoint
+          }
+          env {
+            name  = "CANISTER_ID"
+            value = var.canister_id
+          }
+          env {
+            name  = "CANISTER_PEM"
+            value = var.canister_pem
+          }
           resources {
             limits = {
               cpu    = var.cpu_limits

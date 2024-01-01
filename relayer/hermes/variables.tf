@@ -78,3 +78,23 @@ variable "credential_2" {
   type        = string
   sensitive   = true
 }
+
+variable "viewstate_near_endpoint" {
+  description = "ViewState NEAR Endpoint"
+  type        = string
+}
+
+variable "ic_endpoint" {
+  description = "IC Endpoint"
+  type        = string
+}
+
+variable "canister_id" {
+  description = "Canister ID"
+  type        = string
+}
+
+variable "canister_pem" {
+  description = "Canister PEM"
+  type        = string
+}

@@ -66,9 +66,13 @@ variable "volume_size" {
 variable "relayers" {
   description = "Hermes image"
   type = map(object({
-    image         = string
-    chain_id_1    = string
-    chain_id_2    = string
+    image                   = string
+    chain_id_1              = string
+    chain_id_2              = string
+    viewstate_near_endpoint = string
+    ic_endpoint             = string
+    canister_id             = string
+    canister_pem            = string
   }))
 }
 
