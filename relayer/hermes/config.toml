@@ -1,0 +1,76 @@
+[global]
+log_level = 'info'
+
+[mode]
+
+[mode.clients]
+enabled = false
+refresh = true
+misbehaviour = false
+
+[mode.connections]
+enabled = false
+
+[mode.channels]
+enabled = false
+
+[mode.packets]
+enabled = true
+clear_interval = 100
+clear_on_start = true
+tx_confirmation = true
+
+[telemetry]
+enabled = true
+host = '0.0.0.0'
+port = 3001
+
+[[chains]]
+type = 'near'
+id = 'near-0'
+near_ibc_address = "v9.nearibc.testnet"
+rpc_addr = 'https://rpc.testnet.near.org'
+grpc_addr = 'http://localhost:27032'
+event_source = { mode = 'push', url = 'ws://localhost:27030/websocket', batch_delay = '500ms' }
+rpc_timeout = '15s'
+account_prefix = 'cosmos'
+key_name = 'wallet'
+store_prefix = 'ibc'
+gas_price = { price = 0.001, denom = 'stake' }
+max_gas = 10000000
+clock_drift = '5s'
+trusting_period = '14days'
+trust_threshold = { numerator = '1', denominator = '3' }
+
+[chains.packet_filter]
+policy = 'allow'
+list = [
+  ['provider', 'channel-2'],
+  ['transfer', 'channel-3'],
+]
+
+[[chains]]
+id = 'otto_9117-1'
+ic_endpoint = "https://ic0.app"
+canister_id = "rahyp-xyaaa-aaaag-qcwha-cai"
+canister_pem = ".hermes/keys/ic.pem"
+rpc_addr = 'https://gateway.testnet.octopus.network/rpc/otto9117/f6vvghv5swpiu92v'
+grpc_addr = 'https://f6vvghv5swpiu92v.otto9117.gateway.testnet.octopus.network'
+event_source = { mode = 'push', url = 'wss://gateway.testnet.octopus.network/rpc/otto9117/f6vvghv5swpiu92v/websocket', batch_delay = '500ms' }
+address_type = { derivation = 'ethermint', proto_type = { pk_type = '/ethermint.crypto.v1.ethsecp256k1.PubKey' } }
+rpc_timeout = '15s'
+account_prefix = 'otto'
+key_name = 'wallet'
+store_prefix = 'ibc'
+gas_price = { price = 20000000000, denom = 'ibc/86EDA6ABA44A1A5DF3B5A032592F8C0CCA2F8D25240664A440E647E5F46A9AD8' }
+max_gas = 40000000
+clock_drift = '5s'
+trusting_period = '5days'
+trust_threshold = { numerator = '1', denominator = '3' }
+
+[chains.packet_filter]
+policy = 'allow'
+list = [
+  ['consumer', 'channel-0'],
+  ['transfer', 'channel-1'],
+]

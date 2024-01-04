@@ -20,14 +20,14 @@
             "viewstate_near_endpoint": "https://nd-111-222-333.p2pify.com/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
             "ic_endpoint": "https://ic0.app",
             "canister_id": "aaaaa-bbbbb-ccccc-ddddd-cai",
-            "canister_pem": ".hermes/keys/ic.pem",
+            "canister_pem": ".hermes/keys/ic.pem"
         }
     },
     "relayer_keys": {
         "near-0-oyster-0": {
             "ic_credential": "-----BEGIN EC PRIVATE KEY-----\nMHQCAQEEIIUcfBgU+goIr6intrMkkV4gMgiLMDWEkrSF9HEKcccaoAcGBSuBBAAK\noUQDQgAEffLN1zB1SWzrrCnmsfP/qmqoU6D1FF+lIJ3BxTSmUlSBcYYNa40FSDtH\nYLfHwCyAH6rWITAI4seMikaPcsuHkw==\n-----END EC PRIVATE KEY-----",
             "credential_1": "{\"account_id\":\"dev-1635426175190-78027363590006\",\"public_key\":\"ed25519:8RENRPPb3vQkR1k5bJsJrrC4sPAWsGizyfbtkmLFkYaZ\",\"private_key\":\"ed25519:z1gBscdpFScjJWsgYBXRJiKL8Y7ZU3B1gwRp7zvxfPiXTt4JcgJj8KLXQHbchKrRPX1TR3KKc7nG67toiTknruB\"}",
-            "credential_2": "{\"name\":\"wallet\",\"type\":\"local\",\"address\":\"cosmos1l727ra2na5rgpv7k6t4f9l5t8qn80wp7w6xd73\",\"pubkey\":\"{\\\"@type\\\":\\\"/cosmos.crypto.secp256k1.PubKey\\\",\\\"key\\\":\\\"AuNBrPB3xYCMnNHI3fYsUL/fCaCTelZkjgIieLccHKwc\\\"}\",\"mnemonic\":\"journey small property party disorder theory fantasy hold robust weapon bachelor round federal mad lawsuit deliver vehicle glue rescue layer fire alien youth clever\"}",       
+            "credential_2": "{\"name\":\"wallet\",\"type\":\"local\",\"address\":\"cosmos1l727ra2na5rgpv7k6t4f9l5t8qn80wp7w6xd73\",\"pubkey\":\"{\\\"@type\\\":\\\"/cosmos.crypto.secp256k1.PubKey\\\",\\\"key\\\":\\\"AuNBrPB3xYCMnNHI3fYsUL/fCaCTelZkjgIieLccHKwc\\\"}\",\"mnemonic\":\"journey small property party disorder theory fantasy hold robust weapon bachelor round federal mad lawsuit deliver vehicle glue rescue layer fire alien youth clever\"}"
         }
     }
 }

@@ -8,7 +8,9 @@ resource "kubernetes_config_map" "default" {
     namespace = var.namespace
   }
   data = {
-    "init.sh"     = file("${path.module}/init.sh")
+    "init.sh" = file("${path.module}/init.sh")
+    # 20230203 Temporarily modify config.toml to enable telemetry
+    "config.toml" = file("${path.module}/config.toml")
   }
 }
 
@@ -52,18 +54,27 @@ resource "kubernetes_stateful_set" "default" {
           name  = "${local.name}-hermes"
           app   = "hermes"
           chain = local.name
+          annotations = {
+            "prometheus.io/scrape" = "true"
+            "prometheus.io/scheme" = "http"
+            "prometheus.io/path"   = "/metrics"
+            "prometheus.io/port"   = "3001"
+          }
         }
       }
       spec {
         container {
-          name    = "hermes"
-          image   = var.image
+          name  = "hermes"
+          image = var.image
           # command = ["hermes"]
-          args    = ["start"]
+          args = ["start"]
+          port {
+            container_port = 3001
+          }
           dynamic "env" {
-            for_each = var.rust_log == "" ? []: [1]
+            for_each = var.rust_log == "" ? [] : [1]
             content {
-              name = "RUST_LOG"
+              name  = "RUST_LOG"
               value = var.rust_log
             }
           }
@@ -102,15 +113,21 @@ resource "kubernetes_stateful_set" "default" {
             mount_path = "/home/hermes/.hermes/keys/ic.pem"
             sub_path   = "ic_credential"
           }
+          # 20230203 Temporarily modify config.toml to enable telemetry
+          volume_mount {
+            name       = "hermes-config-volume"
+            mount_path = "/home/hermes/.hermes/config.toml"
+            sub_path   = "config.toml"
+          }
         }
         init_container {
-          name    = "init"
-          image   = var.image
+          name  = "init"
+          image = var.image
           command = [
-            "/init.sh", 
-            var.chain_id_1, 
-            "/keys/credential_1", 
-            var.chain_id_2, 
+            "/init.sh",
+            var.chain_id_1,
+            "/keys/credential_1",
+            var.chain_id_2,
             "/keys/credential_2"
           ]
           volume_mount {
