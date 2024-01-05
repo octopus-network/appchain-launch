@@ -71,6 +71,11 @@ variable "LPOS_MARKET_CONTRACT" {
   type        = string
 }
 
+variable "RESTAKING_BASE_CONTRACT" {
+  description = "RESTAKING_BASE_CONTRACT"
+  type        = string
+}
+
 variable "APPCHAIN_REGISTRY_CONTRACT" {
   description = "APPCHAIN_REGISTRY_CONTRACT"
   type        = string
