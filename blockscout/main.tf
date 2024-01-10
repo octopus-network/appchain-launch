@@ -207,12 +207,14 @@ resource "kubernetes_deployment" "backend" {
           }
           resources {
             limits = {
-              cpu    = var.chains[count.index].backend.resources.cpu_limits
-              memory = var.chains[count.index].backend.resources.memory_limits
+              cpu               = var.chains[count.index].backend.resources.cpu_limits
+              memory            = var.chains[count.index].backend.resources.memory_limits
+              ephemeral-storage = "4Gi"
             }
             requests = {
-              cpu    = var.chains[count.index].backend.resources.cpu_requests
-              memory = var.chains[count.index].backend.resources.memory_requests
+              cpu               = var.chains[count.index].backend.resources.cpu_requests
+              memory            = var.chains[count.index].backend.resources.memory_requests
+              ephemeral-storage = "4Gi"
             }
           }
           readiness_probe {
