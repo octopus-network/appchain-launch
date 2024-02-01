@@ -141,8 +141,7 @@ resource "kubernetes_stateful_set" "default" {
             "-n",
             "--index-runes",
             "server",
-            "--http",
-            "-j"
+            "--http"
           ]
           port {
             container_port = 80
