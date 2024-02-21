@@ -51,6 +51,8 @@ resource "kubernetes_config_map" "default" {
     ACTIVE_IBC_ANCHOR_ID_LIST       = jsonencode(var.ACTIVE_IBC_ANCHOR_ID_LIST)
     CANISTER_INFO_LIST              = jsonencode(var.CANISTER_INFO_LIST)
     NEAR_ACCOUNT_ID_LIST            = jsonencode(var.NEAR_ACCOUNT_ID_LIST)
+    NEAR_ACCOUNT_FT_CHECK_LIST      = jsonencode(var.NEAR_ACCOUNT_FT_CHECK_LIST)
+    NEAR_ACCOUNT_STORAGE_CHECK_LIST = jsonencode(var.NEAR_ACCOUNT_STORAGE_CHECK_LIST)
   }
 }
 

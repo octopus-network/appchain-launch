@@ -111,3 +111,13 @@ variable "NEAR_ACCOUNT_ID_LIST" {
   description = "NEAR_ACCOUNT_ID_LIST"
   type        = list(string)
 }
+
+variable "NEAR_ACCOUNT_FT_CHECK_LIST" {
+  description = "NEAR_ACCOUNT_FT_CHECK_LIST"
+  type        = list(list(string))
+}
+
+variable "NEAR_ACCOUNT_STORAGE_CHECK_LIST" {
+  description = "NEAR_ACCOUNT_STORAGE_CHECK_LIST"
+  type        = list(list(string))
+}
