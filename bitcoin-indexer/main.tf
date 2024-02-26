@@ -58,7 +58,7 @@ resource "kubernetes_manifest" "certificate" {
 }
 
 resource "google_dns_record_set" "a_ord_legacy" {
-  name         = "ord_legacy.${data.google_dns_managed_zone.default.dns_name}"
+  name         = "ord-legacy.${data.google_dns_managed_zone.default.dns_name}"
   managed_zone = data.google_dns_managed_zone.default.name
   type         = "A"
   ttl          = 300
@@ -66,7 +66,7 @@ resource "google_dns_record_set" "a_ord_legacy" {
 }
 
 resource "google_dns_record_set" "caa_ord_legacy" {
-  name         = "ord_legacy.${data.google_dns_managed_zone.default.dns_name}"
+  name         = "ord-legacy.${data.google_dns_managed_zone.default.dns_name}"
   managed_zone = data.google_dns_managed_zone.default.name
   type         = "CAA"
   ttl          = 300
@@ -332,13 +332,11 @@ resource "kubernetes_service" "default" {
       port        = 80
       target_port = 80
       protocol    = "TCP"
-      name        = "http"
     }
     port {
       port        = 81
       target_port = 81
       protocol    = "TCP"
-      name        = "http"
     }
   }
 }
@@ -372,7 +370,7 @@ resource "kubernetes_ingress_v1" "default" {
       }
     }
     rule {
-      host = trimsuffix("ord_legacy.${data.google_dns_managed_zone.default.dns_name}", ".")
+      host = trimsuffix("ord-legacy.${data.google_dns_managed_zone.default.dns_name}", ".")
       http {
         path {
           path = "/*"
