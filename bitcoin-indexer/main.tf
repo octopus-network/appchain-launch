@@ -185,7 +185,7 @@ resource "kubernetes_stateful_set" "default" {
         }
 
         container {
-          name    = "ord_legacy"
+          name    = "ord-legacy"
           image   = var.ord_legacy.image
           command = ["ord"]
           args    = [
@@ -332,11 +332,13 @@ resource "kubernetes_service" "default" {
       port        = 80
       target_port = 80
       protocol    = "TCP"
+      name        = "http"
     }
     port {
       port        = 81
       target_port = 81
       protocol    = "TCP"
+      name        = "legacy"
     }
   }
 }
