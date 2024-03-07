@@ -73,7 +73,38 @@ resource "google_dns_record_set" "caa_ord_legacy" {
   rrdatas      = ["0 issue \"pki.goog\""]
 }
 
+# gsa ksa
+resource "kubernetes_service_account" "default" {
+  metadata {
+    name        = "ord-ksa"
+    namespace   = var.namespace
+    annotations = {
+      "iam.gke.io/gcp-service-account" = var.sql_proxy.service_account
+    }
+  }
+}
+
+data "google_service_account" "default" {
+  account_id = var.sql_proxy.service_account
+}
+
+resource "google_service_account_iam_member" "default" {
+  service_account_id = data.google_service_account.default.name
+  role               = "roles/iam.workloadIdentityUser"
+  member             = "serviceAccount:${var.project}.svc.id.goog[${var.namespace}/${kubernetes_service_account.default.metadata.0.name}]"
+}
+
 # sts svc ing...
+resource "kubernetes_secret" "default" {
+  metadata {
+    name      = "ord-secret"
+    namespace = var.namespace
+  }
+  data = {
+    DATABASE_URL = var.sql_proxy.database
+  }
+}
+
 resource "kubernetes_stateful_set" "default" {
   metadata {
     name      = "bitcoin-indexer"
@@ -160,6 +191,11 @@ resource "kubernetes_stateful_set" "default" {
           port {
             container_port = 80
           }
+          env_from {
+            secret_ref {
+              name = kubernetes_secret.default.metadata.0.name
+            }
+          }
           resources {
             limits = {
               cpu    = var.ord.resources.cpu_limits
@@ -183,7 +219,6 @@ resource "kubernetes_stateful_set" "default" {
           #   run_as_user = 0
           # }
         }
-
         container {
           name    = "ord-legacy"
           image   = var.ord_legacy.image
@@ -211,6 +246,11 @@ resource "kubernetes_stateful_set" "default" {
           port {
             container_port = 81
           }
+          env_from {
+            secret_ref {
+              name = kubernetes_secret.default.metadata.0.name
+            }
+          }
           resources {
             limits = {
               cpu    = var.ord_legacy.resources.cpu_limits
@@ -234,7 +274,25 @@ resource "kubernetes_stateful_set" "default" {
           #   run_as_user = 0
           # }
         }
-
+        container {
+          name    = "cloud-sql-proxy"
+          image   = var.sql_proxy.image
+          command = ["/cloud_sql_proxy", "-instances=${var.sql_proxy.instances}"]
+          resources {
+            limits = {
+              cpu    = var.sql_proxy.resources.cpu_limits
+              memory = var.sql_proxy.resources.memory_limits
+            }
+            requests = {
+              cpu    = var.sql_proxy.resources.cpu_requests
+              memory = var.sql_proxy.resources.memory_requests
+            }
+          }
+          security_context {
+            run_as_non_root = true
+          }
+        }
+        service_account_name = kubernetes_service_account.default.metadata.0.name
         termination_grace_period_seconds = 300
       }
     }
