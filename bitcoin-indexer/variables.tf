@@ -25,6 +25,22 @@ variable "dns_zone" {
   type        = string
 }
 
+# cloud sql proxy
+variable "gce_proxy_image" {
+  description = "GCE Proxy Image"
+  type        = string
+}
+
+variable "gce_proxy_instances" {
+  description = "GCE Proxy Instances"
+  type        = string
+}
+
+variable "gcp_service_account" {
+  description = "GCP Service Account"
+  type        = string
+}
+
 # chain
 variable "bitcoind" {
   description = "bitcoind node"
@@ -89,8 +105,6 @@ variable "ord_legacy" {
 variable "sql_proxy" {
   description = "sql proxy"
   type = object({
-    image     = string
-    instances = string
     database  = string
     resources = object({
       cpu_requests    = string
@@ -98,7 +112,5 @@ variable "sql_proxy" {
       memory_requests = string
       memory_limits   = string
     })
-    # gcp service account
-    service_account = string
   })
 }

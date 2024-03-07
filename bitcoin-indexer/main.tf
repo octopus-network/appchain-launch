@@ -79,13 +79,13 @@ resource "kubernetes_service_account" "default" {
     name        = "ord-ksa"
     namespace   = var.namespace
     annotations = {
-      "iam.gke.io/gcp-service-account" = var.sql_proxy.service_account
+      "iam.gke.io/gcp-service-account" = var.gcp_service_account
     }
   }
 }
 
 data "google_service_account" "default" {
-  account_id = var.sql_proxy.service_account
+  account_id = var.gcp_service_account
 }
 
 resource "google_service_account_iam_member" "default" {
@@ -276,8 +276,8 @@ resource "kubernetes_stateful_set" "default" {
         }
         container {
           name    = "cloud-sql-proxy"
-          image   = var.sql_proxy.image
-          command = ["/cloud_sql_proxy", "-instances=${var.sql_proxy.instances}"]
+          image   = var.gce_proxy_image
+          command = ["/cloud_sql_proxy", "-instances=${var.gce_proxy_instances}"]
           resources {
             limits = {
               cpu    = var.sql_proxy.resources.cpu_limits
