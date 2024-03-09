@@ -28,7 +28,7 @@ data "google_dns_managed_zone" "default" {
 }
 
 resource "google_dns_record_set" "a" {
-  name         = "bitcoin.indexer.${data.google_dns_managed_zone.default.dns_name}"
+  name         = "ord.${data.google_dns_managed_zone.default.dns_name}"
   managed_zone = data.google_dns_managed_zone.default.name
   type         = "A"
   ttl          = 300
@@ -36,7 +36,7 @@ resource "google_dns_record_set" "a" {
 }
 
 resource "google_dns_record_set" "caa" {
-  name         = "bitcoin.indexer.${data.google_dns_managed_zone.default.dns_name}"
+  name         = "ord.${data.google_dns_managed_zone.default.dns_name}"
   managed_zone = data.google_dns_managed_zone.default.name
   type         = "CAA"
   ttl          = 300
@@ -414,7 +414,7 @@ resource "kubernetes_ingress_v1" "default" {
   }
   spec {
     rule {
-      host = trimsuffix("bitcoin.indexer.${data.google_dns_managed_zone.default.dns_name}", ".")
+      host = trimsuffix("ord.${data.google_dns_managed_zone.default.dns_name}", ".")
       http {
         path {
           path = "/*"
