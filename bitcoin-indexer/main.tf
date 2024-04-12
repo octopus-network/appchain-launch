@@ -52,25 +52,9 @@ resource "kubernetes_manifest" "certificate" {
       namespace = var.namespace
     }
     spec = {
-      domains = [trimsuffix(google_dns_record_set.a.name, "."), trimsuffix(google_dns_record_set.a_ord_legacy.name, ".")]
+      domains = [trimsuffix(google_dns_record_set.a.name, ".")]
     }
   }
-}
-
-resource "google_dns_record_set" "a_ord_legacy" {
-  name         = "ord-legacy.${data.google_dns_managed_zone.default.dns_name}"
-  managed_zone = data.google_dns_managed_zone.default.name
-  type         = "A"
-  ttl          = 300
-  rrdatas      = [google_compute_global_address.default.address]
-}
-
-resource "google_dns_record_set" "caa_ord_legacy" {
-  name         = "ord-legacy.${data.google_dns_managed_zone.default.dns_name}"
-  managed_zone = data.google_dns_managed_zone.default.name
-  type         = "CAA"
-  ttl          = 300
-  rrdatas      = ["0 issue \"pki.goog\""]
 }
 
 # gsa ksa
@@ -183,7 +167,6 @@ resource "kubernetes_stateful_set" "default" {
             var.ord.bitcoin.rpc_pass,
             "--bitcoin-rpc-url",
             "http://127.0.0.1:8332",
-            "-n",
             "--index-runes",
             "server",
             "--http"
@@ -208,61 +191,6 @@ resource "kubernetes_stateful_set" "default" {
           }
           volume_mount {
             name       = "ord-data-volume"
-            mount_path = "/data"
-          }
-          volume_mount {
-            name       = "bitcoind-data-volume"
-            mount_path = "/bitcoind-data"
-            read_only = true
-          }
-          # security_context {
-          #   run_as_user = 0
-          # }
-        }
-        container {
-          name    = "ord-legacy"
-          image   = var.ord_legacy.image
-          command = ["ord"]
-          args    = [
-            "--chain",
-            var.ord_legacy.chain,
-            "--data-dir",
-            "/data",
-            "--bitcoin-data-dir",
-            "/bitcoind-data",
-            "--bitcoin-rpc-username",
-            var.ord_legacy.bitcoin.rpc_user,
-            "--bitcoin-rpc-password",
-            var.ord_legacy.bitcoin.rpc_pass,
-            "--bitcoin-rpc-url",
-            "http://127.0.0.1:8332",
-            "-n",
-            "--index-runes",
-            "server",
-            "--http",
-            "--http-port",
-            "81"
-          ]
-          port {
-            container_port = 81
-          }
-          env_from {
-            secret_ref {
-              name = kubernetes_secret.default.metadata.0.name
-            }
-          }
-          resources {
-            limits = {
-              cpu    = var.ord_legacy.resources.cpu_limits
-              memory = var.ord_legacy.resources.memory_limits
-            }
-            requests = {
-              cpu    = var.ord_legacy.resources.cpu_requests
-              memory = var.ord_legacy.resources.memory_requests
-            }
-          }
-          volume_mount {
-            name       = "ord-legacy-data-volume"
             mount_path = "/data"
           }
           volume_mount {
@@ -326,27 +254,11 @@ resource "kubernetes_stateful_set" "default" {
         }
       }
     }
-    volume_claim_template {
-      metadata {
-        name      = "ord-legacy-data-volume"
-        namespace = var.namespace
-      }
-      spec {
-        access_modes       = ["ReadWriteOnce"]
-        storage_class_name = var.ord_legacy.resources.volume_type
-        resources {
-          requests = {
-            storage = var.ord_legacy.resources.volume_size
-          }
-        }
-      }
-    }
   }
   lifecycle {
     ignore_changes = [
       spec[0].template[0].spec[0].container[0].resources,
       spec[0].template[0].spec[0].container[1].resources,
-      spec[0].template[0].spec[0].container[2].resources,
     ]
   }
 }
@@ -392,12 +304,6 @@ resource "kubernetes_service" "default" {
       protocol    = "TCP"
       name        = "http"
     }
-    port {
-      port        = 81
-      target_port = 81
-      protocol    = "TCP"
-      name        = "legacy"
-    }
   }
 }
 
@@ -423,22 +329,6 @@ resource "kubernetes_ingress_v1" "default" {
               name = "bitcoin-indexer"
               port {
                 number = 80
-              }
-            }
-          }
-        }
-      }
-    }
-    rule {
-      host = trimsuffix("ord-legacy.${data.google_dns_managed_zone.default.dns_name}", ".")
-      http {
-        path {
-          path = "/*"
-          backend {
-            service {
-              name = "bitcoin-indexer"
-              port {
-                number = 81
               }
             }
           }
