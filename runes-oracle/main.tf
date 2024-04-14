@@ -23,6 +23,16 @@ data "kubernetes_namespace" "default" {
   }
 }
 
+resource "kubernetes_secret" "default" {
+  metadata {
+    name      = "runes-oracle-secret"
+    namespace = data.kubernetes_namespace.default.metadata.0.name
+  }
+  data = {
+    "identity.pem" = var.identity_pem
+  }
+}
+
 resource "kubernetes_config_map" "default" {
   metadata {
     name      = "runes-oracle-config-map"
@@ -32,6 +42,7 @@ resource "kubernetes_config_map" "default" {
     INDEXER_URL         = var.INDEXER_URL
     IC_GATEWAY          = var.IC_GATEWAY
     CUSTOMS_CANISTER_ID = var.CUSTOMS_CANISTER_ID
+    PEM_PATH            = var.PEM_PATH
   }
 }
 
@@ -66,6 +77,11 @@ resource "kubernetes_deployment" "default" {
               name = kubernetes_config_map.default.metadata.0.name
             }
           }
+          volume_mount {
+            name       = "runes-oracle-secret-volume"
+            mount_path = var.PEM_PATH
+            sub_path   = "identity.pem"
+          }
           resources {
             limits = {
               cpu    = var.runes_oracle.resources.cpu_limits
@@ -75,6 +91,12 @@ resource "kubernetes_deployment" "default" {
               cpu    = var.runes_oracle.resources.cpu_requests
               memory = var.runes_oracle.resources.memory_requests
             }
+          }
+        }
+        volume {
+          name = "runes-oracle-secret-volume"
+          secret {
+            secret_name = kubernetes_secret.default.metadata.0.name
           }
         }
       }

@@ -51,3 +51,14 @@ variable "CUSTOMS_CANISTER_ID" {
   description = "CUSTOMS_CANISTER_ID"
   type        = string
 }
+
+variable "PEM_PATH" {
+  description = "PEM_PATH"
+  type        = string
+}
+
+variable "identity_pem" {
+  description = "identity_pem"
+  type        = string
+  sensitive   = true
+}
