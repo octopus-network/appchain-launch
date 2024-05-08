@@ -167,6 +167,7 @@ resource "kubernetes_stateful_set" "default" {
             var.ord.bitcoin.rpc_pass,
             "--bitcoin-rpc-url",
             "http://127.0.0.1:8332",
+            "-n",
             "--index-runes",
             "server",
             "--http"
