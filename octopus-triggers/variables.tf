@@ -59,13 +59,27 @@ variable "service_account" {
   type        = string
 }
 
+# near
+variable "near" {
+  description = "Near Configuration"
+  type = object({
+    node_url   = string
+    wallet_url = string
+    helper_url = string
+  })
+}
+
 # contract
 variable "contract" {
   description = "Contract Configuration"
   type = object({
-    network_id                = string
-    price_needed_appchain_ids = string
-    counting_interval         = number
+    network_id        = string
+    contract_id       = string
+    token_contract_id = string
+    account_id        = string
+    private_key       = string
+    counting_interval = number
+    dao_contract_id   = string
   })
   sensitive = true
 }
@@ -95,47 +109,4 @@ variable "namespace" {
 variable "dns_zone" {
   description = "DNS Zone"
   type        = string
-}
-
-# public variable set
-variable "APPCHAIN_SETTINGS" {
-  description = "APPCHAIN_SETTINGS"
-  type = map(object({
-    appchainId    = string
-    subqlEndpoint = string
-    wsRpcEndpoint = string
-  }))
-}
-
-variable "CONTRACTS" {
-  description = "CONTRACTS"
-  type = object({
-    registryContract   = string
-    daoContractId      = string
-    octTokenContractId = string
-  })
-}
-
-variable "NEAR_SETTINGS" {
-  description = "NEAR_SETTINGS"
-  type = object({
-    nearEnv             = string
-    nearNodeUrl         = string
-    archivalNearNodeUrl = string
-    walletUrl           = string
-    helperUrl           = string
-  })
-}
-
-variable "APPCHAIN_ORACLE_PHRASE" {
-  description = "APPCHAIN_ORACLE_PHRASE"
-  type        = string
-}
-
-variable "REGISTRY_ADMIN_NEAR_ACCOUNT" {
-  description = "REGISTRY_ADMIN_NEAR_ACCOUNT"
-  type = object({
-    id         = string
-    privateKey = string
-  })
 }
