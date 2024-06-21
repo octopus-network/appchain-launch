@@ -1,0 +1,122 @@
+provider "google" {
+  project = var.project
+  region  = var.region
+}
+
+data "google_client_config" "default" {
+}
+
+data "google_container_cluster" "default" {
+  name     = var.cluster
+  location = var.region
+}
+
+provider "kubernetes" {
+  host                   = "https://${data.google_container_cluster.default.endpoint}"
+  token                  = data.google_client_config.default.access_token
+  cluster_ca_certificate = base64decode(data.google_container_cluster.default.master_auth[0].cluster_ca_certificate)
+}
+
+resource "kubernetes_config_map" "default" {
+  metadata {
+    name      = "omnity-indexer-config-map"
+    namespace = var.namespace
+  }
+  data = {
+    DFX_NETWORK                        = var.DFX_NETWORK
+    OMNITY_HUB_CANISTER_ID             = var.OMNITY_HUB_CANISTER_ID
+    OMNITY_CUSTOMS_BITCOIN_CANISTER_ID = var.OMNITY_CUSTOMS_BITCOIN_CANISTER_ID
+    OMNITY_ROUTES_ICP_CANISTER_ID      = var.OMNITY_ROUTES_ICP_CANISTER_ID
+  }
+}
+
+resource "kubernetes_secret" "default" {
+  metadata {
+    name      = "omnity-indexer-secret"
+    namespace = var.namespace
+  }
+  data = {
+    DATABASE_URL = var.sql_proxy.database
+    DFX_IDENTITY = var.DFX_IDENTITY
+  }
+}
+
+resource "kubernetes_deployment" "default" {
+  metadata {
+    name      = "omnity-indexer"
+    namespace = var.namespace
+    labels = {
+      app = "omnity-indexer"
+    }
+  }
+  spec {
+    replicas               = 1
+    revision_history_limit = 5
+    selector {
+      match_labels = {
+        app = "omnity-indexer"
+      }
+    }
+    template {
+      metadata {
+        labels = {
+          app = "omnity-indexer"
+        }
+      }
+      spec {
+        container {
+          name    = "omnity-indexer"
+          image   = var.omnity_indexer.image
+          command = ["omnity_indexer_sync", "env", "&"]
+          env_from {
+            config_map_ref {
+              name = kubernetes_config_map.default.metadata.0.name
+            }
+          }
+          env_from {
+            secret_ref {
+              name = kubernetes_secret.default.metadata.0.name
+            }
+          }
+          resources {
+            limits = {
+              cpu    = var.omnity_indexer.resources.cpu_limits
+              memory = var.omnity_indexer.resources.memory_limits
+            }
+            requests = {
+              cpu    = var.omnity_indexer.resources.cpu_requests
+              memory = var.omnity_indexer.resources.memory_requests
+            }
+          }
+        }
+        container {
+          name    = "cloud-sql-proxy"
+          image   = var.sql_proxy.image
+          command = ["/cloud_sql_proxy", "-instances=${var.sql_proxy.instances}"]
+          resources {
+            limits = {
+              cpu    = var.sql_proxy.resources.cpu_limits
+              memory = var.sql_proxy.resources.memory_limits
+            }
+            requests = {
+              cpu    = var.sql_proxy.resources.cpu_requests
+              memory = var.sql_proxy.resources.memory_requests
+            }
+          }
+          security_context {
+            run_as_non_root = true
+          }
+        }
+        service_account_name             = "ord-ksa"
+        termination_grace_period_seconds = 300
+      }
+    }
+  }
+  lifecycle {
+    ignore_changes = [
+      spec[0].template[0].spec[0].container[0].resources,
+      spec[0].template[0].spec[0].container[1].resources,
+    ]
+  }
+}
+
