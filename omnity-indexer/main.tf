@@ -67,7 +67,7 @@ resource "kubernetes_deployment" "default" {
         container {
           name    = "omnity-indexer"
           image   = var.omnity_indexer.image
-          command = ["omnity_indexer_sync", "env", "&"]
+          command = ["/bin/omnity_indexer_sync"]
           env_from {
             config_map_ref {
               name = kubernetes_config_map.default.metadata.0.name
