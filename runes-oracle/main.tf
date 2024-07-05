@@ -42,6 +42,7 @@ resource "kubernetes_config_map" "default" {
     INDEXER_URL         = var.INDEXER_URL
     IC_GATEWAY          = var.IC_GATEWAY
     CUSTOMS_CANISTER_ID = var.CUSTOMS_CANISTER_ID
+    HUB_CANISTER_ID     = var.HUB_CANISTER_ID
     PEM_PATH            = var.PEM_PATH
   }
 }

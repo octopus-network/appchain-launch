@@ -52,6 +52,11 @@ variable "CUSTOMS_CANISTER_ID" {
   type        = string
 }
 
+variable "HUB_CANISTER_ID" {
+  description = "HUB_CANISTER_ID"
+  type        = string
+}
+
 variable "PEM_PATH" {
   description = "PEM_PATH"
   type        = string
