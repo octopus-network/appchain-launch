@@ -48,3 +48,8 @@ variable "CANISTERS" {
   description = "CANISTERS"
   type        = string
 }
+
+variable "EVM_MONITOR_KEY" {
+  description = "EVM_MONITOR_KEY"
+  type        = string
+}

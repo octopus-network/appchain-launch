@@ -33,6 +33,7 @@ resource "kubernetes_config_map" "default" {
     BTC_ENV                     = var.BTC_ENV
     BTC_CUSTOMS_DEPOSIT_ADDRESS = var.BTC_CUSTOMS_DEPOSIT_ADDRESS
     CANISTERS                   = var.CANISTERS
+    EVM_MONITOR_KEY             = var.EVM_MONITOR_KEY
   }
 }
 
