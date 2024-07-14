@@ -27,6 +27,12 @@ resource "kubernetes_config_map" "default" {
     OMNITY_HUB_CANISTER_ID             = var.OMNITY_HUB_CANISTER_ID
     OMNITY_CUSTOMS_BITCOIN_CANISTER_ID = var.OMNITY_CUSTOMS_BITCOIN_CANISTER_ID
     OMNITY_ROUTES_ICP_CANISTER_ID      = var.OMNITY_ROUTES_ICP_CANISTER_ID
+    BEVM_CHAIN_ID                      = var.BEVM_CHAIN_ID
+    BITLAYER_CHAIN_ID                  = var.BITLAYER_CHAIN_ID
+    XLAYER_CHAIN_ID                    = var.XLAYER_CHAIN_ID
+    BSQUARE_CHAIN_ID                   = var.BSQUARE_CHAIN_ID
+    MERLIN_CHAIN_ID                    = var.MERLIN_CHAIN_ID
+    BOB_CHAIN_ID                       = var.BOB_CHAIN_ID
   }
 }
 

@@ -76,3 +76,33 @@ variable "OMNITY_ROUTES_ICP_CANISTER_ID" {
   description = "OMNITY_ROUTES_ICP_CANISTER_ID"
   type        = string
 }
+
+variable "BEVM_CHAIN_ID" {
+  description = "BEVM_CHAIN_ID"
+  type        = string
+}
+
+variable "BITLAYER_CHAIN_ID" {
+  description = "BITLAYER_CHAIN_ID"
+  type        = string
+}
+
+variable "XLAYER_CHAIN_ID" {
+  description = "XLAYER_CHAIN_ID"
+  type        = string
+}
+
+variable "BSQUARE_CHAIN_ID" {
+  description = "BSQUARE_CHAIN_ID"
+  type        = string
+}
+
+variable "MERLIN_CHAIN_ID" {
+  description = "MERLIN_CHAIN_ID"
+  type        = string
+}
+
+variable "BOB_CHAIN_ID" {
+  description = "BOB_CHAIN_ID"
+  type        = string
+}
