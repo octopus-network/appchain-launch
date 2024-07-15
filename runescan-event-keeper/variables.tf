@@ -20,6 +20,12 @@ variable "namespace" {
   default     = "default" # testnet / mainnet
 }
 
+variable "name" {
+  description = "Keeper name"
+  type        = string
+  default     = "primary"
+}
+
 # chain
 
 variable "event_keeper" {

@@ -20,7 +20,7 @@ provider "kubernetes" {
 
 resource "kubernetes_secret" "default" {
   metadata {
-    name      = "runescan-event-keeper-secret"
+    name      = "${var.name}-runescan-event-keeper-secret"
     namespace = var.namespace
   }
   data = {
@@ -31,10 +31,10 @@ resource "kubernetes_secret" "default" {
 
 resource "kubernetes_deployment" "default" {
   metadata {
-    name      = "runescan-event-keeper"
+    name      = "${var.name}-runescan-event-keeper"
     namespace = var.namespace
     labels = {
-      app = "runescan-event-keeper"
+      app = "${var.name}-runescan-event-keeper"
     }
   }
   spec {
@@ -42,18 +42,18 @@ resource "kubernetes_deployment" "default" {
     revision_history_limit = 5
     selector {
       match_labels = {
-        app = "runescan-event-keeper"
+        app = "${var.name}-runescan-event-keeper"
       }
     }
     template {
       metadata {
         labels = {
-          app = "runescan-event-keeper"
+          app = "${var.name}-runescan-event-keeper"
         }
       }
       spec {
         container {
-          name    = "runescan-event-keeper"
+          name    = "${var.name}-runescan-event-keeper"
           image   = var.event_keeper.image
           env_from {
             secret_ref {
