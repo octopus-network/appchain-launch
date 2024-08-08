@@ -106,3 +106,8 @@ variable "BOB_CHAIN_ID" {
   description = "BOB_CHAIN_ID"
   type        = string
 }
+
+variable "ROOTSTOCK_CHAIN_ID" {
+  description = "ROOTSTOCK_CHAIN_ID"
+  type        = string
+}
